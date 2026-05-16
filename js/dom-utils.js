@@ -73,37 +73,70 @@ function reconcileChildren(parent, newFragment) {
   const oldChildren = Array.from(parent.childNodes);
   const newChildren = Array.from(newFragment.childNodes);
 
-  const oldKeyed = buildKeyMap(oldChildren);
+  // Compute synthetic keys per child:
+  //   1. Explicit key from `data-card` / `id` / `data-key`.
+  //   2. Fallback class-based key (`__cls__:NODENAME.class`) ONLY when
+  //      `nodeName.className` is unique among the siblings on that side.
+  // Repeated-class siblings (e.g. multiple `<label class="field-row">`)
+  // therefore stay on the positional path, while uniquely-classed
+  // unkeyed siblings (e.g. `<span class="u0">` next to
+  // `<span class="u2">`) preserve identity across reorderings (B5).
+  const oldKeys = computeChildKeys(oldChildren);
+  const newKeys = computeChildKeys(newChildren);
+
+  const oldKeyed = new Map();
+  for (let i = 0; i < oldChildren.length; i++) {
+    if (oldKeys[i]) oldKeyed.set(oldKeys[i], oldChildren[i]);
+  }
+
+  // Mark keyed slots so the positional scan skips them — they are
+  // reserved for their consumer (which may appear later in
+  // `newChildren`). Without this, an old keyed slot would block the
+  // unkeyed positional pointer from finding the next unkeyed candidate,
+  // dropping its identity (B5).
+  const consumed = new Array(oldChildren.length).fill(false);
+  for (let i = 0; i < oldChildren.length; i++) {
+    if (oldKeys[i]) consumed[i] = true;
+  }
   let oldIndex = 0;
 
   for (let i = 0; i < newChildren.length; i++) {
     const newChild = newChildren[i];
-    const newKey = getNodeKey(newChild);
+    const newKey = newKeys[i];
 
-    // Try to find a matching old node
     let matchedOld = null;
 
     if (newKey && oldKeyed.has(newKey)) {
+      // Keyed (or class-keyed) match: do NOT advance oldIndex — the
+      // positional pointer must stay aligned with the next unkeyed
+      // candidate.
       matchedOld = oldKeyed.get(newKey);
       oldKeyed.delete(newKey);
-    } else if (oldIndex < oldChildren.length) {
-      // Positional match: same tag and no key conflict
-      const candidate = oldChildren[oldIndex];
-      if (candidate && nodesAreSameType(candidate, newChild) && !getNodeKey(candidate)) {
-        matchedOld = candidate;
+    } else if (!newKey) {
+      // Unkeyed new child: advance oldIndex past any consumed (keyed
+      // or already-used) slots, then take the next unkeyed candidate
+      // of the same nodeType/nodeName. Leaves oldIndex unchanged when
+      // no compatible candidate is reachable, in which case we insert.
+      while (oldIndex < oldChildren.length && consumed[oldIndex]) oldIndex++;
+      if (oldIndex < oldChildren.length) {
+        const candidate = oldChildren[oldIndex];
+        if (candidate && nodesAreSameType(candidate, newChild) && !oldKeys[oldIndex]) {
+          matchedOld = candidate;
+          consumed[oldIndex] = true;
+          oldIndex++;
+        }
+        // else: incompatible candidate → treat as insertion, leave
+        // oldIndex put so a later compatible newChild can claim it.
       }
-      oldIndex++;
     }
+    // newKey set but not found in oldKeyed: pure insertion.
 
     if (matchedOld) {
-      // Update the existing node in place
       patchNode(matchedOld, newChild);
-      // Ensure correct position
       if (parent.childNodes[i] !== matchedOld) {
         parent.insertBefore(matchedOld, parent.childNodes[i] || null);
       }
     } else {
-      // Insert new node
       const refNode = parent.childNodes[i] || null;
       parent.insertBefore(newChild.cloneNode(true), refNode);
     }
@@ -113,6 +146,44 @@ function reconcileChildren(parent, newFragment) {
   while (parent.childNodes.length > newChildren.length) {
     parent.removeChild(parent.lastChild);
   }
+}
+
+/**
+ * Compute a synthetic key for each child. Returns an array parallel to
+ * `nodes`. A child gets:
+ *   - its explicit `data-card` / `id` / `data-key` value, or
+ *   - a `__cls__:NODENAME.class` synthetic key when its nodeName+class
+ *     is unique among the sibling set, or
+ *   - `null` when neither applies (positional matching only).
+ */
+function computeChildKeys(nodes) {
+  const keys = new Array(nodes.length).fill(null);
+  const classCount = new Map();
+  for (let i = 0; i < nodes.length; i++) {
+    const n = nodes[i];
+    if (!n || n.nodeType !== Node.ELEMENT_NODE) continue;
+    const explicit = n.getAttribute("data-card") || n.getAttribute("id") || n.getAttribute("data-key");
+    if (explicit) {
+      keys[i] = explicit;
+      continue;
+    }
+    const cls = (n.getAttribute("class") || "").trim();
+    if (!cls) continue;
+    const k = `${n.nodeName}.${cls}`;
+    classCount.set(k, (classCount.get(k) || 0) + 1);
+  }
+  for (let i = 0; i < nodes.length; i++) {
+    if (keys[i] !== null) continue;
+    const n = nodes[i];
+    if (!n || n.nodeType !== Node.ELEMENT_NODE) continue;
+    const cls = (n.getAttribute("class") || "").trim();
+    if (!cls) continue;
+    const k = `${n.nodeName}.${cls}`;
+    if (classCount.get(k) === 1) {
+      keys[i] = `__cls__:${k}`;
+    }
+  }
+  return keys;
 }
 
 /**
@@ -137,6 +208,10 @@ function patchNode(oldNode, newNode) {
 
   // Different node types: replace entirely
   if (oldNode.nodeType !== newNode.nodeType || oldNode.nodeName !== newNode.nodeName) {
+    // Null-safe: oldNode may have been detached during a sibling
+    // replacement earlier in the same reconcileChildren pass. The
+    // enclosing reconcile will insert the new node at the correct slot.
+    if (!oldNode.parentNode) return;
     oldNode.parentNode.replaceChild(newNode.cloneNode(true), oldNode);
     return;
   }
@@ -145,8 +220,11 @@ function patchNode(oldNode, newNode) {
   if (oldNode.nodeType === Node.ELEMENT_NODE) {
     updateAttributes(oldNode, newNode);
 
-    // For leaf elements with simple text content, fast-path
-    if (isLeafElement(oldNode) && isLeafElement(newNode)) {
+    // Fast-path only for non-interactive leaf elements without `data-keep`.
+    // Using innerHTML on interactive leaves (button/input/etc.) destroys
+    // listeners attached programmatically; recurse instead so text-node
+    // patching leaves the element identity intact.
+    if (isFastPathLeaf(oldNode) && isFastPathLeaf(newNode)) {
       if (oldNode.innerHTML !== newNode.innerHTML) {
         oldNode.innerHTML = newNode.innerHTML;
       }
@@ -159,8 +237,28 @@ function patchNode(oldNode, newNode) {
 }
 
 /**
+ * Tags whose listeners and DOM identity must be preserved across patches.
+ * For these, we never use the innerHTML fast-path.
+ */
+const INTERACTIVE = new Set(["BUTTON", "INPUT", "SELECT", "TEXTAREA", "A", "LABEL"]);
+
+/**
+ * A "fast-path leaf" is an element with no element children, no
+ * interactive role, and no opt-out `data-keep` attribute. Only such
+ * elements are eligible for the innerHTML shortcut in patchNode.
+ */
+function isFastPathLeaf(el) {
+  return (
+    el.nodeType === Node.ELEMENT_NODE &&
+    el.children.length === 0 &&
+    !INTERACTIVE.has(el.nodeName) &&
+    !el.hasAttribute("data-keep")
+  );
+}
+
+/**
  * A leaf element has no child elements (only text/inline content).
- * We use innerHTML comparison for these for speed.
+ * Kept for backward compatibility; new fast-path checks use isFastPathLeaf.
  */
 function isLeafElement(el) {
   return el.children.length === 0;
@@ -215,11 +313,16 @@ function buildKeyMap(nodes) {
 
 /**
  * Save scroll positions of the container and scrollable ancestors.
+ * Also installs a one-shot window scroll listener so restoreScrollState
+ * can detect a user-initiated scroll that happened mid-render and skip
+ * the scroll restore (B15 — do not fight the user's active scroll).
  */
 function saveScrollState(container) {
   const state = {
     self: { top: container.scrollTop, left: container.scrollLeft },
-    tableScrolls: []
+    tableScrolls: [],
+    userScrolled: false,
+    onUserScroll: null
   };
   // Save scroll of any .table-scroll elements inside
   container.querySelectorAll(".table-scroll").forEach(el => {
@@ -227,24 +330,56 @@ function saveScrollState(container) {
   });
   // Save window scroll
   state.window = { top: window.scrollY, left: window.scrollX };
+
+  // One-shot listener: any scroll between save and restore flips the flag.
+  state.onUserScroll = () => { state.userScrolled = true; };
+  window.addEventListener("scroll", state.onUserScroll, { once: true, passive: true });
+
   return state;
 }
 
 /**
- * Restore scroll positions.
+ * Restore scroll positions, but only when the user has not started
+ * scrolling between save and restore. Always removes the one-shot
+ * listener installed by saveScrollState.
  */
 function restoreScrollState(container, scrollState) {
-  container.scrollTop = scrollState.self.top;
-  container.scrollLeft = scrollState.self.left;
-  window.scrollTo(scrollState.window.left, scrollState.window.top);
-  // Restore table scrolls by class matching
-  if (scrollState.tableScrolls.length) {
-    const newScrollables = container.querySelectorAll(".table-scroll");
-    scrollState.tableScrolls.forEach((saved, i) => {
-      if (newScrollables[i]) {
-        newScrollables[i].scrollLeft = saved.left;
-        newScrollables[i].scrollTop = saved.top;
+  try {
+    const skip = scrollState.userScrolled === true;
+
+    // Container scroll: gated by the same active-scroll guard so we do
+    // not yank the page when the user is interacting.
+    if (!skip) {
+      if (container.scrollTop !== scrollState.self.top) {
+        container.scrollTop = scrollState.self.top;
       }
-    });
+      if (container.scrollLeft !== scrollState.self.left) {
+        container.scrollLeft = scrollState.self.left;
+      }
+    }
+
+    // Window scroll: only restore if the position actually drifted and
+    // the user has not taken over scrolling.
+    if (!skip && window.scrollY !== scrollState.window.top) {
+      window.scrollTo(scrollState.window.left, scrollState.window.top);
+    }
+
+    // Table scroll restores: same gate.
+    if (!skip && scrollState.tableScrolls.length) {
+      const newScrollables = container.querySelectorAll(".table-scroll");
+      scrollState.tableScrolls.forEach((saved, i) => {
+        if (newScrollables[i]) {
+          newScrollables[i].scrollLeft = saved.left;
+          newScrollables[i].scrollTop = saved.top;
+        }
+      });
+    }
+  } finally {
+    // Always remove the one-shot listener, even if it never fired
+    // ({ once: true } would clean up on fire but not on a no-scroll path).
+    if (scrollState.onUserScroll) {
+      window.removeEventListener("scroll", scrollState.onUserScroll);
+      scrollState.onUserScroll = null;
+    }
   }
 }

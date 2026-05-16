@@ -1,12 +1,43 @@
 import { getScheduleKey, escapeHtml } from "./utils.js";
 import { getStopName } from "./line-config.js";
 import { patchDOM } from "./dom-utils.js";
-import { renderNotificationSettings, bindNotificationEvents } from "./notifications.js";
+import {
+  getCurrentUser,
+  getSyncStatus,
+  isFirebaseReady,
+  signInWithGoogle,
+  signOut,
+  saveToCloud,
+  loadFromCloud,
+  deleteCloudData,
+  listenForCloudChanges,
+  onAuthStateChanged
+} from "./firebase-sync.js";
+import {
+  getNotificationConfig,
+  saveNotificationConfig,
+  renderNotificationSettings,
+  bindNotificationEvents
+} from "./notifications.js";
+import { setSuppressCloudWrite } from "./main.js";
 
 let lastArgs = null;
 
 export function renderSettings(state, saveFn, cfg, lineData, lineConfig) {
   lastArgs = { state, saveFn, cfg, lineData, lineConfig };
+  // Register the settings event-bus listener exactly once per page lifetime
+  // (B14): notification UI controls dispatch `trasporti:settings-changed`
+  // and we re-render in place when the Settings tab is active. This
+  // replaces the brittle `window._app_config.renderSettings` indirection.
+  if (!window.__settingsBusBound) {
+    document.addEventListener("trasporti:settings-changed", () => {
+      if (lastArgs && lastArgs.state && lastArgs.state.currentTab === "settings") {
+        const { state: s, saveFn: sf, cfg: c, lineData: ld, lineConfig: lc } = lastArgs;
+        renderSettings(s, sf, c, ld, lc);
+      }
+    });
+    window.__settingsBusBound = true;
+  }
   const container = document.getElementById("settings-content");
   if (!container) return;
   const settings = state.settings || {};
@@ -50,6 +81,8 @@ export function renderSettings(state, saveFn, cfg, lineData, lineConfig) {
     </section>
 
     ${renderNotificationSettings(cfg)}
+
+    ${renderCloudSyncSection(cfg)}
 
     <section class="panel">
       <div class="panel-heading">
@@ -254,9 +287,8 @@ function bindEvents(container) {
   // Bind notification events
   bindNotificationEvents(container);
 
-  // Expose renderSettings for notification re-render
-  window._app_config = window._app_config || {};
-  window._app_config.renderSettings = () => renderSettings(state, saveFn, cfg, lineData, lineConfig);
+  // Bind cloud-sync events (B2)
+  bindCloudSyncEvents(container);
 }
 
 function buildDefaultSettings(cfg) {
@@ -269,7 +301,12 @@ function buildDefaultSettings(cfg) {
 }
 
 function exportSettings(state, cfg) {
-  const data = { version: cfg.version, exportedAt: new Date().toISOString(), settings: state.settings };
+  const data = {
+    version: cfg.version,
+    exportedAt: new Date().toISOString(),
+    settings: state.settings,
+    notifications: getNotificationConfig()
+  };
   const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
@@ -287,6 +324,11 @@ function importSettings(input, saveFn, state, cfg, lineData, lineConfig) {
     try {
       const parsed = JSON.parse(event.target.result);
       if (!parsed.settings || typeof parsed.settings !== "object") throw new Error("preferenze mancanti");
+      // Apply notifications config first so the saveFn (which triggers a
+      // cloud push including notifications) sees the imported value (B16).
+      if (parsed.notifications !== undefined) {
+        saveNotificationConfig(sanitizeNotifications(parsed.notifications));
+      }
       saveFn(sanitizeSettings(parsed.settings, cfg));
       renderSettings(state, saveFn, cfg, lineData, lineConfig);
       alert("Preferenze importate.");
@@ -316,7 +358,7 @@ function clampNumber(value, min, max, fallback) {
   return Math.max(min, Math.min(max, n));
 }
 
-function renderCloudSyncSection() {
+function renderCloudSyncSection(_cfg) {
   const user = getCurrentUser();
   const syncStatus = getSyncStatus();
 
@@ -386,24 +428,41 @@ function renderCloudSyncSection() {
 function bindCloudSyncEvents(container) {
   const { state, saveFn, cfg, lineData, lineConfig } = lastArgs;
 
+  // Make sure the cross-device listener auto-starts when a session-persisted
+  // user is detected by Firebase auth (B7).
+  _ensureAuthStateBound();
+
   // Login
   container.querySelector("[data-cloud-login]")?.addEventListener("click", async () => {
     try {
       const user = await signInWithGoogle();
       if (user) {
         // After login, try to load cloud settings
-        const cloudSettings = await loadFromCloud();
-        if (cloudSettings) {
+        const cloudPayload = await loadFromCloud();
+        const cloudSettings = cloudPayload?.settings ?? null;
+        const cloudNotifs = cloudPayload?.notifications ?? null;
+        if (cloudPayload && (cloudSettings || cloudNotifs)) {
           const useCloud = confirm("Trovate preferenze nel cloud. Vuoi sovrascrivere quelle locali con quelle dal cloud?");
           if (useCloud) {
-            saveFn(cloudSettings);
+            if (cloudSettings) {
+              saveFn(sanitizeSettings(cloudSettings, cfg));
+            }
+            if (cloudNotifs) {
+              saveNotificationConfig(sanitizeNotifications(cloudNotifs));
+            }
           } else {
-            // Save local to cloud instead
-            saveToCloud(state.settings);
+            // Save local to cloud instead, including notifications (B16).
+            saveToCloud({
+              settings: state.settings,
+              notifications: getNotificationConfig()
+            });
           }
         } else {
-          // No cloud data, upload current
-          saveToCloud(state.settings);
+          // No cloud data, upload current settings + notifications (B16).
+          saveToCloud({
+            settings: state.settings,
+            notifications: getNotificationConfig()
+          });
         }
         // Start real-time listener
         _startCloudListener();
@@ -422,15 +481,25 @@ function bindCloudSyncEvents(container) {
 
   // Push to cloud
   container.querySelector("[data-cloud-push]")?.addEventListener("click", () => {
-    saveToCloud(state.settings);
+    saveToCloud({
+      settings: state.settings,
+      notifications: getNotificationConfig()
+    });
     alert("Preferenze salvate nel cloud.");
   });
 
   // Pull from cloud
   container.querySelector("[data-cloud-pull]")?.addEventListener("click", async () => {
-    const cloudSettings = await loadFromCloud();
-    if (cloudSettings) {
-      saveFn(cloudSettings);
+    const cloudPayload = await loadFromCloud();
+    const cloudSettings = cloudPayload?.settings ?? null;
+    const cloudNotifs = cloudPayload?.notifications ?? null;
+    if (cloudPayload && (cloudSettings || cloudNotifs)) {
+      if (cloudSettings) {
+        saveFn(sanitizeSettings(cloudSettings, cfg));
+      }
+      if (cloudNotifs) {
+        saveNotificationConfig(sanitizeNotifications(cloudNotifs));
+      }
       alert("Preferenze caricate dal cloud.");
       renderSettings(state, saveFn, cfg, lineData, lineConfig);
     } else {
@@ -448,17 +517,161 @@ function bindCloudSyncEvents(container) {
 
 // Internal: start real-time listener for cross-device sync
 let _unsubscribeCloudListener = null;
+let _authStateBound = false;
+
+/**
+ * Subscribe once to auth-state changes so the cross-device listener
+ * starts the moment a user is detected (covers session-persisted logins
+ * where the user never clicks `[data-cloud-login]`) and stops cleanly
+ * on sign-out (B7).
+ */
+function _ensureAuthStateBound() {
+  if (_authStateBound) return;
+  _authStateBound = true;
+  onAuthStateChanged(user => {
+    if (user) {
+      _startCloudListener();
+    } else if (_unsubscribeCloudListener) {
+      _unsubscribeCloudListener();
+      _unsubscribeCloudListener = null;
+    }
+  });
+}
+
 function _startCloudListener() {
   if (_unsubscribeCloudListener) _unsubscribeCloudListener();
-  _unsubscribeCloudListener = listenForCloudChanges(cloudSettings => {
+  _unsubscribeCloudListener = listenForCloudChanges(cloudPayload => {
     if (!lastArgs) return;
-    const { state, cfg } = lastArgs;
-    state.settings = sanitizeSettings(cloudSettings, cfg);
+    const { state, saveFn, cfg, lineData, lineConfig } = lastArgs;
+    // The cloud helper passes either { settings, notifications } or just
+    // a bare settings object on the legacy path; tolerate both.
+    const rawSettings = cloudPayload && cloudPayload.settings !== undefined
+      ? cloudPayload.settings
+      : cloudPayload;
+    const rawNotifs = cloudPayload && cloudPayload.notifications !== undefined
+      ? cloudPayload.notifications
+      : null;
+    const incomingSettings = sanitizeSettings(rawSettings, cfg);
+    const incomingNotifs = rawNotifs !== null
+      ? sanitizeNotifications(rawNotifs)
+      : getNotificationConfig();
+    // Own-write echo guard (B7-echo): if the snapshot is byte-equal to what
+    // we already hold locally, skip the callback entirely. Pair this with
+    // the timestamp guard inside firebase-sync.js for full coverage.
+    if (
+      deepEqual(incomingSettings, state.settings) &&
+      deepEqual(incomingNotifs, getNotificationConfig())
+    ) {
+      return;
+    }
+    // Suppress the cloud-write side of saveSettings while we mutate state
+    // and re-render, breaking the auto-sync echo loop (B8).
+    setSuppressCloudWrite(true);
     try {
-      localStorage.setItem("trasporti_settings", JSON.stringify(state.settings));
-    } catch (e) { /* ignore */ }
+      state.settings = incomingSettings;
+      try {
+        localStorage.setItem("trasporti_settings", JSON.stringify(state.settings));
+      } catch (e) { /* ignore */ }
+      if (rawNotifs !== null) {
+        saveNotificationConfig(incomingNotifs);
+      }
+      // Re-render the active tab so the user sees the new state without
+      // having to switch tabs (B7).
+      if (state.currentTab === "settings") {
+        renderSettings(state, saveFn, cfg, lineData, lineConfig);
+      } else {
+        // Other tabs read state.settings directly; dispatch a typed event so
+        // any listeners (e.g. main.js renderCurrentTab) can pick it up.
+        document.dispatchEvent(new CustomEvent("trasporti:settings-changed"));
+      }
+    } finally {
+      setSuppressCloudWrite(false);
+    }
     console.log("[FirebaseSync] Preferenze aggiornate da altro dispositivo.");
   });
+}
+
+/**
+ * Structural equality for plain JSON-shaped values. Used by the cloud
+ * listener to filter own-write echoes (B7-echo).
+ */
+function deepEqual(a, b) {
+  if (a === b) return true;
+  if (a === null || b === null) return a === b;
+  if (typeof a !== "object" || typeof b !== "object") return a === b;
+  if (Array.isArray(a) !== Array.isArray(b)) return false;
+  if (Array.isArray(a)) {
+    if (a.length !== b.length) return false;
+    for (let i = 0; i < a.length; i++) {
+      if (!deepEqual(a[i], b[i])) return false;
+    }
+    return true;
+  }
+  const ak = Object.keys(a);
+  const bk = Object.keys(b);
+  if (ak.length !== bk.length) return false;
+  for (const k of ak) {
+    if (!Object.prototype.hasOwnProperty.call(b, k)) return false;
+    if (!deepEqual(a[k], b[k])) return false;
+  }
+  return true;
+}
+
+/**
+ * Defensive sanitizer for the notifications config blob (B16). On any
+ * malformed input we fall back to the same defaults that
+ * `getNotificationConfig()` returns from a fresh install.
+ */
+export function sanitizeNotifications(raw) {
+  const fallback = () => ({
+    enabled: true,
+    followedLines: [],
+    reminders: {},
+    defaultReminders: [5, 10],
+    lastNotified: {}
+  });
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return fallback();
+
+  // enabled → boolean (default true if undefined)
+  const enabled = raw.enabled === undefined ? true : !!raw.enabled;
+
+  // followedLines → string array
+  const followedLines = Array.isArray(raw.followedLines)
+    ? raw.followedLines.filter(s => typeof s === "string")
+    : [];
+
+  // reminders → { [lineId: string]: number[] in (0, 60] }
+  const reminders = {};
+  if (raw.reminders && typeof raw.reminders === "object" && !Array.isArray(raw.reminders)) {
+    for (const [lineId, list] of Object.entries(raw.reminders)) {
+      if (typeof lineId !== "string" || !Array.isArray(list)) continue;
+      const cleaned = list
+        .map(n => Number(n))
+        .filter(n => Number.isFinite(n) && n > 0 && n <= 60)
+        .sort((a, b) => a - b);
+      if (cleaned.length) reminders[lineId] = cleaned;
+    }
+  }
+
+  // defaultReminders → non-empty number array (>0, <=60)
+  let defaultReminders = Array.isArray(raw.defaultReminders)
+    ? raw.defaultReminders
+        .map(n => Number(n))
+        .filter(n => Number.isFinite(n) && n > 0 && n <= 60)
+        .sort((a, b) => a - b)
+    : [];
+  if (!defaultReminders.length) defaultReminders = [5, 10];
+
+  // lastNotified → object of numbers
+  const lastNotified = {};
+  if (raw.lastNotified && typeof raw.lastNotified === "object" && !Array.isArray(raw.lastNotified)) {
+    for (const [k, v] of Object.entries(raw.lastNotified)) {
+      const n = Number(v);
+      if (typeof k === "string" && Number.isFinite(n)) lastNotified[k] = n;
+    }
+  }
+
+  return { enabled, followedLines, reminders, defaultReminders, lastNotified };
 }
 
 function updateSWStatus(container) {

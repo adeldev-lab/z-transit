@@ -200,16 +200,14 @@ function checkReminders(ctx) {
     // Check each reminder threshold
     const reminders = config.reminders[lineId] || config.defaultReminders;
     for (const reminderMin of reminders) {
-      if (waitMin <= reminderMin && waitMin > reminderMin - 1) {
-        const notifKey = `${lineId}_${depMin}_${reminderMin}`;
-        if (!wasRecentlyNotified(config, notifKey, now)) {
-          fireNotification(
-            `${lineId} tra ${waitMin} min`,
-            `Bus ${lineId} parte alle ${minsToHHMM(depMin)} da ${stopName}. Esci ${direction === "outbound" ? "di casa" : "dalla fermata"} presto!`,
-            lineId
-          );
-          markNotified(config, notifKey, now);
-        }
+      const notifKey = `${lineId}_${depMin}_${reminderMin}`;
+      if (waitMin <= reminderMin && !config.lastNotified?.[notifKey]) {
+        fireNotification(
+          `${lineId} tra ${waitMin} min`,
+          `Bus ${lineId} parte alle ${minsToHHMM(depMin)} da ${stopName}. Esci ${direction === "outbound" ? "di casa" : "dalla fermata"} presto!`,
+          lineId
+        );
+        markNotified(config, notifKey, now);
       }
     }
   }
@@ -231,16 +229,14 @@ function checkCanegrateReminder(config, currentMin, state, cfg, now) {
 
       const reminders = config.reminders["canegrate"] || config.defaultReminders;
       for (const reminderMin of reminders) {
-        if (leaveIn <= reminderMin && leaveIn > reminderMin - 1) {
-          const notifKey = `canegrate_${trainDep}_${reminderMin}`;
-          if (!wasRecentlyNotified(config, notifKey, now)) {
-            fireNotification(
-              `Canegrate FS tra ${leaveIn} min`,
-              `Treno S5 parte alle ${minsToHHMM(trainDep)}. Esci in auto tra ${leaveIn} min (${driveMin} min di guida).`,
-              "canegrate"
-            );
-            markNotified(config, notifKey, now);
-          }
+        const notifKey = `canegrate_${trainDep}_${reminderMin}`;
+        if (leaveIn <= reminderMin && !config.lastNotified?.[notifKey]) {
+          fireNotification(
+            `Canegrate FS tra ${leaveIn} min`,
+            `Treno S5 parte alle ${minsToHHMM(trainDep)}. Esci in auto tra ${leaveIn} min (${driveMin} min di guida).`,
+            "canegrate"
+          );
+          markNotified(config, notifKey, now);
         }
       }
       break; // Only check the first upcoming train
@@ -266,25 +262,29 @@ function markNotified(config, key, now) {
   saveNotificationConfig(config);
 }
 
-function fireNotification(title, body, tag) {
+async function fireNotification(title, body, tag) {
+  const options = {
+    body,
+    tag,
+    renotify: true,
+    requireInteraction: false,
+    vibrate: [200, 100, 200],
+    icon: "./icon-192.png",
+    badge: "./icon-badge.png"
+  };
   try {
-    const notification = new Notification(title, {
-      body,
-      icon: "./manifest.json", // Will use PWA icon
-      badge: "./manifest.json",
-      tag: tag, // Replaces previous notification with same tag
-      renotify: true,
-      vibrate: [200, 100, 200],
-      requireInteraction: false
-    });
-    notification.onclick = () => {
-      window.focus();
-      notification.close();
-    };
-    // Auto-close after 15 seconds
-    setTimeout(() => notification.close(), 15000);
+    if ("serviceWorker" in navigator) {
+      const reg = await navigator.serviceWorker.ready;
+      if (reg && reg.showNotification) {
+        return reg.showNotification(title, options);
+      }
+    }
+    const { vibrate, renotify, requireInteraction, ...legacy } = options;
+    const n = new Notification(title, legacy);
+    n.onclick = () => { window.focus(); n.close(); };
+    setTimeout(() => n.close(), 15000);
   } catch (e) {
-    console.warn("[Notifications] Errore invio notifica:", e);
+    console.warn("[Notifications]", e);
   }
 }
 
@@ -372,8 +372,8 @@ export function bindNotificationEvents(container) {
   container.querySelector("[data-request-notif-permission]")?.addEventListener("click", async () => {
     const result = await requestPermission();
     if (result === "granted") {
-      // Re-render to update UI
-      location.reload();
+      // Re-render via event bus instead of full page reload
+      document.dispatchEvent(new CustomEvent('trasporti:settings-changed'));
     } else {
       alert("Notifiche non autorizzate. Controlla le impostazioni del browser.");
     }
@@ -399,14 +399,8 @@ export function bindNotificationEvents(container) {
   container.querySelectorAll("[data-notif-follow-line]").forEach(input => {
     input.addEventListener("change", () => {
       toggleFollowLine(input.dataset.notifFollowLine);
-      // Re-render the settings to show/hide reminder input
-      const settingsContainer = document.getElementById("settings-content");
-      if (settingsContainer && window._app_config?.renderSettings) {
-        window._app_config.renderSettings();
-      } else {
-        // Fallback: just reload
-        location.reload();
-      }
+      // Re-render via event bus
+      document.dispatchEvent(new CustomEvent('trasporti:settings-changed'));
     });
   });
 

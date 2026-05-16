@@ -12,11 +12,14 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
   <link rel="stylesheet" href="./css/style.css">
   <script>
-    // Apply theme before first paint to avoid flash
+    // Apply theme before first paint to avoid flash.
+    // Default is the original dark theme; light is opt-in via the toggle only.
     (function() {
       var saved = localStorage.getItem('trasporti_theme');
-      var theme = saved || (window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+      var theme = saved === 'light' ? 'light' : 'dark';
       document.documentElement.setAttribute('data-theme', theme);
+      var meta = document.querySelector('meta[name="theme-color"]');
+      if (meta) meta.setAttribute('content', theme === 'light' ? '#f8fafc' : '#101828');
     })();
   </script>
 </head>

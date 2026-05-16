@@ -12,7 +12,22 @@ import { renderSettings, sanitizeSettings } from "./settings.js";
 import { getItalianDayName } from "./utils.js";
 import { initMap } from "./map.js";
 import { initTheme } from "./theme.js";
-import { initNotifications } from "./notifications.js";
+import { initNotifications, getNotificationConfig } from "./notifications.js";
+import { initFirebase, getCurrentUser, saveToCloud, onAuthStateChanged } from "./firebase-sync.js";
+
+// Module-level flag used by js/settings.js _startCloudListener to suppress
+// the cloud write branch of saveSettings while applying a remote snapshot,
+// breaking the auto-sync echo loop (B8).
+let _suppressCloudWrite = false;
+
+/**
+ * Allow other modules (e.g. js/settings.js) to toggle the cloud-write
+ * suppression flag around cloud-listener-driven state mutations.
+ * @param {boolean} v
+ */
+export function setSuppressCloudWrite(v) {
+  _suppressCloudWrite = !!v;
+}
 
 const LINE_DATA = {
   Z649: Z649_DATA,
@@ -23,6 +38,16 @@ const LINE_DATA = {
   Z642: Z642_DATA
 };
 
+// `state.settings` is initialized lazily on first access. This breaks the
+// `js/main.js` ↔ `js/settings.js` ESM circular-import deadlock: when a
+// consumer imports `js/settings.js` first, that module's evaluation is
+// paused on `import { setSuppressCloudWrite } from "./main.js"`. Node
+// then evaluates `js/main.js`, but the `sanitizeSettings` binding from
+// `js/settings.js` is still in the TDZ. Calling it from a top-level
+// `loadSettings()` would throw `TypeError: sanitizeSettings is not a
+// function`. Deferring the call to first access of `state.settings`
+// guarantees both modules have finished evaluating before
+// `sanitizeSettings` is invoked.
 const state = {
   currentTab: "live",
   timetableLine: "Z649",
@@ -34,7 +59,14 @@ const state = {
   liveStopFilter: null,
   liveLineFilter: null,
   showAllStops: false,
-  settings: loadSettings()
+  _settings: null,
+  get settings() {
+    if (this._settings === null) this._settings = loadSettings();
+    return this._settings;
+  },
+  set settings(v) {
+    this._settings = v;
+  }
 };
 
 function loadSettings() {
@@ -54,9 +86,9 @@ export function saveSettings(partial) {
   } catch (error) {
     console.warn("Impossibile salvare le preferenze.", error);
   }
-  // Auto-sync to cloud if logged in
-  if (getCurrentUser()) {
-    saveToCloud(state.settings);
+  // Auto-sync to cloud if logged in (skipped while applying a remote snapshot)
+  if (!_suppressCloudWrite && getCurrentUser()) {
+    saveToCloud({ settings: state.settings, notifications: getNotificationConfig() });
   }
   renderCurrentTab();
 }
@@ -111,6 +143,17 @@ function init() {
   });
   updateClock();
   setInterval(updateClock, 1000);
+  try {
+    initFirebase();
+  } catch (e) {
+    console.warn("[Firebase]", e);
+  }
+  onAuthStateChanged(() => {
+    if (state.currentTab === "settings") renderCurrentTab();
+  });
+  document.addEventListener("trasporti:settings-changed", () => {
+    if (state.currentTab === "settings") renderCurrentTab();
+  });
   switchTab("live");
   setInterval(() => {
     if (state.currentTab === "live" || state.currentTab === "timetable") renderCurrentTab();

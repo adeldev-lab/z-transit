@@ -15,6 +15,12 @@ let _db = null;
 let _currentUser = null;
 let _syncTimer = null;
 let _onAuthChangeCallbacks = [];
+// Last successful local write timestamp (ms epoch), used by
+// `listenForCloudChanges` to filter own-device snapshot echoes (B7-echo).
+let _lastWriteTimestamp = 0;
+// 5 seconds: comfortably wider than typical Firestore round-trip + clock skew
+// but short enough not to swallow remote updates from a real second device.
+const OWN_WRITE_ECHO_WINDOW_MS = 5000;
 
 // ── Initialization ──────────────────────────────────────────────────────────
 
@@ -112,27 +118,44 @@ export function onAuthStateChanged(callback) {
 // ── Firestore Sync ──────────────────────────────────────────────────────────
 
 /**
- * Save settings to Firestore for the current user.
+ * Save the user's preference payload to Firestore.
  * Debounced to avoid excessive writes.
- * @param {object} settings - the full settings object
+ * @param {object} payload - `{ settings, notifications }` (B16).
+ *   For backwards compatibility, a bare settings object is also accepted
+ *   and silently wrapped as `{ settings: payload }` so older callers do
+ *   not regress while consumers are migrated.
  */
-export function saveToCloud(settings) {
+export function saveToCloud(payload) {
   if (!_currentUser || !_db) return;
+  // Tolerate the legacy single-argument shape: callers that still pass
+  // `state.settings` directly will keep working until they are migrated.
+  const normalized = (payload && typeof payload === "object" &&
+    ("settings" in payload || "notifications" in payload))
+    ? {
+        settings: payload.settings ?? null,
+        notifications: payload.notifications ?? null
+      }
+    : { settings: payload ?? null, notifications: null };
   if (_syncTimer) clearTimeout(_syncTimer);
-  _syncTimer = setTimeout(() => _doSave(settings), SYNC_DEBOUNCE_MS);
+  _syncTimer = setTimeout(() => _doSave(normalized), SYNC_DEBOUNCE_MS);
 }
 
-async function _doSave(settings) {
+async function _doSave(payload) {
   if (!_currentUser || !_db) return;
   try {
     const docRef = _db.collection(FIRESTORE_COLLECTION).doc(_currentUser.uid);
     await docRef.set({
-      settings: settings,
+      settings: payload.settings,
+      notifications: payload.notifications,
       updatedAt: window.firebase.firestore.FieldValue.serverTimestamp(),
       displayName: _currentUser.displayName || "",
       email: _currentUser.email || "",
       photoURL: _currentUser.photoURL || ""
     }, { merge: true });
+    // Record the moment the write was acknowledged locally so the
+    // snapshot listener can ignore the echo Firestore will deliver
+    // back to this same client (B7-echo).
+    _lastWriteTimestamp = Date.now();
     console.log("[FirebaseSync] Preferenze salvate nel cloud.");
   } catch (error) {
     console.error("[FirebaseSync] Errore salvataggio cloud:", error);
@@ -140,8 +163,10 @@ async function _doSave(settings) {
 }
 
 /**
- * Load settings from Firestore for the current user.
- * @returns {Promise<object|null>} settings object or null if not found
+ * Load settings + notifications from Firestore for the current user.
+ * @returns {Promise<{settings: object|null, notifications: object|null}|null>}
+ *   `null` only when no document exists; otherwise an object with both keys
+ *   (each may individually be `null` if the document predates the migration).
  */
 export async function loadFromCloud() {
   if (!_currentUser || !_db) return null;
@@ -151,7 +176,10 @@ export async function loadFromCloud() {
     if (doc.exists) {
       const data = doc.data();
       console.log("[FirebaseSync] Preferenze caricate dal cloud.");
-      return data.settings || null;
+      return {
+        settings: data.settings ?? null,
+        notifications: data.notifications ?? null
+      };
     }
     return null;
   } catch (error) {
@@ -176,20 +204,37 @@ export async function deleteCloudData() {
 
 /**
  * Listen for real-time changes from cloud (other devices).
- * @param {Function} callback - receives (settings) when cloud data changes
+ * @param {Function} callback - receives `{ settings, notifications }` when
+ *   the cloud document changes due to a remote write. Own-device echoes
+ *   are filtered both by `metadata.hasPendingWrites` and by comparing
+ *   `updatedAt` against `_lastWriteTimestamp` within a short window.
  * @returns {Function} unsubscribe function
  */
 export function listenForCloudChanges(callback) {
   if (!_currentUser || !_db) return () => {};
   const docRef = _db.collection(FIRESTORE_COLLECTION).doc(_currentUser.uid);
   return docRef.onSnapshot(doc => {
-    if (doc.exists && doc.metadata.hasPendingWrites === false) {
-      // Only trigger for server-confirmed changes (not local writes)
-      const data = doc.data();
-      if (data.settings) {
-        callback(data.settings);
-      }
+    if (!doc.exists) return;
+    if (doc.metadata.hasPendingWrites !== false) return;
+    const data = doc.data();
+    // Own-write echo filter (B7-echo): Firestore replays our own committed
+    // write back to us as a server-confirmed snapshot. Compare the doc's
+    // `updatedAt` server timestamp against the last local write moment;
+    // if they fall inside the echo window, drop the callback.
+    const updatedAtMs = data?.updatedAt?.toMillis?.();
+    if (
+      typeof updatedAtMs === "number" &&
+      _lastWriteTimestamp > 0 &&
+      Math.abs(updatedAtMs - _lastWriteTimestamp) < OWN_WRITE_ECHO_WINDOW_MS
+    ) {
+      return;
     }
+    // Hand the consumer the full payload shape so it can apply both
+    // `settings` and `notifications` atomically (B16).
+    callback({
+      settings: data.settings ?? null,
+      notifications: data.notifications ?? null
+    });
   }, error => {
     console.error("[FirebaseSync] Listener error:", error);
   });

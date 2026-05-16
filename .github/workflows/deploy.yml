@@ -1,5 +1,11 @@
 name: Deploy to GitHub Pages
 
+# This workflow ships only the static PWA. Firestore security rules
+# (firestore.rules) are deployed manually with `firebase deploy --only
+# firestore:rules`. See DEPLOY.md at the repo root for the full
+# procedure — skipping that step leaves cloud sync on Firebase's
+# default rules and is unsafe for end users.
+
 on:
   push:
     branches:

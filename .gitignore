@@ -1,22 +1,35 @@
-# Dependency directories
+# ─── Dependencies ────────────────────────────────────────────────────────────
 node_modules/
+package-lock.json
 
-# Local configuration and logs
-*.log
-.DS_Store
-Thumbs.db
-
-# IDE / Editor folders.
+# ─── IDE / Editor ────────────────────────────────────────────────────────────
 .vscode/
 .idea/
 .history/
 .sublime-project
 .sublime-workspace
 
-# Temporary scripts and work files
+# ─── Kiro workspace ─────────────────────────────────────────────────────────
+.kiro/
+
+# ─── OS junk ────────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+Desktop.ini
+ehthumbs.db
+
+# ─── Logs ───────────────────────────────────────────────────────────────────
+*.log
+npm-debug.log*
+
+# ─── Test tooling (dev-only, not needed in production/GH Pages) ─────────────
+tests/
+vitest.config.js
+
+# ─── Scratch / utility scripts (dev-only) ───────────────────────────────────
+scratch/
+utility_stops.md
+
+# ─── Misc dev files ─────────────────────────────────────────────────────────
 *.py
-
-
-# Package manager files (if you only use them for local dev)
-package-lock.json
-# package.json  # Keep this if you want to track devDependencies
+.config.kiro

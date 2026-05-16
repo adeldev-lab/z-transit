@@ -1,7 +1,9 @@
 // =============================================================================
 // theme.js – Dark/Light mode toggle
 // =============================================================================
-// Saves preference to localStorage. Falls back to system preference.
+// Default theme is the original dark theme. Light is opt-in via the toggle
+// button only; the system `prefers-color-scheme` is intentionally not used so
+// users on light-mode devices still see the dark UI by default.
 // =============================================================================
 
 const STORAGE_KEY = "trasporti_theme";
@@ -19,15 +21,6 @@ export function initTheme() {
     localStorage.setItem(STORAGE_KEY, next);
     updateIcon(toggle);
     updateThemeColor(next);
-  });
-
-  // Listen for system preference changes (if no manual override)
-  window.matchMedia("(prefers-color-scheme: light)").addEventListener("change", (e) => {
-    if (localStorage.getItem(STORAGE_KEY)) return; // Manual override takes precedence
-    const theme = e.matches ? "light" : "dark";
-    document.documentElement.setAttribute("data-theme", theme);
-    updateIcon(toggle);
-    updateThemeColor(theme);
   });
 }
 
