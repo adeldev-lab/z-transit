@@ -6,7 +6,7 @@ node_modules/
 .DS_Store
 Thumbs.db
 
-# IDE / Editor folders
+# IDE / Editor folders.
 .vscode/
 .idea/
 .history/
