@@ -1,4 +1,4 @@
-const CACHE_NAME = "trasporti-busto-v4-1-0";
+const CACHE_NAME = "trasporti-busto-v4-2-0";
 
 const PRECACHE_ASSETS = [
   "./",
@@ -12,6 +12,9 @@ const PRECACHE_ASSETS = [
   "./js/utils.js",
   "./js/trains.js",
   "./js/line-config.js",
+  "./js/dom-utils.js",
+  "./js/theme.js",
+  "./js/notifications.js",
   "./data/config.js",
   "./data/z649.js",
   "./data/z627.js",
@@ -52,6 +55,19 @@ self.addEventListener("fetch", event => {
         status: 503,
         headers: { "Content-Type": "text/plain; charset=utf-8" }
       }));
+    })
+  );
+});
+
+// Handle notification click – focus or open the app
+self.addEventListener("notificationclick", event => {
+  event.notification.close();
+  event.waitUntil(
+    self.clients.matchAll({ type: "window", includeUncontrolled: true }).then(clients => {
+      if (clients.length > 0) {
+        return clients[0].focus();
+      }
+      return self.clients.openWindow("./");
     })
   );
 });

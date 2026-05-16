@@ -3,6 +3,10 @@ export const STOP_COORDINATES = {
   // Per aggiornare le coordinate, cercare la fermata su Google Maps,
   // cliccare col tasto destro sul punto esatto e copiare i due numeri (latitudine, longitudine).
   // Incollarli qui sotto tra le parentesi quadre.
+  //
+  // TODO: BT205 è definito due volte con coordinate leggermente diverse.
+  //       Verificare quale sia corretto e rimuovere il duplicato.
+  //       (la seconda definizione sovrascrive la prima in JS)
 
   "BT999": [45.55413506556368, 8.873315041886375], // Busto G. Deposito (V. Busto A. 131)
   "BT949": [45.55111633997449, 8.876709344549651], // Busto G. Piscina (V. Busto A. 91)

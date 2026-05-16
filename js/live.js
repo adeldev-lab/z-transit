@@ -20,6 +20,7 @@ import { calcNextTrain, buildCanegrateBlock } from "./trains.js";
 import { getStopName, STOP_NAMES } from "./line-config.js";
 import { openMap } from "./map.js";
 import { STOP_COORDINATES } from "./map-data.js";
+import { patchDOM } from "./dom-utils.js";
 
 // Cities ordered outward from Busto Garolfo for the stop filter dropdown
 const FILTER_CITY_ORDER = [
@@ -96,12 +97,16 @@ export function renderLive(state, lineData, lineConfig, cfg, saveSettings) {
     const hasService = hasServiceToday(lineId, dayType, lineConfig, lineData, now, cfg);
     const disrupted = isLineDisrupted(lineId, now, cfg);
     if (!hasService && !disrupted) continue;
-    const card = direction === "return"
-      ? buildReturnCard(lineId, state, lineData, lineConfig, cfg, currentMin, dayType, disrupted, stopFilter)
-      : buildOutboundCard(lineId, state, lineData, lineConfig, cfg, currentMin, dayType, disrupted, stopFilter);
-    if (card) {
-      if (stopFilter && !card.hasTrips) continue;
-      cards.push(card);
+    try {
+      const card = direction === "return"
+        ? buildReturnCard(lineId, state, lineData, lineConfig, cfg, currentMin, dayType, disrupted, stopFilter)
+        : buildOutboundCard(lineId, state, lineData, lineConfig, cfg, currentMin, dayType, disrupted, stopFilter);
+      if (card) {
+        if (stopFilter && !card.hasTrips) continue;
+        cards.push(card);
+      }
+    } catch (cardError) {
+      console.error(`[Trasporti] Errore nel calcolo della card ${lineId}:`, cardError);
     }
   }
 
@@ -114,20 +119,40 @@ export function renderLive(state, lineData, lineConfig, cfg, saveSettings) {
     cards.sort(compareCardsByDeparture);
     if (!stopFilter) {
       const hero = cards.find(card => card.lineId === "Z649" && card.hasTrips);
-      if (hero) html += renderFeaturedCard(hero, direction, cfg, currentMin, state);
+      if (hero) {
+        try {
+          html += renderFeaturedCard(hero, direction, cfg, currentMin, state);
+        } catch (e) {
+          console.error("[Trasporti] Errore nel render della featured card:", e);
+        }
+      }
     }
     html += `<div class="section-title">${stopFilter ? `Partenze da ${escapeHtml(getStopName(stopFilter))}` : "Linee attive"}</div>`;
-    html += cards.map(card => renderLineCard(card, direction, cfg, currentMin, state)).join("");
+    html += cards.map(card => {
+      try {
+        return renderLineCard(card, direction, cfg, currentMin, state);
+      } catch (e) {
+        console.error(`[Trasporti] Errore nel render card ${card.lineId}:`, e);
+        return `<div class="empty-mini" style="border-color: rgba(239,68,68,0.3); color: #fecaca;">Errore nel caricamento di ${card.lineId}</div>`;
+      }
+    }).join("");
   }
 
   if (!stopFilter) {
-    html += renderRecentlyDepartedBlock(state, lineData, lineConfig, cfg, currentMin, dayType, direction);
+    try {
+      html += renderRecentlyDepartedBlock(state, lineData, lineConfig, cfg, currentMin, dayType, direction);
+    } catch (e) {
+      console.error("[Trasporti] Errore nel render recenti:", e);
+    }
   }
-  html += renderCanegrateBlock(state, currentMin, cfg);
+  try {
+    html += renderCanegrateBlock(state, currentMin, cfg);
+  } catch (e) {
+    console.error("[Trasporti] Errore nel render Canegrate:", e);
+  }
   html += `<div class="app-footer">Dati aggiornati al ${escapeHtml(cfg.lastUpdate)}. Coincidenze treno/metro stimate.</div>`;
 
-  container.innerHTML = html;
-  bindLiveEvents(container);
+  patchDOM(container, html, { onAfterPatch: () => bindLiveEvents(container) });
 }
 
 function renderFilterBar(lineConfig, cfg, stopFilter, lineFilter) {

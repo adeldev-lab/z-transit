@@ -11,6 +11,8 @@ import { renderTimetable } from "./timetable.js";
 import { renderSettings, sanitizeSettings } from "./settings.js";
 import { getItalianDayName } from "./utils.js";
 import { initMap } from "./map.js";
+import { initTheme } from "./theme.js";
+import { initNotifications } from "./notifications.js";
 
 const LINE_DATA = {
   Z649: Z649_DATA,
@@ -56,9 +58,20 @@ export function saveSettings(partial) {
 }
 
 function renderCurrentTab() {
-  if (state.currentTab === "live") renderLive(state, LINE_DATA, LINE_CONFIG, CFG, saveSettings);
-  if (state.currentTab === "timetable") renderTimetable(state, LINE_DATA, LINE_CONFIG, CFG);
-  if (state.currentTab === "settings") renderSettings(state, saveSettings, CFG, LINE_DATA, LINE_CONFIG);
+  const errorMessage = `<div class="empty-state" style="border-color: rgba(239,68,68,0.4); background: rgba(239,68,68,0.08); color: #fecaca;">
+    <strong>Errore di rendering</strong><br>
+    <small>Si è verificato un problema nel caricamento di questa sezione. Prova a ricaricare la pagina.</small>
+  </div>`;
+
+  try {
+    if (state.currentTab === "live") renderLive(state, LINE_DATA, LINE_CONFIG, CFG, saveSettings);
+    else if (state.currentTab === "timetable") renderTimetable(state, LINE_DATA, LINE_CONFIG, CFG);
+    else if (state.currentTab === "settings") renderSettings(state, saveSettings, CFG, LINE_DATA, LINE_CONFIG);
+  } catch (error) {
+    console.error(`[Trasporti] Errore nel render del tab "${state.currentTab}":`, error);
+    const container = document.getElementById(`${state.currentTab}-content`);
+    if (container) container.innerHTML = errorMessage;
+  }
 }
 
 function switchTab(tabId) {
@@ -98,7 +111,18 @@ function init() {
   setInterval(() => {
     if (state.currentTab === "live" || state.currentTab === "timetable") renderCurrentTab();
   }, 60000);
-  initMap();
+  try {
+    initMap();
+  } catch (e) {
+    console.warn("[Trasporti] Mappa non inizializzata:", e);
+  }
+  initTheme();
+  initNotifications(
+    () => state,
+    () => LINE_DATA,
+    () => LINE_CONFIG,
+    () => CFG
+  );
   registerSW();
 }
 
