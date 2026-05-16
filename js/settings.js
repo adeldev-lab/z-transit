@@ -2,11 +2,6 @@ import { getScheduleKey, escapeHtml } from "./utils.js";
 import { getStopName } from "./line-config.js";
 import { patchDOM } from "./dom-utils.js";
 import { renderNotificationSettings, bindNotificationEvents } from "./notifications.js";
-import {
-  initFirebase, signInWithGoogle, signOut, getCurrentUser,
-  onAuthStateChanged, saveToCloud, loadFromCloud, deleteCloudData,
-  listenForCloudChanges, isFirebaseReady, getSyncStatus
-} from "./firebase-sync.js";
 
 let lastArgs = null;
 
@@ -55,8 +50,6 @@ export function renderSettings(state, saveFn, cfg, lineData, lineConfig) {
     </section>
 
     ${renderNotificationSettings(cfg)}
-
-    ${renderCloudSyncSection()}
 
     <section class="panel">
       <div class="panel-heading">
@@ -260,9 +253,6 @@ function bindEvents(container) {
 
   // Bind notification events
   bindNotificationEvents(container);
-
-  // Bind cloud sync events
-  bindCloudSyncEvents(container);
 
   // Expose renderSettings for notification re-render
   window._app_config = window._app_config || {};

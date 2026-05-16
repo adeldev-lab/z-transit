@@ -13,7 +13,6 @@ import { getItalianDayName } from "./utils.js";
 import { initMap } from "./map.js";
 import { initTheme } from "./theme.js";
 import { initNotifications } from "./notifications.js";
-import { initFirebase, saveToCloud, getCurrentUser, onAuthStateChanged, loadFromCloud, listenForCloudChanges } from "./firebase-sync.js";
 
 const LINE_DATA = {
   Z649: Z649_DATA,
@@ -122,7 +121,6 @@ function init() {
     console.warn("[Trasporti] Mappa non inizializzata:", e);
   }
   initTheme();
-  initFirebase();
   initNotifications(
     () => state,
     () => LINE_DATA,
