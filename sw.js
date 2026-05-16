@@ -15,6 +15,7 @@ const PRECACHE_ASSETS = [
   "./js/dom-utils.js",
   "./js/theme.js",
   "./js/notifications.js",
+  "./js/firebase-sync.js",
   "./data/config.js",
   "./data/z649.js",
   "./data/z627.js",

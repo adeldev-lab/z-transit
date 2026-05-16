@@ -13,6 +13,7 @@ import { getItalianDayName } from "./utils.js";
 import { initMap } from "./map.js";
 import { initTheme } from "./theme.js";
 import { initNotifications } from "./notifications.js";
+import { initFirebase, saveToCloud, getCurrentUser, onAuthStateChanged, loadFromCloud, listenForCloudChanges } from "./firebase-sync.js";
 
 const LINE_DATA = {
   Z649: Z649_DATA,
@@ -53,6 +54,10 @@ export function saveSettings(partial) {
     localStorage.setItem("trasporti_settings", JSON.stringify(state.settings));
   } catch (error) {
     console.warn("Impossibile salvare le preferenze.", error);
+  }
+  // Auto-sync to cloud if logged in
+  if (getCurrentUser()) {
+    saveToCloud(state.settings);
   }
   renderCurrentTab();
 }
@@ -117,6 +122,7 @@ function init() {
     console.warn("[Trasporti] Mappa non inizializzata:", e);
   }
   initTheme();
+  initFirebase();
   initNotifications(
     () => state,
     () => LINE_DATA,
