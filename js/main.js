@@ -54,6 +54,10 @@ export function saveSettings(partial) {
   } catch (error) {
     console.warn("Impossibile salvare le preferenze.", error);
   }
+  // Auto-sync to cloud if logged in
+  if (getCurrentUser()) {
+    saveToCloud(state.settings);
+  }
   renderCurrentTab();
 }
 
