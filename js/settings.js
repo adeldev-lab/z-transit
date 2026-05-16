@@ -1,5 +1,7 @@
 import { getScheduleKey, escapeHtml } from "./utils.js";
 import { getStopName } from "./line-config.js";
+import { patchDOM } from "./dom-utils.js";
+import { renderNotificationSettings, bindNotificationEvents } from "./notifications.js";
 
 let lastArgs = null;
 
@@ -14,7 +16,7 @@ export function renderSettings(state, saveFn, cfg, lineData, lineConfig) {
     `<button type="button" data-settings-line="${lineId}" class="${lineId === activeLine ? "active" : ""}">${lineId}</button>`
   ).join("");
 
-  container.innerHTML = `
+  const html = `
     <section class="panel">
       <div class="panel-heading">
         <div>
@@ -44,8 +46,10 @@ export function renderSettings(state, saveFn, cfg, lineData, lineConfig) {
         </div>
       </div>
       <div class="line-tabs">${lineOptions}</div>
-      ${renderLineSettings(activeLine, state, cfg, lineData, lineConfig)}
+      ${safeRenderLineSettings(activeLine, state, cfg, lineData, lineConfig)}
     </section>
+
+    ${renderNotificationSettings(cfg)}
 
     <section class="panel">
       <div class="panel-heading">
@@ -70,8 +74,19 @@ export function renderSettings(state, saveFn, cfg, lineData, lineConfig) {
     </section>
   `;
 
-  bindEvents(container);
-  updateSWStatus(container);
+  patchDOM(container, html, { onAfterPatch: () => {
+    bindEvents(container);
+    updateSWStatus(container);
+  }});
+}
+
+function safeRenderLineSettings(lineId, state, cfg, lineData, lineConfig) {
+  try {
+    return renderLineSettings(lineId, state, cfg, lineData, lineConfig);
+  } catch (e) {
+    console.error(`[Trasporti] Errore nel render impostazioni linea ${lineId}:`, e);
+    return `<div class="empty-mini" style="border-color: rgba(239,68,68,0.3); color: #fecaca;">Errore nel caricamento delle impostazioni per ${lineId}.</div>`;
+  }
 }
 
 function renderLineSettings(lineId, state, cfg, lineData, lineConfig) {
@@ -235,6 +250,13 @@ function bindEvents(container) {
   container.querySelector("[data-check-sw]")?.addEventListener("click", () => {
     navigator.serviceWorker?.ready.then(reg => reg.update()).finally(() => location.reload());
   });
+
+  // Bind notification events
+  bindNotificationEvents(container);
+
+  // Expose renderSettings for notification re-render
+  window._app_config = window._app_config || {};
+  window._app_config.renderSettings = () => renderSettings(state, saveFn, cfg, lineData, lineConfig);
 }
 
 function buildDefaultSettings(cfg) {

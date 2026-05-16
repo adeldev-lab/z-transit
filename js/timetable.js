@@ -10,6 +10,7 @@ import { calcNextTrain } from "./trains.js";
 import { getStopName } from "./line-config.js";
 import { STOP_COORDINATES } from "./map-data.js";
 import { openMap } from "./map.js";
+import { patchDOM } from "./dom-utils.js";
 
 let lastArgs = null;
 
@@ -26,7 +27,7 @@ export function renderTimetable(state, lineData, lineConfig, cfg) {
   const config = lineConfig[activeLine];
 
   if (!config) {
-    container.innerHTML = `<div class="empty-state">Seleziona una linea</div>`;
+    patchDOM(container, `<div class="empty-state">Seleziona una linea</div>`);
     return;
   }
 
@@ -75,8 +76,7 @@ export function renderTimetable(state, lineData, lineConfig, cfg) {
 
   if (!trips.length) {
     html += `<div class="empty-state">Nessun orario per ${getDayTypeLabel(dayType).toLowerCase()} in questa direzione.</div>`;
-    container.innerHTML = html;
-    bindEvents(container);
+    patchDOM(container, html, { onAfterPatch: () => bindEvents(container) });
     return;
   }
 
@@ -119,8 +119,7 @@ export function renderTimetable(state, lineData, lineConfig, cfg) {
   html += `</tbody></table></div></div>
     <div class="app-footer">Fermate visibili personalizzabili in Impostazioni.</div>`;
 
-  container.innerHTML = html;
-  bindEvents(container);
+  patchDOM(container, html, { onAfterPatch: () => bindEvents(container) });
 }
 
 function getVisibleStops(state, cfg, lineId, scheduleKey, direction, fallback) {
@@ -156,20 +155,25 @@ function getReferenceTime(trip, referenceStops) {
 }
 
 function renderConnectionCell(trip, config) {
-  const parts = [];
-  for (const [key, connCfg] of Object.entries(config.connections || {})) {
-    // Use explicit stopCode if provided (e.g. BS090_RE maps to stop BS090)
-    const stopCode = connCfg.stopCode || key;
-    const arrMin = trip.stops?.[stopCode];
-    if (arrMin === undefined || arrMin === null) continue;
-    if (connCfg.slotKey) {
-      const train = calcNextTrain(connCfg.slotKey, arrMin)[0];
-      if (train) parts.push(`<span class="conn-mini">${escapeHtml(train.line)} ${minsToHHMM(train.departureMin)} <small>+${train.waitMin}′</small></span>`);
-    } else if (connCfg.type !== "M1") {
-      parts.push(`<span class="conn-mini">${escapeHtml(connCfg.type)} ${minsToHHMM(arrMin)}</span>`);
+  try {
+    const parts = [];
+    for (const [key, connCfg] of Object.entries(config.connections || {})) {
+      // Use explicit stopCode if provided (e.g. BS090_RE maps to stop BS090)
+      const stopCode = connCfg.stopCode || key;
+      const arrMin = trip.stops?.[stopCode];
+      if (arrMin === undefined || arrMin === null) continue;
+      if (connCfg.slotKey) {
+        const train = calcNextTrain(connCfg.slotKey, arrMin)[0];
+        if (train) parts.push(`<span class="conn-mini">${escapeHtml(train.line)} ${minsToHHMM(train.departureMin)} <small>+${train.waitMin}′</small></span>`);
+      } else if (connCfg.type !== "M1") {
+        parts.push(`<span class="conn-mini">${escapeHtml(connCfg.type)} ${minsToHHMM(arrMin)}</span>`);
+      }
     }
+    return parts.length ? parts.join(" ") : "-";
+  } catch (e) {
+    console.error("[Trasporti] Errore nel calcolo connessioni:", e);
+    return "-";
   }
-  return parts.length ? parts.join(" ") : "-";
 }
 
 function shortStop(code) {
