@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2026-05-17T15:27:58.746Z",
+  "lastUpdated": "2026-05-17T17:37:48.789Z",
   "windowDays": 14,
   "alerts": [
     {
@@ -22,14 +22,12 @@
     {
       "source": "trenord",
       "type": "strike",
-      "title": "Sciopero nazionale trasporti 17-18 maggio",
+      "title": "Sciopero Nazionale Trasporti 17-18 Maggio",
       "description": "sciopero Nazionale di tutti i settori pubblici e privati che, per il settore ferroviario, si effettuerà dalle ore 21.00 del 17 maggio alle ore 20:59 del 18 maggio 2026 e che potrà generare ripercussioni",
       "startDate": "2026-05-17T19:00:00.000Z",
       "endDate": "2026-05-18T18:59:00.000Z",
       "affectedServices": [
-        "Trenord",
-        "ATM",
-        "Movibus"
+        "Trenord"
       ],
       "severity": "high",
       "url": "https://www.trenord.it/news/trenord-informa/avvisi/sciopero",
@@ -127,8 +125,8 @@
     {
       "source": "atm",
       "type": "disruption",
-      "title": "Inter-Verona e festa dell’Inter: chiusure e deviazioni dopo le 18",
-      "description": "Domenica 17 maggio, alle 15, si gioca Inter- Verona. Nel pomeriggio alcune linee di superficie cambiano il servizio. Dopo le 18 le stazioni di Duomo e Cordusio chiudono su disposizione delle autorità di pubblica sicurezza per permettere l’arrivo dei tifosi e la festa dell’Inter in piazza. La stazione Duomo chiude dopo le 18. Cordusio chiude al passaggio del corteo Dalle 18 i treni di M1 e M3 saltano Duomo . In alternativa usate Centrale, Loreto o Cadorna per cambiare linea. Per raggiungere la pi",
+      "title": "Inter-Verona e festa dell’Inter: chiusure e deviazioni.",
+      "description": "Oggi si è giocata la partita Inter-Verona. Alcune linee di superficie cambiano il servizio. Dopo le 18 le stazioni di Duomo e Cordusio chiudono su disposizione delle autorità di pubblica sicurezza per permettere l’arrivo dei tifosi e la festa dell’Inter in piazza. La stazione Duomo chiude dopo le 18. Cordusio chiude al passaggio del corteo Dalle 18 i treni di M1 e M3 saltano Duomo . In alternativa usate Centrale, Loreto o Cadorna per cambiare linea. Per raggiungere la piazza considerate le stazi",
       "startDate": "2026-05-15T10:00:12.000Z",
       "endDate": null,
       "affectedServices": [
