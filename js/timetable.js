@@ -116,8 +116,13 @@ export function renderTimetable(state, lineData, lineConfig, cfg) {
     </tr>`;
   });
 
+  const feedValidityStr = cfg.feedValidity
+    ? `Orari validi dal ${formatFeedDate(cfg.feedValidity.from)} al ${formatFeedDate(cfg.feedValidity.to)}`
+    : "";
+
   html += `</tbody></table></div></div>
-    <div class="app-footer">Fermate visibili personalizzabili in Impostazioni.</div>`;
+    <div class="app-footer">Fermate visibili personalizzabili in Impostazioni.</div>
+    ${feedValidityStr ? `<div class="app-footer feed-validity">${escapeHtml(feedValidityStr)}</div>` : ""}`;
 
   patchDOM(container, html, { onAfterPatch: () => bindEvents(container) });
 }
@@ -260,4 +265,17 @@ function getAllStopsOrdered(trips) {
     });
   });
   return allStops;
+}
+
+/**
+ * Format a feed validity date (YYYY-MM-DD) to a readable Italian string.
+ * e.g. "2026-03-02" → "2 marzo 2026"
+ */
+function formatFeedDate(dateStr) {
+  try {
+    const d = new Date(dateStr + "T00:00:00");
+    return d.toLocaleDateString("it-IT", { day: "numeric", month: "long", year: "numeric" });
+  } catch (e) {
+    return dateStr;
+  }
 }

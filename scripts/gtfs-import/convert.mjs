@@ -10,7 +10,7 @@
 // Does NOT modify config.js, line-config.js, or any other project file.
 // =============================================================================
 
-import { writeFileSync } from "node:fs";
+import { readFileSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { readGtfs, ROUTE_MAP } from "./lib/gtfs-reader.mjs";
 import { buildLineData, formatAsJsExport } from "./lib/trip-builder.mjs";
@@ -73,6 +73,25 @@ console.log(`   Total trips: ${stats.reduce((s, x) => s + x.trips, 0)}`);
 if (gtfs.feedInfo) {
   console.log(`   Feed valid: ${gtfs.feedInfo.feed_start_date || "?"} → ${gtfs.feedInfo.feed_end_date || "?"}`);
 }
+
+// Auto-update feedValidity in config.js
+if (gtfs.feedInfo?.feed_start_date && gtfs.feedInfo?.feed_end_date) {
+  const configPath = join(dataDir, "config.js");
+  let configSrc = readFileSync(configPath, "utf-8");
+  const fromDate = `${gtfs.feedInfo.feed_start_date.slice(0, 4)}-${gtfs.feedInfo.feed_start_date.slice(4, 6)}-${gtfs.feedInfo.feed_start_date.slice(6, 8)}`;
+  const toDate = `${gtfs.feedInfo.feed_end_date.slice(0, 4)}-${gtfs.feedInfo.feed_end_date.slice(4, 6)}-${gtfs.feedInfo.feed_end_date.slice(6, 8)}`;
+  const newValidity = `feedValidity: { from: "${fromDate}", to: "${toDate}" },`;
+
+  if (configSrc.includes("feedValidity:")) {
+    configSrc = configSrc.replace(/feedValidity:\s*\{[^}]*\},?/, newValidity);
+  } else {
+    // Insert after lastUpdate line
+    configSrc = configSrc.replace(/(lastUpdate:\s*"[^"]*",?)/, `$1\n  ${newValidity}`);
+  }
+  writeFileSync(configPath, configSrc, "utf-8");
+  console.log(`   ✅ Updated feedValidity in config.js: ${fromDate} → ${toDate}`);
+}
+
 console.log(`\n⚠️  Remember to:`);
 console.log(`   1. Bump CACHE_NAME in sw.js`);
 console.log(`   2. Update cfg.version and cfg.lastUpdate in data/config.js`);
