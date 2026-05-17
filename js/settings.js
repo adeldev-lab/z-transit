@@ -20,6 +20,7 @@ import {
   bindNotificationEvents
 } from "./notifications.js";
 import { setSuppressCloudWrite } from "./main.js";
+import { startOnboarding } from "./onboarding.js";
 
 let lastArgs = null;
 
@@ -96,6 +97,7 @@ export function renderSettings(state, saveFn, cfg, lineData, lineConfig) {
         <button type="button" class="btn primary" data-export>Export preferenze</button>
         <button type="button" class="btn secondary" data-import-trigger>Import preferenze</button>
         <button type="button" class="btn secondary" data-reset-preferences>Reset preferenze</button>
+        <button type="button" class="btn secondary" data-restart-onboarding>Riavvia procedura guidata</button>
         <button type="button" class="btn secondary" data-check-sw>Aggiorna app</button>
       </div>
       <input type="file" accept=".json,application/json" data-import-file hidden>
@@ -283,6 +285,20 @@ function bindEvents(container) {
   container.querySelector("[data-check-sw]")?.addEventListener("click", () => {
     navigator.serviceWorker?.ready.then(reg => reg.update()).finally(() => location.reload());
   });
+  container.querySelector("[data-restart-onboarding]")?.addEventListener("click", () => {
+    startOnboarding((profile) => {
+      if (profile) {
+        const updates = { userProfile: profile };
+        if (profile.walkMinutes && !profile.skipped) updates.walkRossini = profile.walkMinutes;
+        if (profile.driveCanegrate && !profile.skipped) updates.driveCanegrate = profile.driveCanegrate;
+        if (profile.favoriteStops && Object.keys(profile.favoriteStops).length > 0 && !profile.skipped) {
+          updates.favoriteStops = { ...state.settings.favoriteStops, ...profile.favoriteStops };
+        }
+        saveFn(updates);
+      }
+      renderSettings(state, saveFn, cfg, lineData, lineConfig);
+    });
+  });
 
   // Bind notification events
   bindNotificationEvents(container);
@@ -349,6 +365,12 @@ export function sanitizeSettings(raw, cfg) {
   settings.favoriteStops = { ...structuredClone(cfg.favoriteStops || {}), ...(settings.favoriteStops || {}) };
   settings.timetableStops = settings.timetableStops && typeof settings.timetableStops === "object" ? settings.timetableStops : {};
   settings.visibleStops = settings.visibleStops && typeof settings.visibleStops === "object" ? settings.visibleStops : {};
+  // Preserve userProfile if present (onboarding data)
+  if (raw?.userProfile && typeof raw.userProfile === "object") {
+    settings.userProfile = raw.userProfile;
+  } else if (settings.userProfile && typeof settings.userProfile !== "object") {
+    delete settings.userProfile;
+  }
   return settings;
 }
 

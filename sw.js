@@ -10,7 +10,7 @@
 // IMPORTANT: Bump CACHE_NAME on every deploy so the activate handler purges stale caches.
 // =============================================================================
 
-const CACHE_NAME = "trasporti-busto-v4-3-2";
+const CACHE_NAME = "trasporti-busto-v4-4-0";
 
 const PRECACHE_ASSETS = [
   "./",
@@ -30,6 +30,7 @@ const PRECACHE_ASSETS = [
   "./js/firebase-sync.js",
   "./js/map.js",
   "./js/map-data.js",
+  "./js/onboarding.js",
   "./data/config.js",
   "./data/z649.js",
   "./data/z627.js",

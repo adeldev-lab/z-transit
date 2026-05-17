@@ -14,6 +14,7 @@ import { initMap } from "./map.js";
 import { initTheme } from "./theme.js";
 import { initNotifications, getNotificationConfig } from "./notifications.js";
 import { initFirebase, getCurrentUser, saveToCloud, onAuthStateChanged } from "./firebase-sync.js";
+import { shouldShowOnboarding, startOnboarding } from "./onboarding.js";
 
 // Module-level flag used by js/settings.js _startCloudListener to suppress
 // the cloud write branch of saveSettings while applying a remote snapshot,
@@ -168,7 +169,40 @@ function init() {
   document.addEventListener("trasporti:settings-changed", () => {
     if (state.currentTab === "settings") renderCurrentTab();
   });
-  switchTab("live");
+
+  // Show onboarding wizard on first launch (before rendering any tab)
+  if (shouldShowOnboarding(state.settings)) {
+    startOnboarding((profile) => {
+      if (profile) {
+        // Apply the profile to settings
+        const updates = { userProfile: profile };
+        if (profile.walkMinutes && !profile.skipped) updates.walkRossini = profile.walkMinutes;
+        if (profile.driveCanegrate && !profile.skipped) updates.driveCanegrate = profile.driveCanegrate;
+        if (profile.favoriteStops && Object.keys(profile.favoriteStops).length > 0 && !profile.skipped) {
+          updates.favoriteStops = { ...state.settings.favoriteStops, ...profile.favoriteStops };
+        }
+        saveSettings(updates);
+        // Set up notifications if requested
+        if (profile.wantNotifications && profile.activeLines?.length > 0) {
+          import("./notifications.js").then(({ requestPermission, getNotificationConfig, saveNotificationConfig }) => {
+            requestPermission().then(perm => {
+              if (perm === "granted") {
+                const notifConfig = getNotificationConfig();
+                notifConfig.enabled = true;
+                notifConfig.followedLines = [...new Set([...notifConfig.followedLines, ...profile.activeLines])];
+                if (profile.useCanegrate) notifConfig.followedLines.push("canegrate");
+                saveNotificationConfig(notifConfig);
+              }
+            });
+          });
+        }
+      }
+      // Proceed to render the app
+      switchTab("live");
+    });
+  } else {
+    switchTab("live");
+  }
   setInterval(() => {
     if (state.currentTab === "live" || state.currentTab === "timetable") renderCurrentTab();
   }, 60000);

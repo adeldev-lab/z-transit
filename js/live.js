@@ -62,7 +62,13 @@ export function renderLive(state, lineData, lineConfig, cfg, saveSettings) {
   const currentMin = now.getHours() * 60 + now.getMinutes();
   const dayType = getDayType(now, cfg);
   const direction = state.settings.liveDirection || cfg.defaults.liveDirection || "outbound";
-  const lineOrder = cfg.lineOrder || Object.keys(lineConfig);
+  const allLines = cfg.lineOrder || Object.keys(lineConfig);
+  // If the user completed onboarding and selected specific lines, filter to those.
+  // Empty activeLines or skipped onboarding → show all lines (original behavior).
+  const userActiveLines = state.settings?.userProfile?.activeLines;
+  const lineOrder = (Array.isArray(userActiveLines) && userActiveLines.length > 0 && !state.settings?.userProfile?.skipped)
+    ? allLines.filter(id => userActiveLines.includes(id))
+    : allLines;
   const title = direction === "return" ? "Ritorno verso Busto Garolfo" : "Andata da Busto Garolfo";
   const subtitle = direction === "return"
     ? "Da Repubblica, Molino Dorino, Pregnana FS e altri interscambi supportati."
