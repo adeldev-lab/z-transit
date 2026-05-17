@@ -17,13 +17,16 @@ const REFRESH_INTERVAL = 30 * 60 * 1000; // 30 minutes
 
 let _alertsData = null;
 let _lastFetch = 0;
+let _onAlertsReady = null;
 
 // ── Public API ──────────────────────────────────────────────────────────────
 
 /**
  * Initialize alerts: fetch on startup, set up periodic refresh.
+ * @param {Function} [onReady] - called after first successful fetch (to trigger re-render)
  */
-export function initAlerts() {
+export function initAlerts(onReady) {
+  _onAlertsReady = onReady || null;
   fetchAlerts();
   setInterval(fetchAlerts, REFRESH_INTERVAL);
 }
@@ -174,10 +177,14 @@ async function fetchAlerts() {
   try {
     const res = await fetch(ALERTS_URL, { cache: "no-cache" });
     if (!res.ok) return;
+    const wasEmpty = !_alertsData;
     _alertsData = await res.json();
     _lastFetch = Date.now();
-    // Clean up dismissed alerts that no longer exist
     cleanDismissed();
+    // On first successful fetch, trigger a re-render so banners appear
+    if (wasEmpty && _onAlertsReady && _alertsData.alerts?.length > 0) {
+      _onAlertsReady();
+    }
   } catch (e) {
     // Silently fail — app works without alerts
   }

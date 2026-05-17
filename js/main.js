@@ -226,7 +226,10 @@ function init() {
     console.warn("[Trasporti] Mappa non inizializzata:", e);
   }
   initTheme();
-  initAlerts();
+  initAlerts(() => {
+    // Re-render current tab once alerts are loaded so banners appear on first load
+    renderCurrentTab();
+  });
   initNotifications(
     () => state,
     () => LINE_DATA,
