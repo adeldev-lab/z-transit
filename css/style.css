@@ -1644,9 +1644,29 @@ th.stop-link:hover {
 }
 
 .alert-strike-date {
-  font-size: 0.72rem;
-  color: var(--muted);
-  font-weight: 600;
+  font-size: 0.78rem;
+  color: var(--text);
+  font-weight: 700;
+  display: block;
+  margin-top: 4px;
+  padding: 4px 8px;
+  background: rgba(239, 68, 68, 0.08);
+  border-radius: 6px;
+  border-left: 3px solid var(--danger);
+}
+
+.alert-strike-link {
+  display: inline-block;
+  margin-top: 6px;
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.alert-strike-link:hover {
+  text-decoration: underline;
+  opacity: 0.85;
 }
 
 .alert-strike-services {
@@ -1738,6 +1758,22 @@ th.stop-link:hover {
   font-size: 0.72rem;
   color: var(--muted);
   font-weight: 600;
+}
+
+.alert-card-daterange {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--text);
+  padding: 6px 10px;
+  background: rgba(239, 68, 68, 0.06);
+  border-left: 3px solid var(--danger);
+  border-radius: 6px;
+  line-height: 1.4;
+}
+
+.alert-card--notice .alert-card-daterange {
+  background: rgba(var(--accent-rgb), 0.06);
+  border-left-color: var(--accent);
 }
 
 .alert-card-title {

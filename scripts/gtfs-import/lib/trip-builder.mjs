@@ -24,6 +24,9 @@ export function buildLineData(routeId, trips, stopTimesByTrip, stopsById) {
     const stopTimesArr = stopTimesByTrip.get(trip.trip_id);
     if (!stopTimesArr || stopTimesArr.length === 0) continue;
 
+    // Extract the trip number (corsa) from trip_short_name
+    const tripId = trip.trip_short_name ? Number(trip.trip_short_name) : null;
+
     // Build the stops object: { stopCode: minutesFromMidnight, ... }
     const stops = {};
     for (const st of stopTimesArr) {
@@ -33,7 +36,7 @@ export function buildLineData(routeId, trips, stopTimesByTrip, stopsById) {
       stops[stopCode] = minutes;
     }
 
-    const tripObj = { stops, validity };
+    const tripObj = { tripId, stops, validity };
 
     if (!result[scheduleKey]) result[scheduleKey] = [];
     result[scheduleKey].push(tripObj);
@@ -52,7 +55,25 @@ export function buildLineData(routeId, trips, stopTimesByTrip, stopsById) {
 }
 
 /**
+ * Determine the flags array based on validity prefix.
+ * - SC5 → ["SC5"]
+ * - Other (FR5, FI5, SAB, SIS, FES) → []
+ * Note: "short" and "last" flags require manual review and are not auto-detected.
+ * @param {string} validity - The service prefix (e.g. "SC5", "FR5")
+ * @returns {string[]}
+ */
+function buildFlags(validity) {
+  if (validity === "SC5") return ["SC5"];
+  return [];
+}
+
+/**
  * Format a line data object as a JavaScript export string.
+ * Uses the same style as the hand-written data files:
+ *   - Unquoted object keys for trip properties
+ *   - Single quotes for string values
+ *   - Double quotes for stop codes inside stops object
+ *   - flags populated based on validity
  * @param {string} lineId - e.g. "Z649"
  * @param {object} data - The schedule-keyed trip data
  * @returns {string} JavaScript source code
@@ -70,9 +91,14 @@ export function formatAsJsExport(lineId, data) {
     js += `  ${key}: [\n`;
     for (const trip of trips) {
       const stopsStr = Object.entries(trip.stops)
-        .map(([code, min]) => `${code}: ${min}`)
+        .map(([code, min]) => `"${code}": ${min}`)
         .join(", ");
-      js += `    { stops: { ${stopsStr} }, validity: "${trip.validity}" },\n`;
+      const flags = buildFlags(trip.validity);
+      const flagsStr = flags.length > 0
+        ? `[${flags.map(f => `"${f}"`).join(", ")}]`
+        : `[]`;
+      const tripIdPart = trip.tripId != null ? `tripId: ${trip.tripId}, ` : "";
+      js += `    { ${tripIdPart}stops: { ${stopsStr} }, validity: '${trip.validity}', flags: ${flagsStr}, note: '' },\n`;
     }
     js += `  ],\n`;
   }

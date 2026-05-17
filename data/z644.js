@@ -1,284 +1,52 @@
-// Unified schedule data for line Z644
+// Auto-generated from GTFS – do not edit manually
+// Generated: 2026-05-17T16:37:32.676Z
+
 export const Z644_DATA = {
-  weekday_outbound: [
-    {
-      tripId: 302,
-      stops: { "AC625": 390, "AC627": 392, "BT205": 396, "BT775": 399, "BT400": 400, "BT211": 401, "PB701": 409, "PB090": 411 },
-      validity: 'FI5',
-      flags: [],
-      note: ''
-    },
-    {
-      tripId: 304,
-      stops: { "AC625": 410, "AC627": 412, "BT205": 416, "BT775": 419, "BT400": 420, "BT211": 421, "PB701": 430, "PB100": 440 },
-      validity: 'FI5',
-      flags: ["short"],
-      note: ''
-    },
-    {
-      tripId: 460,
-      stops: { "DG142": 428, "DG097": 430, "VC005": 435, "VC006": 437, "BT701": 440, "BT702": 441, "BT947": 443, "BT775": 445, "BT400": 448, "BT211": 449, "PB701": 462, "PB100": 473 },
-      validity: 'SC5',
-      flags: ["SC5", "short"],
-      note: ''
-    },
-    {
-      tripId: 502,
-      stops: { "BT701": 440, "BT702": 441, "BT205": 443, "BT775": 445, "BT400": 447, "BT211": 448, "PB701": 460, "PB100": 470 },
-      validity: 'SC5',
-      flags: ["SC5", "short"],
-      note: ''
-    },
-    {
-      tripId: 306,
-      stops: { "AC625": 440, "AC627": 442, "BT205": 446, "BT775": 449, "BT400": 450, "BT211": 451, "PB701": 462, "PB100": 473 },
-      validity: 'FI5',
-      flags: ["short"],
-      note: ''
-    },
-    {
-      tripId: 310,
-      stops: { "AC625": 515, "AC627": 517, "BT205": 521, "BT775": 524, "BT400": 525, "BT211": 526, "PB701": 534, "PB090": 536 },
-      validity: 'FI5',
-      flags: [],
-      note: ''
-    },
-    {
-      tripId: 390,
-      stops: { "AC625": 570, "AC627": 572, "BT205": 576, "BT775": 579, "BT400": 580, "BT211": 581, "PB701": 589, "PB090": 591 },
-      validity: 'FI5',
-      flags: [],
-      note: ''
-    },
-    {
-      tripId: 316,
-      stops: { "BT205": 700, "BT775": 703, "BT400": 704, "BT211": 705, "PB701": 715, "PB100": 724 },
-      validity: 'SC5',
-      flags: ["SC5", "short"],
-      note: ''
-    },
-    {
-      tripId: 320,
-      stops: { "AC625": 765, "AC627": 767, "BT205": 771, "BT775": 774, "BT400": 775, "BT211": 776, "PB701": 786, "PB100": 793 },
-      validity: 'SC5',
-      flags: ["SC5", "short"],
-      note: ''
-    },
-    {
-      tripId: 318,
-      stops: { "AC625": 840, "AC627": 842, "BT205": 846, "BT775": 849, "BT400": 850, "BT211": 851, "PB701": 861, "PB100": 868 },
-      validity: 'SC5',
-      flags: ["SC5", "short"],
-      note: ''
-    },
-    {
-      tripId: 334,
-      stops: { "BT205": 873, "BT775": 876, "BT400": 877, "BT211": 878, "PB701": 888, "PB100": 894 },
-      validity: 'SC5',
-      flags: ["SC5", "short"],
-      note: ''
-    },
-    {
-      tripId: 406,
-      stops: { "AC625": 870, "AC627": 872, "BT205": 876, "BT775": 879, "BT400": 880, "BT211": 881, "PB701": 891, "PB100": 898 },
-      validity: 'SC5',
-      flags: ["SC5", "short"],
-      note: ''
-    },
-    {
-      tripId: 322,
-      stops: { "AC625": 905, "AC627": 907, "BT205": 911, "BT775": 914, "BT400": 915, "BT211": 916, "PB701": 924, "PB090": 926 },
-      validity: 'SC5',
-      flags: ["SC5"],
-      note: ''
-    },
-    {
-      tripId: 324,
-      stops: { "AC625": 945, "AC627": 947, "BT205": 951, "BT775": 954, "BT400": 955, "BT211": 956, "PB701": 964, "PB090": 966 },
-      validity: 'FI5',
-      flags: [],
-      note: ''
-    },
-    {
-      tripId: 326,
-      stops: { "AC625": 970, "AC627": 972, "BT205": 976, "BT775": 979, "BT400": 980, "BT211": 981, "PB701": 989, "PB090": 991 },
-      validity: 'FI5',
-      flags: ["last"],
-      note: ''
-    },
-  ],
-  weekday_return: [
-    {
-      tripId: 301,
-      stops: { "PB090": 415, "PB702": 418, "BT215": 426, "BT300": 427, "BT776": 429, "BT956": 431, "AC628": 436, "AC035": 438 },
-      validity: 'FI5',
-      flags: [],
-      note: ''
-    },
-    {
-      tripId: 303,
-      stops: { "PB101": 445, "PB702": 450, "BT215": 461, "BT300": 462, "BT776": 464, "BT956": 468, "AC628": 473, "AC035": 475 },
-      validity: 'FI5',
-      flags: [],
-      note: ''
-    },
-    {
-      tripId: 305,
-      stops: { "PB101": 480, "PB702": 485, "BT215": 496, "BT300": 497, "BT776": 499, "BT956": 503, "AC628": 508, "AC035": 510 },
-      validity: 'FI5',
-      flags: [],
-      note: ''
-    },
-    {
-      tripId: 307,
-      stops: { "PB101": 480, "PB702": 485, "BT215": 496, "BT300": 497, "BT776": 499, "BT956": 503 },
-      validity: 'SC5',
-      flags: ["SC5"],
-      note: ''
-    },
-    {
-      tripId: 309,
-      stops: { "PB090": 540, "PB702": 543, "BT215": 551, "BT300": 552, "BT776": 554, "BT956": 556, "AC628": 561, "AC035": 563 },
-      validity: 'FI5',
-      flags: [],
-      note: ''
-    },
-    {
-      tripId: 393,
-      stops: { "PB090": 595, "PB702": 598, "BT215": 606, "BT300": 607, "BT776": 609, "BT956": 611, "AC628": 616, "AC035": 618 },
-      validity: 'FI5',
-      flags: [],
-      note: ''
-    },
-    {
-      tripId: 315,
-      stops: { "PB101": 730, "PB702": 735, "VC050": 745, "VC051": 746, "BT701": 750, "BT702": 751, "BT947": 753, "AC628": 761, "AC035": 763 },
-      validity: 'SC5',
-      flags: ["SC5"],
-      note: ''
-    },
-    {
-      tripId: 317,
-      stops: { "PB101": 800, "PB702": 805, "VC050": 815, "VC051": 816, "BT701": 820, "BT702": 821, "BT947": 823, "AC628": 831, "AC035": 833 },
-      validity: 'SC5',
-      flags: ["SC5"],
-      note: ''
-    },
-    {
-      tripId: 517,
-      stops: { "PB101": 800, "PB702": 805, "BT215": 816, "BT300": 817, "BT776": 819, "BT956": 821, "BT951": 822, "BT999": 824, "DG099": 828, "DG141": 829 },
-      validity: 'SC5',
-      flags: ["SC5"],
-      note: ''
-    },
-    {
-      tripId: 329,
-      stops: { "PB101": 855, "PB702": 860, "BT215": 871, "BT300": 872, "BT776": 874, "BT956": 876, "BT951": 877, "BT999": 879, "DG099": 883, "DG141": 884 },
-      validity: 'SC5',
-      flags: ["SC5"],
-      note: ''
-    },
-    {
-      tripId: 319,
-      stops: { "PB101": 860, "PB702": 865, "VC050": 875, "VC051": 876, "BT701": 880, "BT702": 881, "BT947": 883, "AC628": 891, "AC035": 893 },
-      validity: 'SC5',
-      flags: ["SC5"],
-      note: ''
-    },
-    {
-      tripId: 339,
-      stops: { "PB101": 905, "PB702": 910, "BT215": 921, "BT300": 922, "BT776": 924, "BT956": 926, "BT951": 927, "BT999": 929, "DG099": 933, "DG141": 934 },
-      validity: 'SC5',
-      flags: ["SC5"],
-      note: ''
-    },
-    {
-      tripId: 333,
-      stops: { "PB101": 910, "PB702": 915, "VC050": 925, "VC051": 926, "BT701": 930, "BT702": 931, "BT947": 933, "AC628": 941, "AC035": 943 },
-      validity: 'SC5',
-      flags: ["SC5"],
-      note: ''
-    },
-    {
-      tripId: 321,
-      stops: { "PB090": 940, "PB702": 943, "BT215": 951, "BT300": 952, "BT776": 954, "BT956": 956, "AC628": 961, "AC035": 963 },
-      validity: 'SC5',
-      flags: ["SC5"],
-      note: ''
-    },
-    {
-      tripId: 323,
-      stops: { "PB090": 975, "PB702": 978, "BT215": 986, "BT300": 987, "BT776": 989, "BT956": 991, "AC628": 996, "AC035": 998 },
-      validity: 'FI5',
-      flags: [],
-      note: ''
-    },
-    {
-      tripId: 325,
-      stops: { "PB090": 995, "PB702": 998, "BT215": 1006, "BT300": 1007, "BT776": 1009, "BT956": 1011, "AC628": 1016, "AC035": 1018 },
-      validity: 'FI5',
-      flags: ["last"],
-      note: ''
-    },
-  ],
   saturday_outbound: [
-    {
-      tripId: 804,
-      stops: { "AC625": 410, "AC627": 412, "BT205": 416, "BT775": 419, "BT400": 420, "BT211": 421, "PB701": 430, "PB100": 440 },
-      validity: 'SIS',
-      flags: ["short"],
-      note: ''
-    },
-    {
-      tripId: 806,
-      stops: { "AC625": 440, "AC627": 442, "BT205": 446, "BT775": 449, "BT400": 450, "BT211": 451, "PB701": 462, "PB100": 473 },
-      validity: 'SIS',
-      flags: ["short"],
-      note: ''
-    },
-    {
-      tripId: 810,
-      stops: { "AC625": 515, "AC627": 517, "BT205": 521, "BT775": 524, "BT400": 525, "BT211": 526, "PB701": 534, "PB090": 536 },
-      validity: 'SIS',
-      flags: [],
-      note: ''
-    },
-    {
-      tripId: 824,
-      stops: { "AC625": 945, "AC627": 947, "BT205": 951, "BT775": 954, "BT400": 955, "BT211": 956, "PB701": 964, "PB090": 966 },
-      validity: 'SIS',
-      flags: ["last"],
-      note: ''
-    },
+    { tripId: 804, stops: { "AC625": 410, "AC627": 412, "BT205": 416, "BT775": 419, "BT400": 420, "BT211": 421, "PB701": 430, "PB100": 440 }, validity: 'SIS', flags: [], note: '' },
+    { tripId: 806, stops: { "AC625": 440, "AC627": 442, "BT205": 446, "BT775": 449, "BT400": 450, "BT211": 451, "PB701": 462, "PB100": 473 }, validity: 'SIS', flags: [], note: '' },
+    { tripId: 810, stops: { "AC625": 515, "AC627": 517, "BT205": 521, "BT775": 524, "BT400": 525, "BT211": 526, "PB701": 534, "PB090": 536 }, validity: 'SIS', flags: [], note: '' },
+    { tripId: 824, stops: { "AC625": 945, "AC627": 947, "BT205": 951, "BT775": 954, "BT400": 955, "BT211": 956, "PB701": 964, "PB090": 966 }, validity: 'SIS', flags: [], note: '' },
   ],
   saturday_return: [
-    {
-      tripId: 803,
-      stops: { "PB101": 445, "PB702": 450, "BT215": 461, "BT300": 462, "BT776": 464, "BT956": 468, "AC628": 473, "AC035": 475 },
-      validity: 'SIS',
-      flags: [],
-      note: ''
-    },
-    {
-      tripId: 805,
-      stops: { "PB101": 480, "PB702": 485, "BT215": 496, "BT300": 497, "BT776": 499, "BT956": 503, "AC628": 508, "AC035": 510 },
-      validity: 'SIS',
-      flags: [],
-      note: ''
-    },
-    {
-      tripId: 809,
-      stops: { "PB090": 540, "PB702": 543, "BT215": 551, "BT300": 552, "BT776": 554, "BT956": 556, "AC628": 561, "AC035": 563 },
-      validity: 'SIS',
-      flags: [],
-      note: ''
-    },
-    {
-      tripId: 823,
-      stops: { "PB090": 975, "PB702": 978, "BT215": 986, "BT300": 987, "BT776": 989, "BT956": 991, "AC628": 996, "AC035": 998 },
-      validity: 'SIS',
-      flags: ["last"],
-      note: ''
-    },
+    { tripId: 803, stops: { "PB101": 445, "PB702": 450, "BT215": 461, "BT300": 462, "BT776": 464, "BT956": 468, "AC628": 473, "AC035": 475 }, validity: 'SIS', flags: [], note: '' },
+    { tripId: 805, stops: { "PB101": 480, "PB702": 485, "BT215": 496, "BT300": 497, "BT776": 499, "BT956": 503, "AC628": 508, "AC035": 510 }, validity: 'SIS', flags: [], note: '' },
+    { tripId: 809, stops: { "PB090": 540, "PB702": 543, "BT215": 551, "BT300": 552, "BT776": 554, "BT956": 556, "AC628": 561, "AC035": 563 }, validity: 'SIS', flags: [], note: '' },
+    { tripId: 823, stops: { "PB090": 975, "PB702": 978, "BT215": 986, "BT300": 987, "BT776": 989, "BT956": 991, "AC628": 996, "AC035": 998 }, validity: 'SIS', flags: [], note: '' },
+  ],
+  weekday_outbound: [
+    { tripId: 302, stops: { "AC625": 390, "AC627": 392, "BT205": 396, "BT775": 399, "BT400": 400, "BT211": 401, "PB701": 409, "PB090": 411 }, validity: 'FI5', flags: [], note: '' },
+    { tripId: 304, stops: { "AC625": 410, "AC627": 412, "BT205": 416, "BT775": 419, "BT400": 420, "BT211": 421, "PB701": 430, "PB100": 440 }, validity: 'FI5', flags: [], note: '' },
+    { tripId: 460, stops: { "DG142": 428, "DG097": 430, "VC005": 435, "VC006": 437, "BT701": 440, "BT702": 441, "BT947": 443, "BT775": 445, "BT400": 448, "BT211": 449, "PB701": 462, "PB100": 473 }, validity: 'SC5', flags: ["SC5"], note: '' },
+    { tripId: 306, stops: { "AC625": 440, "AC627": 442, "BT205": 446, "BT775": 449, "BT400": 450, "BT211": 451, "PB701": 462, "PB100": 473 }, validity: 'FI5', flags: [], note: '' },
+    { tripId: 502, stops: { "BT701": 440, "BT702": 441, "BT205": 443, "BT775": 445, "BT400": 447, "BT211": 448, "PB701": 460, "PB100": 470 }, validity: 'SC5', flags: ["SC5"], note: '' },
+    { tripId: 310, stops: { "AC625": 515, "AC627": 517, "BT205": 521, "BT775": 524, "BT400": 525, "BT211": 526, "PB701": 534, "PB090": 536 }, validity: 'FI5', flags: [], note: '' },
+    { tripId: 390, stops: { "AC625": 570, "AC627": 572, "BT205": 576, "BT775": 579, "BT400": 580, "BT211": 581, "PB701": 589, "PB090": 591 }, validity: 'FI5', flags: [], note: '' },
+    { tripId: 316, stops: { "BT205": 700, "BT775": 703, "BT400": 704, "BT211": 705, "PB701": 715, "PB100": 724 }, validity: 'SC5', flags: ["SC5"], note: '' },
+    { tripId: 320, stops: { "AC625": 765, "AC627": 767, "BT205": 771, "BT775": 774, "BT400": 775, "BT211": 776, "PB701": 786, "PB100": 793 }, validity: 'SC5', flags: ["SC5"], note: '' },
+    { tripId: 318, stops: { "AC625": 840, "AC627": 842, "BT205": 846, "BT775": 849, "BT400": 850, "BT211": 851, "PB701": 861, "PB100": 868 }, validity: 'SC5', flags: ["SC5"], note: '' },
+    { tripId: 406, stops: { "AC625": 870, "AC627": 872, "BT205": 876, "BT775": 879, "BT400": 880, "BT211": 881, "PB701": 891, "PB100": 898 }, validity: 'SC5', flags: ["SC5"], note: '' },
+    { tripId: 334, stops: { "BT205": 873, "BT775": 876, "BT400": 877, "BT211": 878, "PB701": 888, "PB100": 894 }, validity: 'SC5', flags: ["SC5"], note: '' },
+    { tripId: 322, stops: { "AC625": 905, "AC627": 907, "BT205": 911, "BT775": 914, "BT400": 915, "BT211": 916, "PB701": 924, "PB090": 926 }, validity: 'SC5', flags: ["SC5"], note: '' },
+    { tripId: 324, stops: { "AC625": 945, "AC627": 947, "BT205": 951, "BT775": 954, "BT400": 955, "BT211": 956, "PB701": 964, "PB090": 966 }, validity: 'FI5', flags: [], note: '' },
+    { tripId: 326, stops: { "AC625": 970, "AC627": 972, "BT205": 976, "BT775": 979, "BT400": 980, "BT211": 981, "PB701": 989, "PB090": 991 }, validity: 'FI5', flags: [], note: '' },
+  ],
+  weekday_return: [
+    { tripId: 301, stops: { "PB090": 415, "PB702": 418, "BT215": 426, "BT300": 427, "BT776": 429, "BT956": 431, "AC628": 436, "AC035": 438 }, validity: 'FI5', flags: [], note: '' },
+    { tripId: 303, stops: { "PB101": 445, "PB702": 450, "BT215": 461, "BT300": 462, "BT776": 464, "BT956": 468, "AC628": 473, "AC035": 475 }, validity: 'FI5', flags: [], note: '' },
+    { tripId: 305, stops: { "PB101": 480, "PB702": 485, "BT215": 496, "BT300": 497, "BT776": 499, "BT956": 503, "AC628": 508, "AC035": 510 }, validity: 'FI5', flags: [], note: '' },
+    { tripId: 307, stops: { "PB101": 480, "PB702": 485, "BT215": 496, "BT300": 497, "BT776": 499, "BT956": 503 }, validity: 'SC5', flags: ["SC5"], note: '' },
+    { tripId: 309, stops: { "PB090": 540, "PB702": 543, "BT215": 551, "BT300": 552, "BT776": 554, "BT956": 556, "AC628": 561, "AC035": 563 }, validity: 'FI5', flags: [], note: '' },
+    { tripId: 393, stops: { "PB090": 595, "PB702": 598, "BT215": 606, "BT300": 607, "BT776": 609, "BT956": 611, "AC628": 616, "AC035": 618 }, validity: 'FI5', flags: [], note: '' },
+    { tripId: 315, stops: { "PB101": 730, "PB702": 735, "VC050": 745, "VC051": 746, "BT701": 750, "BT702": 751, "BT947": 753, "AC628": 761, "AC035": 763 }, validity: 'SC5', flags: ["SC5"], note: '' },
+    { tripId: 317, stops: { "PB101": 800, "PB702": 805, "VC050": 815, "VC051": 816, "BT701": 820, "BT702": 821, "BT947": 823, "AC628": 831, "AC035": 833 }, validity: 'SC5', flags: ["SC5"], note: '' },
+    { tripId: 517, stops: { "PB101": 800, "PB702": 805, "BT215": 816, "BT300": 817, "BT776": 819, "BT956": 821, "BT951": 822, "BT999": 824, "DG099": 828, "DG141": 829 }, validity: 'SC5', flags: ["SC5"], note: '' },
+    { tripId: 329, stops: { "PB101": 855, "PB702": 860, "BT215": 871, "BT300": 872, "BT776": 874, "BT956": 876, "BT951": 877, "BT999": 879, "DG099": 883, "DG141": 884 }, validity: 'SC5', flags: ["SC5"], note: '' },
+    { tripId: 319, stops: { "PB101": 860, "PB702": 865, "VC050": 875, "VC051": 876, "BT701": 880, "BT702": 881, "BT947": 883, "AC628": 891, "AC035": 893 }, validity: 'SC5', flags: ["SC5"], note: '' },
+    { tripId: 339, stops: { "PB101": 905, "PB702": 910, "BT215": 921, "BT300": 922, "BT776": 924, "BT956": 926, "BT951": 927, "BT999": 929, "DG099": 933, "DG141": 934 }, validity: 'SC5', flags: ["SC5"], note: '' },
+    { tripId: 333, stops: { "PB101": 910, "PB702": 915, "VC050": 925, "VC051": 926, "BT701": 930, "BT702": 931, "BT947": 933, "AC628": 941, "AC035": 943 }, validity: 'SC5', flags: ["SC5"], note: '' },
+    { tripId: 321, stops: { "PB090": 940, "PB702": 943, "BT215": 951, "BT300": 952, "BT776": 954, "BT956": 956, "AC628": 961, "AC035": 963 }, validity: 'SC5', flags: ["SC5"], note: '' },
+    { tripId: 323, stops: { "PB090": 975, "PB702": 978, "BT215": 986, "BT300": 987, "BT776": 989, "BT956": 991, "AC628": 996, "AC035": 998 }, validity: 'FI5', flags: [], note: '' },
+    { tripId: 325, stops: { "PB090": 995, "PB702": 998, "BT215": 1006, "BT300": 1007, "BT776": 1009, "BT956": 1011, "AC628": 1016, "AC035": 1018 }, validity: 'FI5', flags: [], note: '' },
   ],
 };

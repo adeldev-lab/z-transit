@@ -83,15 +83,19 @@ export function renderStrikeBanner() {
   return strikes.map(alert => {
     const services = (alert.affectedServices || []).join(", ");
     const bands = alert.guaranteedBands ? `Fasce garanzia: ${escapeHtml(alert.guaranteedBands)}` : "";
-    const dateStr = alert.startDate ? formatAlertDate(alert.startDate) : "";
+    const dateRange = formatStrikeDateRange(alert.startDate, alert.endDate);
+    const linkHtml = alert.url
+      ? `<a href="${escapeHtml(alert.url)}" target="_blank" rel="noopener" class="alert-strike-link">Dettagli →</a>`
+      : "";
 
     return `<div class="alert-strike-banner" data-alert-id="${escapeHtml(alert.id)}">
-      <div class="alert-strike-icon">⚠️</div>
+      <div class="alert-strike-icon">🚨</div>
       <div class="alert-strike-body">
         <strong class="alert-strike-title">${escapeHtml(alert.title)}</strong>
-        ${dateStr ? `<span class="alert-strike-date">${dateStr}</span>` : ""}
+        ${dateRange ? `<span class="alert-strike-date">${dateRange}</span>` : ""}
         ${services ? `<span class="alert-strike-services">${escapeHtml(services)}</span>` : ""}
         ${bands ? `<small class="alert-strike-bands">${bands}</small>` : ""}
+        ${linkHtml}
       </div>
       <button type="button" class="alert-strike-dismiss" data-dismiss-alert="${escapeHtml(alert.id)}" aria-label="Chiudi avviso">✕</button>
     </div>`;
@@ -148,8 +152,7 @@ export function renderAlertsTab() {
 
 function renderAlertCard(alert, category) {
   const services = (alert.affectedServices || []).join(", ");
-  const dateStr = alert.startDate ? formatAlertDate(alert.startDate) : "";
-  const endStr = alert.endDate ? formatAlertDate(alert.endDate) : "";
+  const dateRange = formatStrikeDateRange(alert.startDate, alert.endDate);
   const bands = alert.guaranteedBands || "";
   const sourceLabel = { trenord: "Trenord", atm: "ATM Milano" }[alert.source] || alert.source;
   const typeIcon = category === "strike" ? "🚨" : "ℹ️";
@@ -160,16 +163,16 @@ function renderAlertCard(alert, category) {
       <span class="alert-card-icon">${typeIcon}</span>
       <div class="alert-card-meta">
         <span class="alert-card-source">${escapeHtml(sourceLabel)}</span>
-        ${dateStr ? `<span class="alert-card-date">${dateStr}${endStr ? ` → ${endStr}` : ""}</span>` : ""}
       </div>
     </div>
     <h3 class="alert-card-title">${escapeHtml(alert.title)}</h3>
+    ${dateRange ? `<div class="alert-card-daterange">${dateRange}</div>` : ""}
     ${alert.description && alert.description !== alert.title ? `<p class="alert-card-desc">${escapeHtml(alert.description.slice(0, 300))}</p>` : ""}
     <div class="alert-card-footer">
       ${services ? `<span class="alert-card-services">${escapeHtml(services)}</span>` : ""}
       ${bands ? `<span class="alert-card-bands">Garanzia: ${escapeHtml(bands)}</span>` : ""}
     </div>
-    ${alert.url ? `<a href="${escapeHtml(alert.url)}" target="_blank" rel="noopener" class="alert-card-link">Dettagli →</a>` : ""}
+    ${alert.url ? `<a href="${escapeHtml(alert.url)}" target="_blank" rel="noopener" class="alert-card-link">🔗 Dettagli e aggiornamenti →</a>` : ""}
   </div>`;
 }
 
@@ -237,3 +240,46 @@ function formatAlertDate(isoStr) {
     return "";
   }
 }
+
+/**
+ * Format a clear date range string for strikes.
+ * Example output: "🚨 21:00 del 17 maggio → 20:59 del 18 maggio 2026"
+ * @param {string|null} startIso
+ * @param {string|null} endIso
+ * @returns {string} HTML-safe formatted range (may contain emoji)
+ */
+function formatStrikeDateRange(startIso, endIso) {
+  if (!startIso && !endIso) return "";
+
+  const formatDateTime = (isoStr, includeYear) => {
+    try {
+      const d = new Date(isoStr);
+      const hh = String(d.getHours()).padStart(2, "0");
+      const mm = String(d.getMinutes()).padStart(2, "0");
+      const day = d.getDate();
+      const month = d.toLocaleDateString("it-IT", { month: "long" });
+      const year = d.getFullYear();
+      return includeYear
+        ? `${hh}:${mm} del ${day} ${month} ${year}`
+        : `${hh}:${mm} del ${day} ${month}`;
+    } catch (e) {
+      return "";
+    }
+  };
+
+  if (startIso && endIso) {
+    const startD = new Date(startIso);
+    const endD = new Date(endIso);
+    const sameYear = startD.getFullYear() === endD.getFullYear();
+    const startStr = formatDateTime(startIso, !sameYear);
+    const endStr = formatDateTime(endIso, true);
+    return `⏰ ${startStr} → ${endStr}`;
+  }
+
+  if (startIso) {
+    return `⏰ dalle ${formatDateTime(startIso, true)}`;
+  }
+
+  return `⏰ fino alle ${formatDateTime(endIso, true)}`;
+}
+

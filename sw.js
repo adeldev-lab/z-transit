@@ -10,7 +10,7 @@
 // IMPORTANT: Bump CACHE_NAME on every deploy so the activate handler purges stale caches.
 // =============================================================================
 
-const CACHE_NAME = "trasporti-busto-v4-5-1";
+const CACHE_NAME = "trasporti-busto-v4-6-0";
 
 const PRECACHE_ASSETS = [
   "./",

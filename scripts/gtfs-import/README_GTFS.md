@@ -8,7 +8,7 @@ Questi script convertono i dati GTFS ufficiali di Movibus nei file `data/z*.js` 
 
 - Il feed GTFS attuale (2026-03-06) scade il **7 giugno 2026**
 - Movibus pubblica un nuovo feed ogni ~3 mesi
-- Scarica il nuovo feed da: https://www.movibus.it (sezione open data / GTFS)
+- Scarica il nuovo feed da: https://www.agenziatpl.it/open-data/gtfs (sezione open data / GTFS)
 - Oppure cerca "Movibus GTFS" su Google — il file è un .zip con i .txt standard
 
 ## Prerequisiti
