@@ -1,0 +1,40 @@
+{
+  "lastUpdated": "2026-05-17T15:13:43.872Z",
+  "windowDays": 14,
+  "alerts": [
+    {
+      "source": "trenord",
+      "type": "strike",
+      "title": "sciopero nazionale.",
+      "description": "sciopero nazionale.",
+      "startDate": null,
+      "endDate": null,
+      "affectedServices": [
+        "Trenord",
+        "ATM",
+        "Movibus"
+      ],
+      "severity": "high",
+      "url": "https://www.trenord.it/news/trenord-informa/avvisi/sciopero",
+      "guaranteedBands": "06:00-09:00, 18:00-21:00",
+      "id": "trenord-unknown-sciopero-nazionale-"
+    },
+    {
+      "source": "trenord",
+      "type": "strike",
+      "title": "sciopero Nazionale di tutti i settori pubblici e privati che, per il settore ferroviario, si effettu",
+      "description": "sciopero Nazionale di tutti i settori pubblici e privati che, per il settore ferroviario, si effettuerà dalle ore 21.00 del 17 maggio alle ore 20:59 del 18 maggio 2026 e che potrà generare ripercussioni",
+      "startDate": "2026-05-18T00:00:00.000Z",
+      "endDate": null,
+      "affectedServices": [
+        "Trenord",
+        "ATM",
+        "Movibus"
+      ],
+      "severity": "high",
+      "url": "https://www.trenord.it/news/trenord-informa/avvisi/sciopero",
+      "guaranteedBands": "06:00-09:00, 18:00-21:00",
+      "id": "trenord-2026-05-18-sciopero-nazionale-di-tutti-i-settori-pu"
+    }
+  ]
+}
