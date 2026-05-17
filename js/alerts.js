@@ -251,6 +251,22 @@ function formatAlertDate(isoStr) {
 function formatStrikeDateRange(startIso, endIso) {
   if (!startIso && !endIso) return "";
 
+  // Filter out dates that are exactly midnight — likely imprecise/auto-generated
+  const isReliable = (isoStr) => {
+    if (!isoStr) return false;
+    const d = new Date(isoStr);
+    const h = d.getUTCHours();
+    const m = d.getUTCMinutes();
+    // Midnight UTC (00:00), 22:00 UTC, or 23:00 UTC with 0 minutes = likely a date-only guess
+    if (m === 0 && (h === 0 || h === 22 || h === 23)) return false;
+    return true;
+  };
+
+  const reliableStart = isReliable(startIso) ? startIso : null;
+  const reliableEnd = isReliable(endIso) ? endIso : null;
+
+  if (!reliableStart && !reliableEnd) return "";
+
   const formatDateTime = (isoStr, includeYear) => {
     try {
       const d = new Date(isoStr);
@@ -267,19 +283,19 @@ function formatStrikeDateRange(startIso, endIso) {
     }
   };
 
-  if (startIso && endIso) {
-    const startD = new Date(startIso);
-    const endD = new Date(endIso);
+  if (reliableStart && reliableEnd) {
+    const startD = new Date(reliableStart);
+    const endD = new Date(reliableEnd);
     const sameYear = startD.getFullYear() === endD.getFullYear();
-    const startStr = formatDateTime(startIso, !sameYear);
-    const endStr = formatDateTime(endIso, true);
+    const startStr = formatDateTime(reliableStart, !sameYear);
+    const endStr = formatDateTime(reliableEnd, true);
     return `⏰ ${startStr} → ${endStr}`;
   }
 
-  if (startIso) {
-    return `⏰ dalle ${formatDateTime(startIso, true)}`;
+  if (reliableStart) {
+    return `⏰ dalle ${formatDateTime(reliableStart, true)}`;
   }
 
-  return `⏰ fino alle ${formatDateTime(endIso, true)}`;
+  return `⏰ fino alle ${formatDateTime(reliableEnd, true)}`;
 }
 
