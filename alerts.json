@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2026-05-17T15:13:43.872Z",
+  "lastUpdated": "2026-05-17T15:27:58.746Z",
   "windowDays": 14,
   "alerts": [
     {
@@ -35,6 +35,139 @@
       "url": "https://www.trenord.it/news/trenord-informa/avvisi/sciopero",
       "guaranteedBands": "06:00-09:00, 18:00-21:00",
       "id": "trenord-2026-05-18-sciopero-nazionale-di-tutti-i-settori-pu"
+    },
+    {
+      "source": "atm",
+      "type": "works",
+      "title": "Minimetro Gobba-San Raffaele chiusa",
+      "description": "La linea è chiusa per permettere interventi di manutenzione straordinaria dell’infrastruttura. In alternativa, usate la 925. È in servizio dal lunedì alla domenica. orari da Cascina Gobba orari da Ospedale San Raffaele Oppure usate la 928 È in servizio dal lunedì al venerdì. orari da Cascina Gobba orari da Redecesio (Segrate) Fermate dei bus 925 e 928 I bus fermano nel piazzale della stazione M2 di Cascina Gobba e in via Olgettina, a pochi passi dall'ingresso dell'ospedale. Percorso pedonale da ",
+      "startDate": "2025-05-05T07:06:07.000Z",
+      "endDate": "2026-06-02T23:59:59.000Z",
+      "affectedServices": [],
+      "severity": "low",
+      "url": "https://www.atm.it/it/ViaggiaConNoi/InfoTraffico/Pagine/melamaggio.aspx",
+      "guaranteedBands": null,
+      "id": "atm-2025-05-05-minimetro-gobba-san-raffaele-chiusa"
+    },
+    {
+      "source": "atm",
+      "type": "disruption",
+      "title": "Bus 61 e 84: cambiamenti al servizio",
+      "description": "È prevista la chiusura al traffico di un tratto di corso Europa. I bus cambiano percorso, lunedì 18 e mercoledì 20 maggio, dalle 7 alle 18. Verso Duomo (61) e Corvetto (84), i bus deviano e saltano la fermata San Babila M1 M4. Fanno il solito percorso fino a via Visconti di Modrone. Poi non passano da via Borgogna: continuano su Visconti di Modrone, passano da largo Augusto e via Cavallotti. Riprendono il percorso consueto da corso Europa. Verso Murani (61) e Porta Volta (84) il percorso non cam",
+      "startDate": "2026-05-08T09:03:26.000Z",
+      "endDate": null,
+      "affectedServices": [
+        "M1"
+      ],
+      "severity": "low",
+      "url": "https://www.atm.it/it/ViaggiaConNoi/InfoTraffico/Pagine/bus6184deviazioooo.aspx",
+      "guaranteedBands": null,
+      "id": "atm-2026-05-08-bus-61-e-84-cambiamenti-al-servizio"
+    },
+    {
+      "source": "atm",
+      "type": "disruption",
+      "title": "47, 76, Q76, 321, 322, 323, 327, 433 e NM1: nuovo capolinea sul piazzale di Bisceglie",
+      "description": "È terminata la riqualificazione dell’autostazione di Bisceglie. Dalle 10 di lunedì 11 maggio queste linee cambiano la posizione dei capolinea sul piazzale. BUS 47, 76, Q76 E 323 I bus partono e arrivano al secondo marciapiede. BUS NM1 E 433 I bus partono e arrivano al terzo marciapiede. BUS 321, 322 E 327 I bus partono e arrivano al primo marciapiede.",
+      "startDate": "2026-05-08T16:34:17.000Z",
+      "endDate": null,
+      "affectedServices": [
+        "M1"
+      ],
+      "severity": "low",
+      "url": "https://www.atm.it/it/ViaggiaConNoi/InfoTraffico/Pagine/47,76,Q76,78,321,322,323,327,352,433eNM1nuovocapolineasulpiazzalediBisceglie.aspx",
+      "guaranteedBands": null,
+      "id": "atm-2026-05-08-47-76-q76-321-322-323-327-433-e-nm1-nuov"
+    },
+    {
+      "source": "atm",
+      "type": "disruption",
+      "title": "Radio Italia Live: al concerto con i mezzi pubblici",
+      "description": "Venerdì 15 maggio c’è il concerto di Radio Italia in piazza Duomo. In questa pagina trovate tutte le informazioni per raggiungerlo con i mezzi pubblici. M1, M3 e M4 sono aperte fino a tarda notte Fanno orario prolungato le metropolitane M1 (tra Sesto FS e Molino Dorino/Bisceglie), M3 e M4. Chiudono al solito orario le linee M2, M5 e la tratta M1 Molino Dorino-Rho Fieramilano. M1: ultime partenze dal centro per Rho Fieramilano ore 0:05 per Bisceglie ore 1:20 per Molino Dorino ore 1:10 per Sesto F",
+      "startDate": "2026-05-12T11:38:30.000Z",
+      "endDate": null,
+      "affectedServices": [
+        "M1"
+      ],
+      "severity": "low",
+      "url": "https://www.atm.it/it/AtmNews/AtmInforma/Pagine/RadioItaliaLive26.aspx",
+      "guaranteedBands": null,
+      "id": "atm-2026-05-12-radio-italia-live-al-concerto-con-i-mezz"
+    },
+    {
+      "source": "atm",
+      "type": "works",
+      "title": "Bus 49: deviazione",
+      "description": "Sono in programma lavori stradali in via Inganni. Le vetture cambiano percorso e fermate dalle 20 alle 6 da lunedì 18 a sabato 23 maggio. I bus verso San Cristoforo M4 saltano queste fermate: Inganni M1 Via Inganni/via Passero Via Inganni/via Rondine Via Inganni/via Lucarino Via Inganni/via Val Bavona. Fanno servizio come al solito da San Cristoforo fino alla fermata via Saint Bon/via Forze Armate. Da qui girano e fermano in via Zurigo 2 e 22, in via Bisceglie 76 e dopo via Bensi, in via Lorente",
+      "startDate": "2026-05-12T12:41:10.000Z",
+      "endDate": null,
+      "affectedServices": [
+        "M1"
+      ],
+      "severity": "low",
+      "url": "https://www.atm.it/it/ViaggiaConNoi/InfoTraffico/Pagine/Bus49lavoriinganni.aspx",
+      "guaranteedBands": null,
+      "id": "atm-2026-05-12-bus-49-deviazione"
+    },
+    {
+      "source": "atm",
+      "type": "works",
+      "title": "Bus 48, 78 e Q78: fermata spostata",
+      "description": "Sono in programma lavori stradali in via Monte Rosa. La fermata via Silva via Monte Rosa dei bus 48 (verso Lotto M1 M5), 78 (verso Bisceglie M1) e Q78 (verso San Siro) è sospesa dalle 9 di martedì 19 maggio. Usate la fermata di via Silva via Monte Rosa, dove ferma la linea 68.",
+      "startDate": "2026-05-14T15:02:16.000Z",
+      "endDate": null,
+      "affectedServices": [
+        "M1"
+      ],
+      "severity": "low",
+      "url": "https://www.atm.it/it/ViaggiaConNoi/InfoTraffico/Pagine/Bus48,78eQ78fermataspostata.aspx",
+      "guaranteedBands": null,
+      "id": "atm-2026-05-14-bus-48-78-e-q78-fermata-spostata"
+    },
+    {
+      "source": "atm",
+      "type": "disruption",
+      "title": "Inter-Verona e festa dell’Inter: chiusure e deviazioni dopo le 18",
+      "description": "Domenica 17 maggio, alle 15, si gioca Inter- Verona. Nel pomeriggio alcune linee di superficie cambiano il servizio. Dopo le 18 le stazioni di Duomo e Cordusio chiudono su disposizione delle autorità di pubblica sicurezza per permettere l’arrivo dei tifosi e la festa dell’Inter in piazza. La stazione Duomo chiude dopo le 18. Cordusio chiude al passaggio del corteo Dalle 18 i treni di M1 e M3 saltano Duomo . In alternativa usate Centrale, Loreto o Cadorna per cambiare linea. Per raggiungere la pi",
+      "startDate": "2026-05-15T10:00:12.000Z",
+      "endDate": null,
+      "affectedServices": [
+        "M1"
+      ],
+      "severity": "low",
+      "url": "https://www.atm.it/it/ViaggiaConNoi/InfoTraffico/Pagine/Inter-Veronaefestadell’Interchiusureedeviazionidopole18.aspx",
+      "guaranteedBands": null,
+      "id": "atm-2026-05-15-inter-verona-e-festa-dell-inter-chiusure"
+    },
+    {
+      "source": "atm",
+      "type": "disruption",
+      "title": "Bus 44: deviazione",
+      "description": "È in programma lo smontaggio di una gru in via Asiago. I bus cambiano percorso e fermate sabato 30/5 dalle 7 alle 18:30. Verso Gobba, i bus fanno normale servizio fino a viale Monza. Poi non vanno in via Monte San Gabriele, ma continuano su viale Monza. Poi girano in via Don Guanella e in via Pompeo Mariani. Da via Ponte Nuovo riprendono il percorso di sempre. Verso Turro, il percorso non cambia. Sono sospese queste fermate: via San Gabriele (Gorla M1). I bus fermano in viale Monza, dopo via Pir",
+      "startDate": "2026-05-15T11:28:26.000Z",
+      "endDate": null,
+      "affectedServices": [
+        "M1"
+      ],
+      "severity": "low",
+      "url": "https://www.atm.it/it/ViaggiaConNoi/InfoTraffico/Pagine/Bus44.aspx",
+      "guaranteedBands": null,
+      "id": "atm-2026-05-15-bus-44-deviazione"
+    },
+    {
+      "source": "atm",
+      "type": "works",
+      "title": "Bus 322 e 323: fermate spostate",
+      "description": "Ci sono lavori stradali in via Don Sturzo a Cesano Boscone. Da lunedì 25 maggio per circa 15 giorni vengono spostate le fermate di via Don Sturzo/via Gobetti. Verso Cesano Boscone, Quartiere Tessera (linea 322) e Stazione FS (linea 323) usate la fermata provvisoria più avanti, in via Don Sturzo prima di via Gobetti. Verso Milano Bisceglie M1 usate la fermata provvisoria più indietro, in via Don Sturzo dopo via Gobetti.",
+      "startDate": "2026-05-15T16:28:55.000Z",
+      "endDate": null,
+      "affectedServices": [
+        "M1"
+      ],
+      "severity": "low",
+      "url": "https://www.atm.it/it/ViaggiaConNoi/InfoTraffico/Pagine/Bus3232323fermspostcesanobbb.aspx",
+      "guaranteedBands": null,
+      "id": "atm-2026-05-15-bus-322-e-323-fermate-spostate"
     }
   ]
 }
