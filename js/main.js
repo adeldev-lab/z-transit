@@ -131,7 +131,21 @@ function updateClock() {
 
 function registerSW() {
   if (!("serviceWorker" in navigator)) return;
-  navigator.serviceWorker.register("./sw.js").catch(error => {
+  navigator.serviceWorker.register("./sw.js").then(reg => {
+    // Check for updates immediately on every page load
+    reg.update().catch(() => {});
+    // When a new SW is found and installed, reload to pick up fresh assets
+    reg.addEventListener("updatefound", () => {
+      const newWorker = reg.installing;
+      if (!newWorker) return;
+      newWorker.addEventListener("statechange", () => {
+        if (newWorker.state === "activated" && navigator.serviceWorker.controller) {
+          // New SW activated — reload to serve fresh content
+          window.location.reload();
+        }
+      });
+    });
+  }).catch(error => {
     console.warn("Service worker non registrato.", error);
   });
 }

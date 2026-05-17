@@ -88,5 +88,17 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
   <script type="module" src="./js/main.js"></script>
+  <script>
+    // Force service worker update check on every page load.
+    // This breaks the stale-cache deadlock: even if the old cache-first SW
+    // is serving an outdated main.js, this inline snippet runs fresh from
+    // the network (since the browser always re-fetches the HTML navigation
+    // request) and triggers the SW byte-check immediately.
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.getRegistration().then(function(reg) {
+        if (reg) reg.update();
+      });
+    }
+  </script>
 </body>
 </html>
