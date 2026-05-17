@@ -4,14 +4,10 @@ export const STOP_COORDINATES = {
   // cliccare col tasto destro sul punto esatto e copiare i due numeri (latitudine, longitudine).
   // Incollarli qui sotto tra le parentesi quadre.
   //
-  // TODO: BT205 è definito due volte con coordinate leggermente diverse.
-  //       Verificare quale sia corretto e rimuovere il duplicato.
-  //       (la seconda definizione sovrascrive la prima in JS)
 
   "BT999": [45.55413506556368, 8.873315041886375], // Busto G. Deposito (V. Busto A. 131)
   "BT949": [45.55111633997449, 8.876709344549651], // Busto G. Piscina (V. Busto A. 91)
   "BT951": [45.550994444702305, 8.876912157796724], // Busto G. Piscina (V. Busto A. 90)
-  "BT205": [45.54777952611424, 8.880166682651746], // Busto G. Via Busto A. fr 48
   "BT775": [45.54433590398819, 8.879102028943906], // Busto G. Via Rossini 35
   "BT776": [45.54409788350725, 8.878505710071357], // Busto G. Via Bellini 44
   "BT400": [45.5432803037893, 8.887432997142946], // Busto G. Via Matteotti 6
