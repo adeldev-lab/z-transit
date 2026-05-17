@@ -44,6 +44,7 @@
     <nav class="tab-bar" aria-label="Sezioni principali">
       <button class="tab-btn active" type="button" data-tab="live">LIVE</button>
       <button class="tab-btn" type="button" data-tab="timetable">Orari</button>
+      <button class="tab-btn" type="button" data-tab="alerts">Avvisi</button>
       <button class="tab-btn" type="button" data-tab="settings">Impostazioni</button>
     </nav>
 
@@ -57,6 +58,12 @@
       <section id="tab-timetable" class="tab-panel" aria-label="Orari">
         <div id="timetable-content" class="stack">
           <div class="empty-state">Seleziona una linea</div>
+        </div>
+      </section>
+
+      <section id="tab-alerts" class="tab-panel" aria-label="Avvisi">
+        <div id="alerts-content" class="stack">
+          <div class="empty-state">Caricamento avvisi...</div>
         </div>
       </section>
 

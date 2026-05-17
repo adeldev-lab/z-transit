@@ -10,7 +10,7 @@
 // IMPORTANT: Bump CACHE_NAME on every deploy so the activate handler purges stale caches.
 // =============================================================================
 
-const CACHE_NAME = "trasporti-busto-v4-4-4";
+const CACHE_NAME = "trasporti-busto-v4-5-0";
 
 const PRECACHE_ASSETS = [
   "./",
@@ -31,6 +31,7 @@ const PRECACHE_ASSETS = [
   "./js/map.js",
   "./js/map-data.js",
   "./js/onboarding.js",
+  "./js/alerts.js",
   "./data/config.js",
   "./data/z649.js",
   "./data/z627.js",

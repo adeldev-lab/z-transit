@@ -29,7 +29,9 @@ vitest.config.js
 
 # ─── Scratch / utility scripts (dev-only) ───────────────────────────────────
 scratch/
+scripts/
 utility_stops.md
+GTFS_COMPARISON_REPORT.md
 
 # ─── Misc dev files ─────────────────────────────────────────────────────────
 *.py

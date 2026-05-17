@@ -15,6 +15,7 @@ import { initTheme } from "./theme.js";
 import { initNotifications, getNotificationConfig } from "./notifications.js";
 import { initFirebase, getCurrentUser, saveToCloud, onAuthStateChanged } from "./firebase-sync.js";
 import { shouldShowOnboarding, startOnboarding } from "./onboarding.js";
+import { initAlerts, renderAlertsTab, renderStrikeBanner, dismissAlert } from "./alerts.js";
 
 // Module-level flag used by js/settings.js _startCloudListener to suppress
 // the cloud write branch of saveSettings while applying a remote snapshot,
@@ -110,6 +111,7 @@ function renderCurrentTab() {
   try {
     if (state.currentTab === "live") renderLive(state, LINE_DATA, LINE_CONFIG, CFG, saveSettings);
     else if (state.currentTab === "timetable") renderTimetable(state, LINE_DATA, LINE_CONFIG, CFG);
+    else if (state.currentTab === "alerts") renderAlertsTab();
     else if (state.currentTab === "settings") renderSettings(state, saveSettings, CFG, LINE_DATA, LINE_CONFIG);
   } catch (error) {
     console.error(`[Trasporti] Errore nel render del tab "${state.currentTab}":`, error);
@@ -224,6 +226,7 @@ function init() {
     console.warn("[Trasporti] Mappa non inizializzata:", e);
   }
   initTheme();
+  initAlerts();
   initNotifications(
     () => state,
     () => LINE_DATA,

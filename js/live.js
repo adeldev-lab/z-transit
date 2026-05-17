@@ -21,6 +21,7 @@ import { getStopName, STOP_NAMES } from "./line-config.js";
 import { openMap } from "./map.js";
 import { STOP_COORDINATES } from "./map-data.js";
 import { patchDOM } from "./dom-utils.js";
+import { renderStrikeBanner, dismissAlert } from "./alerts.js";
 
 // Cities ordered outward from Busto Garolfo for the stop filter dropdown
 const FILTER_CITY_ORDER = [
@@ -91,6 +92,9 @@ export function renderLive(state, lineData, lineConfig, cfg, saveSettings) {
     </section>`;
 
   html += renderFilterBar(lineConfig, cfg, stopFilter, lineFilter);
+
+  // Strike banner (only active strikes, not general notices)
+  html += renderStrikeBanner();
 
   if (isGlobalInactive(now, cfg)) {
     html += `<div class="banner banner-danger">Servizio sospeso: ${escapeHtml(cfg.globalInactivity.note)}</div>`;
@@ -819,5 +823,14 @@ function bindLiveEvents(container) {
     state.liveStopFilter = null;
     state.liveLineFilter = null;
     renderLive(state, lineData, lineConfig, cfg, saveSettings);
+  });
+
+  // Dismiss strike alert banners
+  container.querySelectorAll("[data-dismiss-alert]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      dismissAlert(btn.dataset.dismissAlert);
+      const banner = btn.closest(".alert-strike-banner");
+      if (banner) banner.remove();
+    });
   });
 }
