@@ -24,6 +24,7 @@ npm-debug.log*
 
 # ─── Test tooling (dev-only, not needed in production/GH Pages) ─────────────
 tests/
+2026-03-06_Movibus/
 vitest.config.js
 
 # ─── Scratch / utility scripts (dev-only) ───────────────────────────────────

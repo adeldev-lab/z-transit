@@ -54,43 +54,50 @@ const DESTINATIONS = [
     id: "milano_m1",
     label: "Milano via M1 (Molino Dorino)",
     emoji: "🚇",
-    lines: ["Z649"]
+    lines: ["Z649"],
+    lineLabel: "Z649"
   },
   {
     id: "milano_s5_pregnana",
     label: "Milano via S5/S6 (Pregnana FS)",
     emoji: "🚄",
-    lines: ["Z649"]
+    lines: ["Z649"],
+    lineLabel: "Z649"
   },
   {
     id: "legnano",
     label: "Legnano FS",
     emoji: "🚄",
-    lines: ["Z627", "Z642"]
+    lines: ["Z627", "Z642"],
+    lineLabel: "Z627 · Z642"
   },
   {
     id: "parabiago",
     label: "Parabiago FS",
     emoji: "🚄",
-    lines: ["Z644"]
+    lines: ["Z644"],
+    lineLabel: "Z644"
   },
   {
     id: "busto_arsizio",
     label: "Busto Arsizio FS",
     emoji: "🚄",
-    lines: ["Z625"]
+    lines: ["Z625"],
+    lineLabel: "Z625"
   },
   {
     id: "castano",
     label: "Castano Primo / Arconate",
     emoji: "🏫",
-    lines: ["Z647"]
+    lines: ["Z647"],
+    lineLabel: "Z647"
   },
   {
     id: "canegrate_auto",
     label: "Canegrate FS in auto",
     emoji: "🚗",
-    lines: []
+    lines: [],
+    lineLabel: "S5 treno"
   }
 ];
 
@@ -310,7 +317,7 @@ function renderStep3() {
         ${DESTINATIONS.map(dest => `
           <button type="button" class="onboarding-choice onboarding-choice--compact ${wizardState.destinations.includes(dest.id) ? "selected" : ""}" data-destination="${dest.id}">
             <span class="onboarding-choice-emoji">${dest.emoji}</span>
-            <span class="onboarding-choice-label">${dest.label}</span>
+            <span class="onboarding-choice-label">${dest.label} <small style="opacity: 0.7; font-weight: 600; font-size: 0.72rem; margin-left: 4px;">${dest.lineLabel}</small></span>
           </button>
         `).join("")}
       </div>
