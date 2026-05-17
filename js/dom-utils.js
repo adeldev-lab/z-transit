@@ -17,32 +17,49 @@
  * @param {object} [options] - Options
  * @param {Function} [options.onAfterPatch] - Callback after patching (for rebinding events)
  */
+let _patchDepth = 0;
+const MAX_PATCH_DEPTH = 1; // Prevent re-entrant patchDOM on the same container
+
 export function patchDOM(container, newHtml, options = {}) {
   if (!container) return;
 
-  // Save scroll positions
-  const scrollState = saveScrollState(container);
-
-  // Parse new HTML into a temporary container
-  const template = document.createElement("template");
-  template.innerHTML = newHtml;
-  const newNodes = template.content;
-
-  // If container is empty or the structure is radically different, just replace
-  if (!container.hasChildNodes() || shouldFullReplace(container, newNodes)) {
-    container.innerHTML = newHtml;
-    restoreScrollState(container, scrollState);
-    if (options.onAfterPatch) options.onAfterPatch();
+  // Guard against re-entrant calls (e.g. event handler inside onAfterPatch
+  // triggers saveSettings which triggers renderCurrentTab which calls patchDOM
+  // on the same container while we're still inside the first patchDOM).
+  if (container._patching) {
+    // Defer to next microtask to break the synchronous loop
+    queueMicrotask(() => patchDOM(container, newHtml, options));
     return;
   }
+  container._patching = true;
 
-  // Reconcile children
-  reconcileChildren(container, newNodes);
+  try {
+    // Save scroll positions
+    const scrollState = saveScrollState(container);
 
-  // Restore scroll
-  restoreScrollState(container, scrollState);
+    // Parse new HTML into a temporary container
+    const template = document.createElement("template");
+    template.innerHTML = newHtml;
+    const newNodes = template.content;
 
-  if (options.onAfterPatch) options.onAfterPatch();
+    // If container is empty or the structure is radically different, just replace
+    if (!container.hasChildNodes() || shouldFullReplace(container, newNodes)) {
+      container.innerHTML = newHtml;
+      restoreScrollState(container, scrollState);
+      if (options.onAfterPatch) options.onAfterPatch();
+      return;
+    }
+
+    // Reconcile children
+    reconcileChildren(container, newNodes);
+
+    // Restore scroll
+    restoreScrollState(container, scrollState);
+
+    if (options.onAfterPatch) options.onAfterPatch();
+  } finally {
+    container._patching = false;
+  }
 }
 
 /**

@@ -94,7 +94,14 @@ export function saveSettings(partial) {
   renderCurrentTab();
 }
 
+let _rendering = false;
+
 function renderCurrentTab() {
+  // Prevent re-entrant rendering which can cause infinite loops when
+  // event handlers inside a render trigger saveSettings → renderCurrentTab
+  if (_rendering) return;
+  _rendering = true;
+
   const errorMessage = `<div class="empty-state" style="border-color: rgba(239,68,68,0.4); background: rgba(239,68,68,0.08); color: #fecaca;">
     <strong>Errore di rendering</strong><br>
     <small>Si è verificato un problema nel caricamento di questa sezione. Prova a ricaricare la pagina.</small>
@@ -108,6 +115,8 @@ function renderCurrentTab() {
     console.error(`[Trasporti] Errore nel render del tab "${state.currentTab}":`, error);
     const container = document.getElementById(`${state.currentTab}-content`);
     if (container) container.innerHTML = errorMessage;
+  } finally {
+    _rendering = false;
   }
 }
 
