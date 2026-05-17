@@ -1,16 +1,18 @@
 {
-  "lastUpdated": "2026-05-17T17:26:37.558Z",
+  "lastUpdated": "2026-05-17T17:37:48.789Z",
   "windowDays": 14,
   "alerts": [
     {
       "source": "trenord",
       "type": "strike",
-      "title": "Sciopero Nazionale Trasporti",
+      "title": "sciopero nazionale.",
       "description": "sciopero nazionale.",
-      "startDate": "2026-05-16T22:00:00.000Z",
-      "endDate": "2026-05-17T22:00:00.000Z",
+      "startDate": null,
+      "endDate": null,
       "affectedServices": [
-        "Trenord"
+        "Trenord",
+        "ATM",
+        "Movibus"
       ],
       "severity": "high",
       "url": "https://www.trenord.it/news/trenord-informa/avvisi/sciopero",
@@ -124,7 +126,7 @@
       "source": "atm",
       "type": "disruption",
       "title": "Inter-Verona e festa dell’Inter: chiusure e deviazioni.",
-      "description": "Oggi si è giocata la partita Inter- Verona. Alcune linee di superficie cambiano il servizio. Dopo le 18 le stazioni di Duomo e Cordusio chiudono su disposizione delle autorità di pubblica sicurezza per permettere l’arrivo dei tifosi e la festa dell’Inter in piazza. La stazione Duomo chiude dopo le 18. Cordusio chiude al passaggio del corteo Dalle 18 i treni di M1 e M3 saltano Duomo . In alternativa usate Centrale, Loreto o Cadorna per cambiare linea. Per raggiungere la piazza considerate le staz",
+      "description": "Oggi si è giocata la partita Inter-Verona. Alcune linee di superficie cambiano il servizio. Dopo le 18 le stazioni di Duomo e Cordusio chiudono su disposizione delle autorità di pubblica sicurezza per permettere l’arrivo dei tifosi e la festa dell’Inter in piazza. La stazione Duomo chiude dopo le 18. Cordusio chiude al passaggio del corteo Dalle 18 i treni di M1 e M3 saltano Duomo . In alternativa usate Centrale, Loreto o Cadorna per cambiare linea. Per raggiungere la piazza considerate le stazi",
       "startDate": "2026-05-15T10:00:12.000Z",
       "endDate": null,
       "affectedServices": [
