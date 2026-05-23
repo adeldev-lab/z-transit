@@ -369,34 +369,48 @@ export function renderNotificationSettings(cfg) {
  */
 export function bindNotificationEvents(container) {
   // Request permission
-  container.querySelector("[data-request-notif-permission]")?.addEventListener("click", async () => {
-    const result = await requestPermission();
-    if (result === "granted") {
-      // Re-render via event bus instead of full page reload
-      document.dispatchEvent(new CustomEvent('trasporti:settings-changed'));
-    } else {
-      alert("Notifiche non autorizzate. Controlla le impostazioni del browser.");
-    }
-  });
+  const reqBtn = container.querySelector("[data-request-notif-permission]");
+  if (reqBtn && !reqBtn.__has_click) {
+    reqBtn.__has_click = true;
+    reqBtn.addEventListener("click", async () => {
+      const result = await requestPermission();
+      if (result === "granted") {
+        // Re-render via event bus instead of full page reload
+        document.dispatchEvent(new CustomEvent('trasporti:settings-changed'));
+      } else {
+        alert("Notifiche non autorizzate. Controlla le impostazioni del browser.");
+      }
+    });
+  }
 
   // Toggle enabled
-  container.querySelector("[data-notif-toggle-enabled]")?.addEventListener("change", (e) => {
-    const config = getNotificationConfig();
-    config.enabled = e.target.checked;
-    saveNotificationConfig(config);
-  });
+  const toggleInput = container.querySelector("[data-notif-toggle-enabled]");
+  if (toggleInput && !toggleInput.__has_change) {
+    toggleInput.__has_change = true;
+    toggleInput.addEventListener("change", (e) => {
+      const config = getNotificationConfig();
+      config.enabled = e.target.checked;
+      saveNotificationConfig(config);
+    });
+  }
 
   // Default reminders
-  container.querySelector("[data-notif-default-reminders]")?.addEventListener("change", (e) => {
-    const values = parseReminderInput(e.target.value);
-    if (values.length > 0) {
-      setDefaultReminders(values);
-      e.target.value = values.join(", ");
-    }
-  });
+  const defaultRemindersInput = container.querySelector("[data-notif-default-reminders]");
+  if (defaultRemindersInput && !defaultRemindersInput.__has_change) {
+    defaultRemindersInput.__has_change = true;
+    defaultRemindersInput.addEventListener("change", (e) => {
+      const values = parseReminderInput(e.target.value);
+      if (values.length > 0) {
+        setDefaultReminders(values);
+        e.target.value = values.join(", ");
+      }
+    });
+  }
 
   // Follow/unfollow lines
   container.querySelectorAll("[data-notif-follow-line]").forEach(input => {
+    if (input.__has_change) return;
+    input.__has_change = true;
     input.addEventListener("change", () => {
       toggleFollowLine(input.dataset.notifFollowLine);
       // Re-render via event bus
@@ -406,6 +420,8 @@ export function bindNotificationEvents(container) {
 
   // Per-line reminders
   container.querySelectorAll("[data-notif-line-reminders]").forEach(input => {
+    if (input.__has_change) return;
+    input.__has_change = true;
     input.addEventListener("change", () => {
       const lineId = input.dataset.notifLineReminders;
       const value = input.value.trim().toLowerCase();
@@ -431,4 +447,32 @@ function parseReminderInput(value) {
     .map(v => parseInt(v.trim(), 10))
     .filter(n => Number.isFinite(n) && n > 0 && n <= 60)
     .sort((a, b) => a - b);
+}
+
+/**
+ * Normalizes and sanitizes a raw notification configuration object.
+ * @param {object} raw 
+ * @returns {object}
+ */
+export function sanitizeNotifications(raw) {
+  const defaults = getDefaultConfig();
+  const config = { ...defaults, ...(raw || {}) };
+  config.enabled = raw?.enabled !== false;
+  config.followedLines = Array.isArray(raw?.followedLines) ? raw.followedLines : [];
+  
+  config.reminders = {};
+  if (raw?.reminders && typeof raw.reminders === "object") {
+    for (const [lineId, times] of Object.entries(raw.reminders)) {
+      if (Array.isArray(times)) {
+        config.reminders[lineId] = times.filter(t => Number.isFinite(t) && t > 0).sort((a, b) => a - b);
+      }
+    }
+  }
+  
+  config.defaultReminders = Array.isArray(raw?.defaultReminders)
+    ? raw.defaultReminders.filter(t => Number.isFinite(t) && t > 0).sort((a, b) => a - b)
+    : [5, 10];
+    
+  config.lastNotified = raw?.lastNotified && typeof raw.lastNotified === "object" ? raw.lastNotified : {};
+  return config;
 }

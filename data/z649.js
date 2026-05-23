@@ -1,5 +1,5 @@
 // Auto-generated from GTFS – do not edit manually
-// Generated: 2026-05-17T16:37:32.694Z
+// Generated: 2026-05-20T11:20:44.295Z
 
 export const Z649_DATA = {
   saturday_outbound: [

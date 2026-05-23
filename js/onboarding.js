@@ -8,6 +8,29 @@
 // =============================================================================
 
 import { getStopName } from "./line-config.js";
+import { TRAIN_STATIONS } from "../data/trains.js";
+
+const CITY_MAIN_STATION = {
+  BT: "Canegrate",
+  VC: "Canegrate",
+  DG: "Legnano",
+  AC: "Legnano",
+  CZ: "Parabiago",
+  LG: "Legnano",
+  PB: "Parabiago",
+  BS: "Busto Arsizio",
+};
+
+const CITY_MAIN_STATION_CODE = {
+  BT: "CN_FS",
+  VC: "CN_FS",
+  DG: "LG_FS",
+  AC: "LG_FS",
+  CZ: "PB_FS",
+  LG: "LG_FS",
+  PB: "PB_FS",
+  BS: "BS_FS",
+};
 
 // ── Zone definitions (Busto Garolfo) ────────────────────────────────────────
 const HOME_ZONES = [
@@ -54,29 +77,36 @@ const DESTINATIONS = [
     id: "milano_m1",
     label: "Milano via M1 (Molino Dorino)",
     emoji: "🚇",
-    lines: ["Z649"],
-    lineLabel: "Z649"
+    lines: ["Z649", "Z601", "Z617", "Z620", "Z621", "Z606"],
+    lineLabel: "Z649 · Z601 · Z617 · Z620 · Z621 · Z606"
+  },
+  {
+    id: "milano_a8",
+    label: "Milano via autostrada A8",
+    emoji: "🛣️",
+    lines: ["Z602", "Z603", "Z6C3"],
+    lineLabel: "Z602 · Z603 · Z6C3"
   },
   {
     id: "milano_s5_pregnana",
     label: "Milano via S5/S6 (Pregnana FS)",
     emoji: "🚄",
-    lines: ["Z649"],
-    lineLabel: "Z649"
+    lines: ["Z649", "Z616"],
+    lineLabel: "Z649 · Z616"
   },
   {
     id: "legnano",
     label: "Legnano FS",
     emoji: "🚄",
-    lines: ["Z627", "Z642"],
-    lineLabel: "Z627 · Z642"
+    lines: ["Z627", "Z642", "Z601", "Z611", "Z612", "Z636"],
+    lineLabel: "Z627 · Z642 · Z601 · Z611 · Z636"
   },
   {
     id: "parabiago",
     label: "Parabiago FS",
     emoji: "🚄",
-    lines: ["Z644"],
-    lineLabel: "Z644"
+    lines: ["Z644", "Z611"],
+    lineLabel: "Z644 · Z611"
   },
   {
     id: "busto_arsizio",
@@ -86,11 +116,46 @@ const DESTINATIONS = [
     lineLabel: "Z625"
   },
   {
+    id: "magenta",
+    label: "Magenta",
+    emoji: "🏘️",
+    lines: ["Z620", "Z641", "Z642", "Z646"],
+    lineLabel: "Z620 · Z641 · Z642 · Z646"
+  },
+  {
+    id: "rho",
+    label: "Rho",
+    emoji: "🏘️",
+    lines: ["Z601", "Z606", "Z616", "Z618"],
+    lineLabel: "Z601 · Z606 · Z616 · Z618"
+  },
+  {
+    id: "lainate_arese",
+    label: "Lainate / Arese (Il Centro)",
+    emoji: "🛍️",
+    lines: ["Z612", "Z617"],
+    lineLabel: "Z612 · Z617"
+  },
+  {
+    id: "cuggiono",
+    label: "Cuggiono / Inveruno",
+    emoji: "🌾",
+    lines: ["Z621", "Z622", "Z627", "Z646"],
+    lineLabel: "Z621 · Z622 · Z646"
+  },
+  {
+    id: "vittuone",
+    label: "Vittuone / Corbetta",
+    emoji: "🌾",
+    lines: ["Z620", "Z622", "Z643"],
+    lineLabel: "Z620 · Z622 · Z643"
+  },
+  {
     id: "castano",
     label: "Castano Primo / Arconate",
     emoji: "🏫",
-    lines: ["Z647"],
-    lineLabel: "Z647"
+    lines: ["Z647", "Z636", "Z641", "Z646"],
+    lineLabel: "Z647 · Z636 · Z641 · Z646"
   },
   {
     id: "canegrate_auto",
@@ -150,16 +215,20 @@ const ZONE_FAVORITES = {
 // ── Wizard State ────────────────────────────────────────────────────────────
 let wizardState = {
   step: 1,
-  userType: null,        // "resident_bg" | "visitor" | "skip"
+  userType: null,        // "resident" | "visitor" | "skip"
+  focusCity: "BT",       // focus city code
   homeZone: null,        // zone id
   destinations: [],      // destination ids
   useCanegrate: false,
   driveCanegrate: 16,
+  trainReachMinutes: 0,
   activeLines: [],
   favoriteStops: {},
   walkMinutes: 6,
   homeStop: null,
-  wantNotifications: false
+  wantNotifications: false,
+  visibleTrains: ["CN_FS"],
+  liveHero: "Z649"
 };
 
 let overlayEl = null;
@@ -183,15 +252,19 @@ export function startOnboarding(onComplete) {
   wizardState = {
     step: 1,
     userType: null,
+    focusCity: "BT",
     homeZone: null,
     destinations: [],
     useCanegrate: false,
     driveCanegrate: 16,
+    trainReachMinutes: 0,
     activeLines: [],
     favoriteStops: {},
     walkMinutes: 6,
     homeStop: null,
-    wantNotifications: false
+    wantNotifications: false,
+    visibleTrains: ["CN_FS"],
+    liveHero: "Z649"
   };
   showOverlay();
   renderStep();
@@ -261,16 +334,37 @@ function renderStep1() {
   return `
     <div class="onboarding-content">
       <h2 class="onboarding-title">Benvenuto! 👋</h2>
-      <p class="onboarding-subtitle">Personalizziamo l'app per te in pochi secondi.</p>
+      <p class="onboarding-subtitle">Seleziona la tua città di focus e personalizziamo l'app in pochi secondi.</p>
+      
+      <div style="background: rgba(34, 211, 238, 0.05); border: 1px solid rgba(34, 211, 238, 0.18); border-radius: 8px; padding: 10px 14px; margin-bottom: 20px; font-size: 0.78rem; color: var(--muted); line-height: 1.4; display: flex; align-items: center; gap: 8px;">
+        <span>🔒</span>
+        <span>I tuoi dati rimangono memorizzati sul tuo dispositivo. Se decidi di attivare la sincronizzazione cloud, verranno crittografati in modalità <strong>Zero-Knowledge</strong> sul tuo browser prima del caricamento. <a href="./privacy.html" target="_blank" style="color: var(--accent); text-decoration: underline; font-weight: 500;">Leggi la Privacy Policy & GDPR</a>.</span>
+      </div>
+
+      <div class="onboarding-field" style="margin-bottom: 20px;">
+
+        <label class="onboarding-field-label">Città di Focus principale</label>
+        <select class="onboarding-field-input" data-focus-city style="min-height: 40px; font-size: 0.95rem; width: 100%;">
+          <option value="BT" selected>🏠 Busto Garolfo</option>
+          <option value="VC">🏡 Villa Cortese</option>
+          <option value="DG">🏡 Dairago</option>
+          <option value="AC">🏡 Arconate</option>
+          <option value="CZ">🏡 Casorezzo</option>
+          <option value="LG">🏢 Legnano</option>
+          <option value="PB">🏢 Parabiago</option>
+          <option value="BS">🏢 Busto Arsizio</option>
+        </select>
+      </div>
+
       <div class="onboarding-choices">
-        <button type="button" class="onboarding-choice" data-user-type="resident_bg">
+        <button type="button" class="onboarding-choice" data-user-type="resident">
           <span class="onboarding-choice-emoji">🏠</span>
-          <span class="onboarding-choice-label">Vivo a Busto Garolfo</span>
-          <span class="onboarding-choice-desc">Configurazione completa con zona e fermate</span>
+          <span class="onboarding-choice-label">Vivo qui</span>
+          <span class="onboarding-choice-desc">Configurazione completa personalizzata</span>
         </button>
         <button type="button" class="onboarding-choice" data-user-type="visitor">
           <span class="onboarding-choice-emoji">🚌</span>
-          <span class="onboarding-choice-label">Vengo spesso a/da Busto G.</span>
+          <span class="onboarding-choice-label">Frequento spesso la zona</span>
           <span class="onboarding-choice-desc">Scegli le linee che usi di più</span>
         </button>
         <button type="button" class="onboarding-choice onboarding-choice--subtle" data-user-type="skip">
@@ -361,6 +455,22 @@ function renderStep4() {
     Z642: ["BT775", "BT956", "BT400"]
   };
 
+  const activeLinesForHero = lines.length > 0 ? lines : ["Z649", "Z627", "Z644", "Z625", "Z647", "Z642"];
+  const heroOptionsHtml = [
+    ...activeLinesForHero.map(id => `<option value="${id}" ${wizardState.liveHero === id ? "selected" : ""}>Bus ${id}</option>`),
+    ...Object.entries(TRAIN_STATIONS).map(([code, info]) => `<option value="${code}" ${wizardState.liveHero === code ? "selected" : ""}>Treno - Stazione di ${info.name}</option>`)
+  ].join("");
+
+  const trainsCheckboxesHtml = Object.entries(TRAIN_STATIONS).map(([code, info]) => {
+    const isChecked = wizardState.visibleTrains.includes(code);
+    return `
+      <label style="display: flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.03); border: 1px solid var(--line); padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 0.8rem; color: var(--text);">
+        <input type="checkbox" data-onboarding-visible-train="${code}" ${isChecked ? "checked" : ""} style="cursor: pointer;">
+        <span>${info.name}</span>
+      </label>
+    `;
+  }).join("");
+
   return `
     <div class="onboarding-content">
       <h2 class="onboarding-title">Personalizza ⚙️</h2>
@@ -380,6 +490,34 @@ function renderStep4() {
           <input type="number" class="onboarding-field-input" data-drive-canegrate min="1" max="45" value="${wizardState.driveCanegrate}">
         </div>
       ` : ""}
+
+      <div class="onboarding-field">
+        <label class="onboarding-field-label">Minuti per raggiungere la stazione di ${CITY_MAIN_STATION[wizardState.focusCity || "BT"] || "Canegrate"} FS</label>
+        <input type="number" class="onboarding-field-input" data-train-reach min="0" max="60" 
+          value="${wizardState.trainReachMinutes !== undefined && wizardState.trainReachMinutes !== 0 ? wizardState.trainReachMinutes : ''}" 
+          placeholder="Lascia vuoto per saltare">
+        <small style="display: block; margin-top: 6px; color: var(--quiet); font-size: 0.72rem; line-height: 1.4;">
+          Calcola l'orario di partenza consigliato per questa stazione. Lascia vuoto per disattivarlo.
+        </small>
+      </div>
+
+      <div class="onboarding-field">
+        <label class="onboarding-field-label">Scheda principale in alto (HERO)</label>
+        <select class="onboarding-field-input" data-onboarding-live-hero style="width: 100%; min-height: 38px;">
+          ${heroOptionsHtml}
+        </select>
+        <small style="display: block; margin-top: 6px; color: var(--quiet); font-size: 0.72rem; line-height: 1.4;">
+          Scegli quale linea o stazione mostrare in evidenza in cima al tab LIVE.
+        </small>
+      </div>
+
+      <div class="onboarding-field" style="margin-bottom: 20px;">
+        <label class="onboarding-field-label">Stazioni ferroviarie visibili</label>
+        <p style="font-size: 0.72rem; color: var(--quiet); margin: 0 0 8px 0; line-height: 1.4;">Seleziona quali stazioni visualizzare in fondo alla pagina del tab LIVE.</p>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 8px;">
+          ${trainsCheckboxesHtml}
+        </div>
+      </div>
 
       <div class="onboarding-stops-list">
         ${lines.map(lineId => {
@@ -462,11 +600,20 @@ function bindStepEvents() {
   // Step 1: user type
   overlayEl.querySelectorAll("[data-user-type]").forEach(btn => {
     btn.addEventListener("click", () => {
+      const citySelect = overlayEl.querySelector("[data-focus-city]");
+      wizardState.focusCity = citySelect ? citySelect.value : "BT";
+      wizardState.visibleTrains = [CITY_MAIN_STATION_CODE[wizardState.focusCity] || "CN_FS"];
       wizardState.userType = btn.dataset.userType;
+      
       if (wizardState.userType === "skip") {
         finishWizard(true);
-      } else {
+      } else if (wizardState.userType === "resident" && wizardState.focusCity === "BT") {
+        // Only Busto Garolfo has home zones configured
         wizardState.step = 2;
+        renderStep();
+      } else {
+        // Skip home zone step for other focus cities or visitors
+        wizardState.step = 3;
         renderStep();
       }
     });
@@ -519,6 +666,36 @@ function bindStepEvents() {
       wizardState.driveCanegrate = Math.max(1, Math.min(45, Number(driveInput.value) || 16));
     });
   }
+
+  // Step 4: train reach minutes input
+  const trainReachInput = overlayEl.querySelector("[data-train-reach]");
+  if (trainReachInput) {
+    trainReachInput.addEventListener("change", () => {
+      wizardState.trainReachMinutes = Math.max(0, Math.min(60, Number(trainReachInput.value) || 0));
+    });
+  }
+
+  // Step 4: live hero input
+  const liveHeroSelect = overlayEl.querySelector("[data-onboarding-live-hero]");
+  if (liveHeroSelect) {
+    liveHeroSelect.addEventListener("change", () => {
+      wizardState.liveHero = liveHeroSelect.value;
+    });
+  }
+
+  // Step 4: visible train station checkboxes
+  overlayEl.querySelectorAll("[data-onboarding-visible-train]").forEach(checkbox => {
+    checkbox.addEventListener("change", () => {
+      const code = checkbox.dataset.onboardingVisibleTrain;
+      if (checkbox.checked) {
+        if (!wizardState.visibleTrains.includes(code)) {
+          wizardState.visibleTrains.push(code);
+        }
+      } else {
+        wizardState.visibleTrains = wizardState.visibleTrains.filter(c => c !== code);
+      }
+    });
+  });
 
   // Step 4: favorite stop selects
   overlayEl.querySelectorAll("[data-fav-stop]").forEach(select => {
@@ -614,15 +791,21 @@ function finishWizard(skipped) {
     onboardingVersion: 1,
     completedAt: new Date().toISOString(),
     userType: wizardState.userType,
+    focusCity: wizardState.focusCity || "BT",
     homeZone: wizardState.homeZone || null,
     homeStop: zone?.stop || null,
     walkMinutes: wizardState.walkMinutes,
+    stationReachMinutes: {
+      [CITY_MAIN_STATION_CODE[wizardState.focusCity || "BT"] || "CN_FS"]: wizardState.trainReachMinutes || 0
+    },
     destinations: [...wizardState.destinations],
     activeLines: activeLines,
     useCanegrate: wizardState.useCanegrate,
     driveCanegrate: wizardState.useCanegrate ? wizardState.driveCanegrate : null,
     favoriteStops: structuredClone(wizardState.favoriteStops),
-    wantNotifications: wizardState.wantNotifications
+    wantNotifications: wizardState.wantNotifications,
+    visibleTrains: [...wizardState.visibleTrains],
+    liveHero: wizardState.liveHero
   };
 
   if (onCompleteCallback) onCompleteCallback(profile);

@@ -6,6 +6,10 @@
 // Uses Firebase Modular SDK via CDN (imported in index.html).
 // =============================================================================
 
+import { firebaseConfig } from "./firebase-config.js";
+import { encryptPayload, decryptPayload } from "./crypto-utils.js";
+import { migrateAndSanitize } from "./migration.js";
+
 const FIRESTORE_COLLECTION = "users";
 const SYNC_DEBOUNCE_MS = 2000;
 
@@ -22,6 +26,32 @@ let _lastWriteTimestamp = 0;
 // but short enough not to swallow remote updates from a real second device.
 const OWN_WRITE_ECHO_WINDOW_MS = 5000;
 
+let _syncPassphrase = null;
+
+/**
+ * Imposta la passphrase crittografica per la sincronizzazione Zero-Knowledge.
+ * La memorizza temporaneamente anche nel sessionStorage per persistere al refresh.
+ */
+export function setSyncPassphrase(passphrase) {
+  _syncPassphrase = passphrase;
+  if (passphrase) {
+    sessionStorage.setItem("trasporti_sync_passphrase", passphrase);
+  } else {
+    sessionStorage.removeItem("trasporti_sync_passphrase");
+  }
+}
+
+/**
+ * Ottiene la passphrase crittografica attualmente memorizzata.
+ */
+export function getSyncPassphrase() {
+  if (!_syncPassphrase) {
+    _syncPassphrase = sessionStorage.getItem("trasporti_sync_passphrase");
+  }
+  return _syncPassphrase;
+}
+
+
 // ── Initialization ──────────────────────────────────────────────────────────
 
 /**
@@ -37,17 +67,8 @@ export function initFirebase() {
     return;
   }
 
-  const firebaseConfig = {
-    apiKey: "AIzaSyDhDzZ0syW0MZXdOhrLKVJ8UPCHkVC7G30",
-    authDomain: "trasporti-busto-proj.firebaseapp.com",
-    projectId: "trasporti-busto-proj",
-    storageBucket: "trasporti-busto-proj.firebasestorage.app",
-    messagingSenderId: "1061930969785",
-    appId: "1:1061930969785:web:d391bb0cac468b76fc0968",
-    measurementId: "G-VKYKDRZ0YQ"
-  };
-
   _app = firebase.initializeApp(firebaseConfig);
+
   _auth = firebase.auth();
   _db = firebase.firestore();
 
@@ -137,30 +158,64 @@ export function saveToCloud(payload) {
       }
     : { settings: payload ?? null, notifications: null };
   if (_syncTimer) clearTimeout(_syncTimer);
+  window.dispatchEvent(new CustomEvent("trasporti:sync-status", { detail: { status: "pending" } }));
   _syncTimer = setTimeout(() => _doSave(normalized), SYNC_DEBOUNCE_MS);
 }
 
 async function _doSave(payload) {
   if (!_currentUser || !_db) return;
+  window.dispatchEvent(new CustomEvent("trasporti:sync-status", { detail: { status: "syncing" } }));
   try {
     const docRef = _db.collection(FIRESTORE_COLLECTION).doc(_currentUser.uid);
+    const passphrase = getSyncPassphrase();
+    
+    let dbPayload = {};
+    if (passphrase) {
+      // Zero-Knowledge Encryption path
+      const cleanPayload = {
+        settings: payload.settings,
+        notifications: payload.notifications,
+        schemaVersion: "1.0.0"
+      };
+      const encrypted = await encryptPayload(cleanPayload, passphrase);
+      dbPayload = {
+        encryptedPayload: encrypted.encryptedPayload,
+        salt: encrypted.salt,
+        iv: encrypted.iv,
+        isEncrypted: true,
+        // Nullify plain fields to delete any previous clear-text data
+        settings: null,
+        notifications: null
+      };
+    } else {
+      // Plain path (legacy fallback)
+      dbPayload = {
+        settings: payload.settings,
+        notifications: payload.notifications,
+        isEncrypted: false
+      };
+    }
+    
     await docRef.set({
-      settings: payload.settings,
-      notifications: payload.notifications,
+      ...dbPayload,
       updatedAt: window.firebase.firestore.FieldValue.serverTimestamp(),
       displayName: _currentUser.displayName || "",
       email: _currentUser.email || "",
       photoURL: _currentUser.photoURL || ""
     }, { merge: true });
+    
     // Record the moment the write was acknowledged locally so the
     // snapshot listener can ignore the echo Firestore will deliver
     // back to this same client (B7-echo).
     _lastWriteTimestamp = Date.now();
-    console.log("[FirebaseSync] Preferenze salvate nel cloud.");
+    console.log("[FirebaseSync] Preferenze salvate nel cloud " + (passphrase ? "(CRIPTATE)" : "(IN CHIARO)") + ".");
+    window.dispatchEvent(new CustomEvent("trasporti:sync-status", { detail: { status: "synced" } }));
   } catch (error) {
     console.error("[FirebaseSync] Errore salvataggio cloud:", error);
+    window.dispatchEvent(new CustomEvent("trasporti:sync-status", { detail: { status: "error" } }));
   }
 }
+
 
 /**
  * Load settings + notifications from Firestore for the current user.
@@ -175,18 +230,39 @@ export async function loadFromCloud() {
     const doc = await docRef.get();
     if (doc.exists) {
       const data = doc.data();
-      console.log("[FirebaseSync] Preferenze caricate dal cloud.");
-      return {
-        settings: data.settings ?? null,
-        notifications: data.notifications ?? null
-      };
+      
+      if (data.isEncrypted || data.encryptedPayload) {
+        const passphrase = getSyncPassphrase();
+        if (!passphrase) {
+          console.warn("[FirebaseSync] Dati cloud cifrati ma nessuna passphrase locale impostata.");
+          return { isEncrypted: true };
+        }
+        try {
+          const decrypted = await decryptPayload(data.encryptedPayload, passphrase, data.salt, data.iv);
+          console.log("[FirebaseSync] Preferenze caricate e DECIFRATE dal cloud.");
+          return await migrateAndSanitize(decrypted, window._app_config?.CFG || {});
+        } catch (e) {
+          console.error("[FirebaseSync] Errore decrittografia in loadFromCloud:", e);
+          throw new Error("passphrase_incorrect");
+        }
+      } else {
+        // Plain legacy data loading
+        const legacyPayload = {
+          settings: data.settings ?? null,
+          notifications: data.notifications ?? null,
+          schemaVersion: data.schemaVersion || "0.0.0"
+        };
+        console.log("[FirebaseSync] Preferenze legacy caricate dal cloud.");
+        return await migrateAndSanitize(legacyPayload, window._app_config?.CFG || {});
+      }
     }
     return null;
   } catch (error) {
     console.error("[FirebaseSync] Errore caricamento cloud:", error);
-    return null;
+    throw error;
   }
 }
+
 
 /**
  * Delete cloud data for the current user.
@@ -213,10 +289,11 @@ export async function deleteCloudData() {
 export function listenForCloudChanges(callback) {
   if (!_currentUser || !_db) return () => {};
   const docRef = _db.collection(FIRESTORE_COLLECTION).doc(_currentUser.uid);
-  return docRef.onSnapshot(doc => {
+  return docRef.onSnapshot(async doc => {
     if (!doc.exists) return;
     if (doc.metadata.hasPendingWrites !== false) return;
     const data = doc.data();
+    
     // Own-write echo filter (B7-echo): Firestore replays our own committed
     // write back to us as a server-confirmed snapshot. Compare the doc's
     // `updatedAt` server timestamp against the last local write moment;
@@ -229,16 +306,36 @@ export function listenForCloudChanges(callback) {
     ) {
       return;
     }
-    // Hand the consumer the full payload shape so it can apply both
-    // `settings` and `notifications` atomically (B16).
-    callback({
-      settings: data.settings ?? null,
-      notifications: data.notifications ?? null
-    });
+    
+    if (data.isEncrypted || data.encryptedPayload) {
+      const passphrase = getSyncPassphrase();
+      if (!passphrase) {
+        console.warn("[FirebaseSync] Modifiche cloud rilevate ma il sync è bloccato (manca passphrase locale).");
+        window.dispatchEvent(new CustomEvent("trasporti:sync-locked"));
+        return;
+      }
+      try {
+        const decrypted = await decryptPayload(data.encryptedPayload, passphrase, data.salt, data.iv);
+        const migrated = await migrateAndSanitize(decrypted, window._app_config?.CFG || {});
+        callback(migrated);
+      } catch (e) {
+        console.error("[FirebaseSync] Rilevato errore decrittografia in ascolto modifiche cloud:", e);
+        window.dispatchEvent(new CustomEvent("trasporti:sync-error-passphrase"));
+      }
+    } else {
+      const legacyPayload = {
+        settings: data.settings ?? null,
+        notifications: data.notifications ?? null,
+        schemaVersion: data.schemaVersion || "0.0.0"
+      };
+      const migrated = await migrateAndSanitize(legacyPayload, window._app_config?.CFG || {});
+      callback(migrated);
+    }
   }, error => {
     console.error("[FirebaseSync] Listener error:", error);
   });
 }
+
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
 

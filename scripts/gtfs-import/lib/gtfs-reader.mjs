@@ -1,17 +1,36 @@
 // =============================================================================
-// gtfs-reader.mjs – Reads and indexes GTFS data for the 6 target routes
+// gtfs-reader.mjs – Reads and indexes GTFS data for all Movibus Z routes
 // =============================================================================
 
 import { parseCsv } from "./parse-csv.mjs";
 
 // Route IDs in the Movibus GTFS feed → our line IDs
+// Full network: all Z lines from the Movibus feed
 export const ROUTE_MAP = {
+  H196: "Z601",
+  H197: "Z602",
+  H198: "Z603",
+  H199: "Z606",
+  H200: "Z611",
+  H201: "Z612",
+  H202: "Z616",
+  H203: "Z617",
+  H204: "Z618",
+  H205: "Z619",
+  H207: "Z620",
+  H208: "Z621",
+  H209: "Z622",
   H210: "Z625",
   H211: "Z627",
+  H212: "Z636",
+  H213: "Z641",
   H214: "Z642",
+  H215: "Z643",
   H216: "Z644",
+  H217: "Z646",
   H218: "Z647",
-  H220: "Z649"
+  H220: "Z649",
+  H221: "Z6C3"
 };
 
 // Service ID prefix → app day type
@@ -48,13 +67,13 @@ export function readGtfs(gtfsDir) {
   let feedInfo = null;
   try { feedInfo = parseCsv(gtfsDir, "feed_info.txt")[0]; } catch (e) { /* optional */ }
 
-  // Filter trips to our 6 routes only
+  // Filter trips to our target routes
   const targetRouteIds = new Set(Object.keys(ROUTE_MAP));
   const trips = allTrips.filter(t => targetRouteIds.has(t.route_id));
   const tripIds = new Set(trips.map(t => t.trip_id));
 
   // Filter stop_times to our trips only
-  console.log("[GTFS] Filtering stop_times to target routes...");
+  console.log(`[GTFS] Filtering stop_times to ${targetRouteIds.size} target routes...`);
   const stopTimes = allStopTimes.filter(st => tripIds.has(st.trip_id));
 
   // Index stops by stop_id

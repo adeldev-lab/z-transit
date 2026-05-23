@@ -1,5 +1,5 @@
 // Auto-generated from GTFS – do not edit manually
-// Generated: 2026-05-17T16:37:32.679Z
+// Generated: 2026-05-20T11:20:44.284Z
 
 export const Z647_DATA = {
   weekday_outbound: [

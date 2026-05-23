@@ -11,16 +11,21 @@ import {
   loadFromCloud,
   deleteCloudData,
   listenForCloudChanges,
-  onAuthStateChanged
+  onAuthStateChanged,
+  setSyncPassphrase,
+  getSyncPassphrase
 } from "./firebase-sync.js";
 import {
   getNotificationConfig,
   saveNotificationConfig,
   renderNotificationSettings,
-  bindNotificationEvents
+  bindNotificationEvents,
+  sanitizeNotifications
 } from "./notifications.js";
 import { setSuppressCloudWrite } from "./main.js";
 import { startOnboarding } from "./onboarding.js";
+import { TRAIN_STATIONS } from "../data/trains.js";
+
 
 let lastArgs = null;
 
@@ -37,8 +42,22 @@ export function renderSettings(state, saveFn, cfg, lineData, lineConfig) {
         renderSettings(s, sf, c, ld, lc);
       }
     });
+
+    document.addEventListener("trasporti:sync-locked", () => {
+      // Cloud sync is encrypted, but passphrase is not set. Reload to show warning.
+      if (lastArgs && lastArgs.state && lastArgs.state.currentTab === "settings") {
+        const { state: s, saveFn: sf, cfg: c, lineData: ld, lineConfig: lc } = lastArgs;
+        renderSettings(s, sf, c, ld, lc);
+      }
+    });
+
+    document.addEventListener("trasporti:sync-error-passphrase", () => {
+      alert("⚠️ Errore di decrittografia del cloud. La tua Passphrase di Sincronizzazione locale non è corretta.");
+    });
+
     window.__settingsBusBound = true;
   }
+
   const container = document.getElementById("settings-content");
   if (!container) return;
   const settings = state.settings || {};
@@ -48,16 +67,65 @@ export function renderSettings(state, saveFn, cfg, lineData, lineConfig) {
     `<button type="button" data-settings-line="${lineId}" class="${lineId === activeLine ? "active" : ""}">${lineId}</button>`
   ).join("");
 
+  const selectedFocusCity = settings.focusCity || cfg.defaults.focusCity || "BT";
+  const focusCityOptions = Object.entries(cfg.focusCities || {}).map(([code, city]) =>
+    `<option value="${code}" ${code === selectedFocusCity ? "selected" : ""}>${escapeHtml(city.name)}</option>`
+  ).join("");
+
+  const STATION_NAMES = {
+    CN_FS: "Canegrate",
+    PB_FS: "Parabiago",
+    LG_FS: "Legnano",
+    BS_FS: "Busto Arsizio",
+    PG_FS: "Pregnana Milanese",
+    RH_FS: "Rho",
+    VZ_FS: "Vanzago"
+  };
+  const ALL_STATIONS = ["CN_FS", "PB_FS", "LG_FS", "BS_FS", "PG_FS", "RH_FS", "VZ_FS"];
+  const stationsHtml = ALL_STATIONS.map(station => {
+    const value = settings.stationReachMinutes?.[station] !== undefined ? settings.stationReachMinutes[station] : 0;
+    return `
+      <label class="field-row">
+        <span>Minuti per ${STATION_NAMES[station]} FS</span>
+        <input type="number" min="0" max="60" data-station-reach-setting="${station}" value="${Number(value)}">
+      </label>
+    `;
+  }).join("");
+
+  const settingsHeroCode = settings.liveHero || "Z649";
+  const settingsVisibleTrains = settings.visibleTrains || ["CN_FS"];
+
+  const settingsHeroOptions = [
+    ...(cfg.lineOrder || []).map(id => `<option value="${id}" ${settingsHeroCode === id ? "selected" : ""}>Bus ${id} - ${escapeHtml(lineConfig[id]?.destination || id)}</option>`),
+    ...Object.entries(TRAIN_STATIONS).map(([code, info]) => `<option value="${code}" ${settingsHeroCode === code ? "selected" : ""}>Treno - Stazione di ${escapeHtml(info.name)}</option>`)
+  ].join("");
+
+  const settingsTrainsCheckboxes = Object.entries(TRAIN_STATIONS).map(([code, info]) => {
+    const isChecked = settingsVisibleTrains.includes(code);
+    return `
+      <label class="check-row" style="background: rgba(255,255,255,0.02); border: 1px solid var(--line); padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 0.82rem; display: flex; align-items: center; gap: 8px;">
+        <input type="checkbox" data-settings-visible-train="${code}" ${isChecked ? "checked" : ""} style="cursor: pointer;">
+        <span>${escapeHtml(info.name)}</span>
+      </label>
+    `;
+  }).join("");
+
   const html = `
     <section class="panel">
       <div class="panel-heading">
         <div>
           <p class="section-eyebrow">Profilo casa</p>
           <h2>${escapeHtml(cfg.homeProfile.address)}</h2>
-          <p>${escapeHtml(cfg.homeProfile.note)}</p>
+          <p>${escapeHtml(cfg.homeProfile.note || "Configurazione attiva concentrata sulla tua città.")}</p>
         </div>
       </div>
       <div class="settings-grid">
+        <label class="field-row">
+          <span>Città di Focus</span>
+          <select data-setting-string="focusCity">
+            ${focusCityOptions}
+          </select>
+        </label>
         <label class="field-row">
           <span>Minuti a piedi verso fermata principale</span>
           <input type="number" min="1" max="30" data-setting-number="walkRossini" value="${Number(settings.walkRossini || cfg.defaults.walkRossini)}">
@@ -66,8 +134,62 @@ export function renderSettings(state, saveFn, cfg, lineData, lineConfig) {
           <span>Minuti in auto verso Canegrate FS</span>
           <input type="number" min="1" max="45" data-setting-number="driveCanegrate" value="${Number(settings.driveCanegrate || cfg.defaults.driveCanegrate)}">
         </label>
+        <label class="check-row" style="grid-column: span 1; display: flex; align-items: center; gap: 8px; cursor: pointer; padding: 12px; border: 1px solid var(--line); border-radius: var(--radius); background: rgba(255,255,255,0.02);">
+          <input type="checkbox" id="settings-invert-directions" ${settings.invertDirections ? "checked" : ""} style="cursor: pointer; width: 18px; height: 18px;">
+          <span style="color: var(--text); font-size: 0.85rem;">Inverti Andata/Ritorno (utile se abiti a Milano)</span>
+        </label>
+      </div>
+      <div style="margin-top: 1.5rem; border-top: 1px solid var(--line); padding-top: 1.5rem;">
+        <h3 style="font-size: 0.95rem; font-weight: 600; color: var(--foreground); margin-bottom: 1rem;">Tempi per raggiungere la stazione FS (minuti)</h3>
+        <div class="settings-grid" style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px;">
+          ${stationsHtml}
+        </div>
       </div>
     </section>
+
+    <section class="panel">
+      <div class="panel-heading">
+        <div>
+          <p class="section-eyebrow">Personalizzazione LIVE e ORARI</p>
+          <h2>Layout e Contenuto</h2>
+          <p>Configura la scheda principale (Hero) e seleziona quali stazioni/linee visualizzare.</p>
+        </div>
+      </div>
+      <div class="settings-grid">
+        <label class="field-row">
+          <span>Scheda principale (HERO)</span>
+          <select data-settings-live-hero>
+            ${settingsHeroOptions}
+          </select>
+        </label>
+      </div>
+      <div style="margin-top: 1.5rem; border-top: 1px solid var(--line); padding-top: 1.5rem;">
+        <h3 style="font-size: 0.95rem; font-weight: 600; color: var(--foreground); margin-bottom: 0.5rem;">Soglie di Coincidenza (Minuti di attesa)</h3>
+        <p style="font-size: 0.75rem; color: var(--muted); margin: 0 0 1rem 0;">Imposta i tempi limite di attesa per la classificazione visiva delle coincidenze.</p>
+        <div class="settings-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px;">
+          <label class="field-row">
+            <span>Coincidenza Stretta (Max minuti - Rosso)</span>
+            <input type="number" min="1" max="20" data-setting-number="connectionTightMin" value="${Number(settings.connectionTightMin || cfg.defaults.connectionTightMin || 4)}">
+          </label>
+          <label class="field-row">
+            <span>Coincidenza Comoda (Max minuti - Giallo)</span>
+            <input type="number" min="5" max="45" data-setting-number="connectionGoodMin" value="${Number(settings.connectionGoodMin || cfg.defaults.connectionGoodMin || 12)}">
+          </label>
+          <label class="field-row">
+            <span>Coincidenza Lunga (Max minuti - Verde)</span>
+            <input type="number" min="10" max="90" data-setting-number="connectionLongMin" value="${Number(settings.connectionLongMin || cfg.defaults.connectionLongMin || 25)}">
+          </label>
+        </div>
+      </div>
+      <div style="margin-top: 1.5rem; border-top: 1px solid var(--line); padding-top: 1.5rem;">
+        <h3 style="font-size: 0.95rem; font-weight: 600; color: var(--foreground); margin-bottom: 0.5rem;">Stazioni ferroviarie visibili nel tab LIVE</h3>
+        <p style="font-size: 0.75rem; color: var(--muted); margin: 0 0 1rem 0;">Seleziona quali stazioni mostrare in fondo al tab LIVE per il monitoraggio in tempo reale.</p>
+        <div class="settings-grid" style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px;">
+          ${settingsTrainsCheckboxes}
+        </div>
+      </div>
+    </section>
+
 
     <section class="panel">
       <div class="panel-heading">
@@ -104,7 +226,17 @@ export function renderSettings(state, saveFn, cfg, lineData, lineConfig) {
       <div class="info-list">
         <div><span>Versione</span><strong>${escapeHtml(cfg.version)}</strong></div>
         <div><span>Aggiornamento dati</span><strong>${escapeHtml(cfg.lastUpdate)}</strong></div>
+        <div><span>Validità GTFS Bus</span><strong>${escapeHtml(cfg.feedValidity?.from || '?')} → ${escapeHtml(cfg.feedValidity?.to || '?')}</strong></div>
+        <div><span>Fonte Bus</span><strong>Agenzia TPL / Movibus (Open Data)</strong></div>
+        <div><span>Fonte Treni</span><strong>Trenord GTFS (Open Data)</strong></div>
         <div><span>Service worker</span><strong data-sw-status>verifica...</strong></div>
+      </div>
+      <div style="margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--line); display: flex; flex-wrap: wrap; gap: 10px; align-items: center;">
+        <a href="./privacy.html" target="_blank" rel="noopener" style="color: var(--accent); font-size: 0.82rem; text-decoration: underline; font-weight: 500;">📋 Privacy & GDPR</a>
+        <span style="color: var(--line);">|</span>
+        <a href="./feedback.html" target="_blank" rel="noopener" style="color: var(--accent); font-size: 0.82rem; text-decoration: underline; font-weight: 500;">🐛 Segnala un problema</a>
+        <span style="color: var(--line);">|</span>
+        <a href="./feedback.html" target="_blank" rel="noopener" style="color: var(--accent); font-size: 0.82rem; text-decoration: underline; font-weight: 500;">💡 Suggerisci miglioramento</a>
       </div>
     </section>
   `;
@@ -209,7 +341,19 @@ function labelDay(dayType) {
 function bindEvents(container) {
   const { state, saveFn, cfg, lineData, lineConfig } = lastArgs;
 
+  container.querySelectorAll("[data-setting-string]").forEach(select => {
+    if (select.__has_change) return;
+    select.__has_change = true;
+    select.addEventListener("change", () => {
+      const value = select.value;
+      saveFn({ [select.dataset.settingString]: value });
+      document.dispatchEvent(new CustomEvent("trasporti:settings-changed"));
+    });
+  });
+
   container.querySelectorAll("[data-setting-number]").forEach(input => {
+    if (input.__has_change) return;
+    input.__has_change = true;
     input.addEventListener("change", () => {
       const min = Number(input.min || 0);
       const max = Number(input.max || 999);
@@ -219,7 +363,56 @@ function bindEvents(container) {
     });
   });
 
+  const invertCheckbox = container.querySelector("#settings-invert-directions");
+  if (invertCheckbox && !invertCheckbox.__has_change) {
+    invertCheckbox.__has_change = true;
+    invertCheckbox.addEventListener("change", () => {
+      saveFn({ invertDirections: invertCheckbox.checked });
+      document.dispatchEvent(new CustomEvent("trasporti:settings-changed"));
+    });
+  }
+
+  container.querySelectorAll("[data-station-reach-setting]").forEach(input => {
+    if (input.__has_change) return;
+    input.__has_change = true;
+    input.addEventListener("change", () => {
+      const station = input.dataset.stationReachSetting;
+      const min = Number(input.min || 0);
+      const max = Number(input.max || 60);
+      const value = Math.max(min, Math.min(max, Number(input.value || 0)));
+      input.value = value;
+      const stationReachMinutes = { ...state.settings.stationReachMinutes };
+      stationReachMinutes[station] = value;
+      saveFn({ stationReachMinutes });
+    });
+  });
+
+  container.querySelectorAll("[data-settings-live-hero]").forEach(select => {
+    if (select.__has_change) return;
+    select.__has_change = true;
+    select.addEventListener("change", () => {
+      saveFn({ liveHero: select.value });
+    });
+  });
+
+  container.querySelectorAll("[data-settings-visible-train]").forEach(checkbox => {
+    if (checkbox.__has_change) return;
+    checkbox.__has_change = true;
+    checkbox.addEventListener("change", () => {
+      const code = checkbox.dataset.settingsVisibleTrain;
+      let visibleTrains = [...(state.settings.visibleTrains || ["CN_FS"])];
+      if (checkbox.checked) {
+        if (!visibleTrains.includes(code)) visibleTrains.push(code);
+      } else {
+        visibleTrains = visibleTrains.filter(c => c !== code);
+      }
+      saveFn({ visibleTrains });
+    });
+  });
+
   container.querySelectorAll("[data-settings-line]").forEach(button => {
+    if (button.__has_click) return;
+    button.__has_click = true;
     button.addEventListener("click", () => {
       state.settingsPanelLine = button.dataset.settingsLine;
       renderSettings(state, saveFn, cfg, lineData, lineConfig);
@@ -227,6 +420,8 @@ function bindEvents(container) {
   });
 
   container.querySelectorAll("[data-settings-day]").forEach(button => {
+    if (button.__has_click) return;
+    button.__has_click = true;
     button.addEventListener("click", () => {
       state.settingsLineDay = button.dataset.settingsDay;
       renderSettings(state, saveFn, cfg, lineData, lineConfig);
@@ -234,6 +429,8 @@ function bindEvents(container) {
   });
 
   container.querySelectorAll("[data-settings-dir]").forEach(button => {
+    if (button.__has_click) return;
+    button.__has_click = true;
     button.addEventListener("click", () => {
       state.settingsLineDirection = button.dataset.settingsDir;
       renderSettings(state, saveFn, cfg, lineData, lineConfig);
@@ -241,6 +438,8 @@ function bindEvents(container) {
   });
 
   container.querySelectorAll("[data-favorite-stop]").forEach(select => {
+    if (select.__has_change) return;
+    select.__has_change = true;
     select.addEventListener("change", () => {
       const [lineId, direction] = select.dataset.favoriteStop.split(":");
       const favoriteStops = structuredClone(state.settings.favoriteStops || {});
@@ -251,6 +450,8 @@ function bindEvents(container) {
   });
 
   container.querySelectorAll("[data-timetable-stop]").forEach(input => {
+    if (input.__has_change) return;
+    input.__has_change = true;
     input.addEventListener("change", () => {
       const [lineId, scheduleKey] = input.dataset.timetableStop.split(":");
       const checked = [...container.querySelectorAll(`[data-timetable-stop^="${lineId}:${scheduleKey}:"]:checked`)]
@@ -263,6 +464,8 @@ function bindEvents(container) {
   });
 
   container.querySelectorAll("[data-reset-line-stops]").forEach(button => {
+    if (button.__has_click) return;
+    button.__has_click = true;
     button.addEventListener("click", () => {
       const [lineId, scheduleKey] = button.dataset.resetLineStops.split(":");
       const timetableStops = structuredClone(state.settings.timetableStops || {});
@@ -272,35 +475,73 @@ function bindEvents(container) {
     });
   });
 
-  container.querySelector("[data-export]")?.addEventListener("click", () => exportSettings(state, cfg));
-  container.querySelector("[data-import-trigger]")?.addEventListener("click", () => container.querySelector("[data-import-file]")?.click());
-  container.querySelector("[data-import-file]")?.addEventListener("change", event => importSettings(event.target, saveFn, state, cfg, lineData, lineConfig));
-  container.querySelector("[data-reset-preferences]")?.addEventListener("click", () => {
-    if (!confirm("Ripristinare tutte le preferenze predefinite?")) return;
-    localStorage.removeItem("trasporti_settings");
-    state.settings = buildDefaultSettings(cfg);
-    saveFn(state.settings, true);
-    renderSettings(state, saveFn, cfg, lineData, lineConfig);
-  });
-  container.querySelector("[data-check-sw]")?.addEventListener("click", () => {
-    navigator.serviceWorker?.ready.then(reg => reg.update()).finally(() => location.reload());
-  });
-  container.querySelector("[data-restart-onboarding]")?.addEventListener("click", () => {
-    startOnboarding((profile) => {
-      if (profile && !profile.skipped) {
-        const updates = { userProfile: profile };
-        if (profile.walkMinutes) updates.walkRossini = profile.walkMinutes;
-        if (profile.driveCanegrate) updates.driveCanegrate = profile.driveCanegrate;
-        if (profile.favoriteStops && Object.keys(profile.favoriteStops).length > 0) {
-          updates.favoriteStops = { ...state.settings.favoriteStops, ...profile.favoriteStops };
-        }
-        saveFn(updates);
-      } else if (profile) {
-        saveFn({ userProfile: profile });
-      }
+  const exportBtn = container.querySelector("[data-export]");
+  if (exportBtn && !exportBtn.__has_click) {
+    exportBtn.__has_click = true;
+    exportBtn.addEventListener("click", () => exportSettings(state, cfg));
+  }
+
+  const importTriggerBtn = container.querySelector("[data-import-trigger]");
+  if (importTriggerBtn && !importTriggerBtn.__has_click) {
+    importTriggerBtn.__has_click = true;
+    importTriggerBtn.addEventListener("click", () => container.querySelector("[data-import-file]")?.click());
+  }
+
+  const importFileInput = container.querySelector("[data-import-file]");
+  if (importFileInput && !importFileInput.__has_change) {
+    importFileInput.__has_change = true;
+    importFileInput.addEventListener("change", event => importSettings(event.target, saveFn, state, cfg, lineData, lineConfig));
+  }
+
+  const resetPrefBtn = container.querySelector("[data-reset-preferences]");
+  if (resetPrefBtn && !resetPrefBtn.__has_click) {
+    resetPrefBtn.__has_click = true;
+    resetPrefBtn.addEventListener("click", () => {
+      if (!confirm("Ripristinare tutte le preferenze predefinite?")) return;
+      localStorage.removeItem("trasporti_settings");
+      state.settings = buildDefaultSettings(cfg);
+      saveFn(state.settings, true);
       renderSettings(state, saveFn, cfg, lineData, lineConfig);
     });
-  });
+  }
+
+  const checkSWBtn = container.querySelector("[data-check-sw]");
+  if (checkSWBtn && !checkSWBtn.__has_click) {
+    checkSWBtn.__has_click = true;
+    checkSWBtn.addEventListener("click", () => {
+      navigator.serviceWorker?.ready.then(reg => reg.update()).finally(() => location.reload());
+    });
+  }
+
+  const restartOnboardingBtn = container.querySelector("[data-restart-onboarding]");
+  if (restartOnboardingBtn && !restartOnboardingBtn.__has_click) {
+    restartOnboardingBtn.__has_click = true;
+    restartOnboardingBtn.addEventListener("click", () => {
+      startOnboarding((profile) => {
+        if (profile && !profile.skipped) {
+          const updates = { userProfile: profile };
+          if (profile.walkMinutes) updates.walkRossini = profile.walkMinutes;
+          if (profile.stationReachMinutes) {
+            updates.stationReachMinutes = {
+              ...state.settings.stationReachMinutes,
+              ...profile.stationReachMinutes
+            };
+          }
+          if (profile.driveCanegrate) updates.driveCanegrate = profile.driveCanegrate;
+          if (profile.focusCity) updates.focusCity = profile.focusCity;
+          if (profile.visibleTrains) updates.visibleTrains = profile.visibleTrains;
+          if (profile.liveHero) updates.liveHero = profile.liveHero;
+          if (profile.favoriteStops && Object.keys(profile.favoriteStops).length > 0) {
+            updates.favoriteStops = { ...state.settings.favoriteStops, ...profile.favoriteStops };
+          }
+          saveFn(updates);
+        } else if (profile) {
+          saveFn({ userProfile: profile });
+        }
+        renderSettings(state, saveFn, cfg, lineData, lineConfig);
+      });
+    });
+  }
 
   // Bind notification events
   bindNotificationEvents(container);
@@ -314,7 +555,8 @@ function buildDefaultSettings(cfg) {
     ...cfg.defaults,
     favoriteStops: structuredClone(cfg.favoriteStops || {}),
     timetableStops: {},
-    visibleStops: {}
+    visibleStops: {},
+    followedLinesByCity: {}
   };
 }
 
@@ -361,12 +603,50 @@ function importSettings(input, saveFn, state, cfg, lineData, lineConfig) {
 export function sanitizeSettings(raw, cfg) {
   const defaults = buildDefaultSettings(cfg);
   const settings = { ...defaults, ...(raw || {}) };
+  settings.focusCity = raw?.focusCity && cfg.focusCities?.[raw.focusCity] ? raw.focusCity : cfg.defaults.focusCity || "BT";
   settings.walkRossini = clampNumber(settings.walkRossini, 1, 30, cfg.defaults.walkRossini);
   settings.driveCanegrate = clampNumber(settings.driveCanegrate, 1, 45, cfg.defaults.driveCanegrate);
+  
+  settings.connectionTightMin = clampNumber(settings.connectionTightMin, 1, 20, cfg.defaults.connectionTightMin || 4);
+  settings.connectionGoodMin = clampNumber(settings.connectionGoodMin, 5, 45, cfg.defaults.connectionGoodMin || 12);
+  settings.connectionLongMin = clampNumber(settings.connectionLongMin, 10, 90, cfg.defaults.connectionLongMin || 25);
+  
+  const stationReachMinutes = {};
+  const ALL_STATIONS = ["CN_FS", "PB_FS", "LG_FS", "BS_FS", "PG_FS", "RH_FS", "VZ_FS"];
+  ALL_STATIONS.forEach(station => {
+    const rawVal = raw?.stationReachMinutes?.[station];
+    const val = rawVal !== undefined ? rawVal : 0;
+    stationReachMinutes[station] = clampNumber(val, 0, 60, 0);
+  });
+  settings.stationReachMinutes = stationReachMinutes;
+
+  
   settings.liveDirection = settings.liveDirection === "return" ? "return" : "outbound";
-  settings.favoriteStops = { ...structuredClone(cfg.favoriteStops || {}), ...(settings.favoriteStops || {}) };
+  
+  const CITY_MAIN_STATION_CODE = {
+    BT: "CN_FS",
+    VC: "CN_FS",
+    DG: "LG_FS",
+    AC: "LG_FS",
+    CZ: "PB_FS",
+    LG: "LG_FS",
+    PB: "PB_FS",
+    BS: "BS_FS",
+  };
+  const focusCityCode = settings.focusCity || "BT";
+  const mainStation = CITY_MAIN_STATION_CODE[focusCityCode] || "CN_FS";
+  settings.visibleTrains = Array.isArray(raw?.visibleTrains) ? raw.visibleTrains : [mainStation];
+  settings.liveHero = typeof raw?.liveHero === "string" ? raw.liveHero : "Z649";
+  
+  // Dynamic favorite stops merge: if favoriteStops is empty/partial, merge with focus city default
+  const activeFocusStops = cfg.focusCities?.[settings.focusCity]?.favoriteStops || cfg.favoriteStops || {};
+  settings.favoriteStops = { ...structuredClone(activeFocusStops), ...(settings.favoriteStops || {}) };
+  
+  settings.invertDirections = !!raw?.invertDirections;
+  
   settings.timetableStops = settings.timetableStops && typeof settings.timetableStops === "object" ? settings.timetableStops : {};
   settings.visibleStops = settings.visibleStops && typeof settings.visibleStops === "object" ? settings.visibleStops : {};
+  settings.followedLinesByCity = raw?.followedLinesByCity && typeof raw.followedLinesByCity === "object" ? raw.followedLinesByCity : {};
   // Preserve userProfile if present (onboarding data)
   if (raw?.userProfile && typeof raw.userProfile === "object") {
     settings.userProfile = raw.userProfile;
@@ -423,6 +703,41 @@ function renderCloudSyncSection(_cfg) {
     ? `<img src="${escapeHtml(user.photoURL)}" alt="" style="width: 36px; height: 36px; border-radius: 50%; border: 2px solid var(--accent);">`
     : `<div style="width: 36px; height: 36px; border-radius: 50%; background: var(--accent); display: flex; align-items: center; justify-content: center; font-weight: 800; color: #06202a;">${escapeHtml((user.displayName || user.email || "?")[0].toUpperCase())}</div>`;
 
+  const passphrase = getSyncPassphrase();
+  
+  let cryptoStatusHtml = "";
+  if (passphrase) {
+    cryptoStatusHtml = `
+      <div style="margin-top: 12px; padding: 12px; border: 1px solid rgba(34,197,94,0.3); border-radius: var(--radius); background: rgba(34,197,94,0.06); display: flex; flex-direction: column; gap: 6px;">
+        <span style="font-size: 0.85rem; font-weight: 700; color: var(--ok); display: flex; align-items: center; gap: 6px;">
+          🔒 Crittografia Zero-Knowledge Attiva (AES-256)
+        </span>
+        <span style="font-size: 0.75rem; color: var(--muted);">
+          Le tue preferenze vengono cifrate sul tuo dispositivo prima di essere caricate. Nessun altro può leggerle.
+        </span>
+        <div style="display: flex; gap: 8px; margin-top: 4px;">
+          <input type="password" value="${escapeHtml(passphrase)}" readonly style="flex: 1; min-height: 32px; border: 1px solid var(--line); border-radius: var(--radius); background: rgba(255,255,255,0.02); color: var(--muted); padding: 4px 8px; font-size: 0.8rem; font-family: monospace;">
+          <button type="button" class="btn secondary" data-sync-passphrase-change style="padding: 2px 8px; font-size: 0.75rem; min-height: 32px;">Modifica</button>
+        </div>
+      </div>
+    `;
+  } else {
+    cryptoStatusHtml = `
+      <div style="margin-top: 12px; padding: 12px; border: 1px solid rgba(245,158,11,0.3); border-radius: var(--radius); background: rgba(245,158,11,0.06); display: flex; flex-direction: column; gap: 8px;">
+        <span style="font-size: 0.85rem; font-weight: 700; color: #f59e0b; display: flex; align-items: center; gap: 6px;">
+          ⚠️ Sincronizzazione in Chiaro
+        </span>
+        <span style="font-size: 0.75rem; color: var(--muted);">
+          Imposta una passphrase per crittografare i tuoi dati sul tuo browser (Zero-Knowledge) prima del caricamento nel cloud.
+        </span>
+        <div style="display: flex; gap: 8px;">
+          <input type="password" placeholder="Passphrase di Sincronizzazione" data-sync-passphrase-input style="flex: 1; min-height: 32px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); color: var(--text); padding: 4px 8px; font-size: 0.8rem;">
+          <button type="button" class="btn primary" data-save-passphrase-btn style="padding: 2px 10px; font-size: 0.75rem; min-height: 32px;">Proteggi Dati</button>
+        </div>
+      </div>
+    `;
+  }
+
   return `
     <section class="panel" id="cloud-sync-section">
       <div class="panel-heading">
@@ -437,15 +752,21 @@ function renderCloudSyncSection(_cfg) {
           <strong style="display: block; font-size: 0.92rem;">${escapeHtml(user.displayName || "Utente")}</strong>
           <small style="color: var(--muted); font-size: 0.75rem;">${escapeHtml(user.email || "")}</small>
         </div>
-        <span style="font-size: 0.68rem; font-weight: 700; color: var(--ok); background: rgba(34,197,94,0.12); padding: 3px 8px; border-radius: 999px;">Sincronizzato</span>
+        <span style="font-size: 0.68rem; font-weight: 700; color: var(--ok); background: rgba(34,197,94,0.12); padding: 3px 8px; border-radius: 999px;">Online</span>
       </div>
+      
+      ${cryptoStatusHtml}
+
       <div class="button-grid" style="margin-top: 12px;">
         <button type="button" class="btn primary" data-cloud-push>Salva nel cloud ora</button>
         <button type="button" class="btn secondary" data-cloud-pull>Carica dal cloud</button>
         <button type="button" class="btn secondary" data-cloud-logout>Disconnetti</button>
         <button type="button" class="btn secondary" data-cloud-delete style="color: var(--danger);">Elimina dati cloud</button>
       </div>
-      <small style="display: block; margin-top: 8px; color: var(--quiet); font-size: 0.72rem;">Le preferenze vengono sincronizzate automaticamente ogni volta che le modifichi. Puoi anche forzare il salvataggio/caricamento manuale.</small>
+      <div style="margin-top: 12px; border-top: 1px solid var(--line); padding-top: 8px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+        <small style="color: var(--quiet); font-size: 0.72rem;">Le preferenze vengono sincronizzate automaticamente.</small>
+        <a href="./privacy.html" target="_blank" rel="noopener" style="color: var(--accent); font-size: 0.75rem; text-decoration: underline; font-weight: 500;">Informativa Privacy e GDPR 🔒</a>
+      </div>
     </section>`;
 }
 
@@ -457,87 +778,188 @@ function bindCloudSyncEvents(container) {
   _ensureAuthStateBound();
 
   // Login
-  container.querySelector("[data-cloud-login]")?.addEventListener("click", async () => {
-    try {
-      const user = await signInWithGoogle();
-      if (user) {
-        // After login, try to load cloud settings
-        const cloudPayload = await loadFromCloud();
-        const cloudSettings = cloudPayload?.settings ?? null;
-        const cloudNotifs = cloudPayload?.notifications ?? null;
-        if (cloudPayload && (cloudSettings || cloudNotifs)) {
-          const useCloud = confirm("Trovate preferenze nel cloud. Vuoi sovrascrivere quelle locali con quelle dal cloud?");
-          if (useCloud) {
-            if (cloudSettings) {
-              saveFn(sanitizeSettings(cloudSettings, cfg));
+  const loginBtn = container.querySelector("[data-cloud-login]");
+  if (loginBtn && !loginBtn.__has_click) {
+    loginBtn.__has_click = true;
+    loginBtn.addEventListener("click", async () => {
+      try {
+        const user = await signInWithGoogle();
+        if (user) {
+          // After login, try to load cloud settings
+          let cloudPayload = await loadFromCloud();
+          
+          if (cloudPayload && cloudPayload.isEncrypted) {
+            const pwd = prompt("I tuoi dati nel cloud sono protetti. Inserisci la tua Passphrase di Sincronizzazione per sbloccarli:");
+            if (pwd) {
+              setSyncPassphrase(pwd);
+              try {
+                // Retry loading with the passphrase
+                cloudPayload = await loadFromCloud();
+                if (cloudPayload && cloudPayload.isEncrypted) {
+                  throw new Error("Passphrase non corretta.");
+                }
+              } catch (err) {
+                setSyncPassphrase(null);
+                alert("Passphrase errata. La sincronizzazione rimarrà protetta nel cloud finché non la inserirai nelle Impostazioni.");
+                cloudPayload = null;
+              }
+            } else {
+              alert("Sincronizzazione sospesa. Puoi sbloccare i tuoi dati in qualsiasi momento inserendo la Passphrase nelle Impostazioni.");
+              cloudPayload = null;
             }
-            if (cloudNotifs) {
-              saveNotificationConfig(sanitizeNotifications(cloudNotifs));
+          }
+
+          const cloudSettings = cloudPayload?.settings ?? null;
+          const cloudNotifs = cloudPayload?.notifications ?? null;
+          if (cloudPayload && (cloudSettings || cloudNotifs)) {
+            const useCloud = confirm("Trovate preferenze nel cloud. Vuoi sovrascrivere quelle locali con quelle dal cloud?");
+            if (useCloud) {
+              if (cloudSettings) {
+                saveFn(sanitizeSettings(cloudSettings, cfg));
+              }
+              if (cloudNotifs) {
+                saveNotificationConfig(sanitizeNotifications(cloudNotifs));
+              }
+            } else {
+              // Save local to cloud instead, including notifications (B16).
+              saveToCloud({
+                settings: state.settings,
+                notifications: getNotificationConfig()
+              });
             }
           } else {
-            // Save local to cloud instead, including notifications (B16).
+            // No cloud data, upload current settings + notifications (B16).
             saveToCloud({
               settings: state.settings,
               notifications: getNotificationConfig()
             });
           }
-        } else {
-          // No cloud data, upload current settings + notifications (B16).
+          // Start real-time listener
+          _startCloudListener();
+          renderSettings(state, saveFn, cfg, lineData, lineConfig);
+        }
+      } catch (e) {
+        alert("Errore durante il login: " + e.message);
+      }
+    });
+  }
+
+
+  // Logout
+  const logoutBtn = container.querySelector("[data-cloud-logout]");
+  if (logoutBtn && !logoutBtn.__has_click) {
+    logoutBtn.__has_click = true;
+    logoutBtn.addEventListener("click", async () => {
+      await signOut();
+      renderSettings(state, saveFn, cfg, lineData, lineConfig);
+    });
+  }
+
+  // Push to cloud
+  const pushBtn = container.querySelector("[data-cloud-push]");
+  if (pushBtn && !pushBtn.__has_click) {
+    pushBtn.__has_click = true;
+    pushBtn.addEventListener("click", () => {
+      saveToCloud({
+        settings: state.settings,
+        notifications: getNotificationConfig()
+      });
+      alert("Preferenze salvate nel cloud.");
+    });
+  }
+
+  // Pull from cloud
+  const pullBtn = container.querySelector("[data-cloud-pull]");
+  if (pullBtn && !pullBtn.__has_click) {
+    pullBtn.__has_click = true;
+    pullBtn.addEventListener("click", async () => {
+      const cloudPayload = await loadFromCloud();
+      const cloudSettings = cloudPayload?.settings ?? null;
+      const cloudNotifs = cloudPayload?.notifications ?? null;
+      if (cloudPayload && (cloudSettings || cloudNotifs)) {
+        if (cloudSettings) {
+          saveFn(sanitizeSettings(cloudSettings, cfg));
+        }
+        if (cloudNotifs) {
+          saveNotificationConfig(sanitizeNotifications(cloudNotifs));
+        }
+        alert("Preferenze caricate dal cloud.");
+        renderSettings(state, saveFn, cfg, lineData, lineConfig);
+      } else {
+        alert("Nessuna preferenza trovata nel cloud.");
+      }
+    });
+  }
+
+  // Delete cloud data
+  const deleteBtn = container.querySelector("[data-cloud-delete]");
+  if (deleteBtn && !deleteBtn.__has_click) {
+    deleteBtn.__has_click = true;
+    deleteBtn.addEventListener("click", async () => {
+      if (!confirm("Eliminare definitivamente i dati dal cloud? Le preferenze locali rimarranno intatte.")) return;
+      await deleteCloudData();
+      alert("Dati cloud eliminati.");
+    });
+  }
+
+  // Imposta Passphrase
+  const savePassBtn = container.querySelector("[data-save-passphrase-btn]");
+  if (savePassBtn && !savePassBtn.__has_click) {
+    savePassBtn.__has_click = true;
+    savePassBtn.addEventListener("click", () => {
+      const input = container.querySelector("[data-sync-passphrase-input]");
+      const val = input ? input.value.trim() : "";
+      if (val.length < 4) {
+        alert("La passphrase deve essere lunga almeno 4 caratteri per garantire una sicurezza sufficiente.");
+        return;
+      }
+      setSyncPassphrase(val);
+      // Salva e cifra immediatamente le impostazioni sul cloud
+      saveToCloud({
+        settings: state.settings,
+        notifications: getNotificationConfig()
+      });
+      alert("Passphrase impostata con successo! I tuoi dati personali sono ora protetti da crittografia Zero-Knowledge.");
+      renderSettings(state, saveFn, cfg, lineData, lineConfig);
+    });
+  }
+
+  // Modifica Passphrase
+  const changePassBtn = container.querySelector("[data-sync-passphrase-change]");
+  if (changePassBtn && !changePassBtn.__has_click) {
+    changePassBtn.__has_click = true;
+    changePassBtn.addEventListener("click", () => {
+      const newPass = prompt("Inserisci la nuova Passphrase di Sincronizzazione (lascia vuoto per disattivare la crittografia):");
+      if (newPass === null) return;
+      
+      const trimmed = newPass.trim();
+      if (trimmed === "") {
+        if (confirm("Disattivare la crittografia? I tuoi dati sul cloud torneranno ad essere salvati in chiaro.")) {
+          setSyncPassphrase(null);
           saveToCloud({
             settings: state.settings,
             notifications: getNotificationConfig()
           });
+          alert("Crittografia disattivata.");
+          renderSettings(state, saveFn, cfg, lineData, lineConfig);
         }
-        // Start real-time listener
-        _startCloudListener();
+      } else {
+        if (trimmed.length < 4) {
+          alert("La passphrase deve essere di almeno 4 caratteri.");
+          return;
+        }
+        setSyncPassphrase(trimmed);
+        saveToCloud({
+          settings: state.settings,
+          notifications: getNotificationConfig()
+        });
+        alert("Passphrase aggiornata con successo e dati crittografati nuovamente.");
         renderSettings(state, saveFn, cfg, lineData, lineConfig);
       }
-    } catch (e) {
-      alert("Errore durante il login: " + e.message);
-    }
-  });
-
-  // Logout
-  container.querySelector("[data-cloud-logout]")?.addEventListener("click", async () => {
-    await signOut();
-    renderSettings(state, saveFn, cfg, lineData, lineConfig);
-  });
-
-  // Push to cloud
-  container.querySelector("[data-cloud-push]")?.addEventListener("click", () => {
-    saveToCloud({
-      settings: state.settings,
-      notifications: getNotificationConfig()
     });
-    alert("Preferenze salvate nel cloud.");
-  });
-
-  // Pull from cloud
-  container.querySelector("[data-cloud-pull]")?.addEventListener("click", async () => {
-    const cloudPayload = await loadFromCloud();
-    const cloudSettings = cloudPayload?.settings ?? null;
-    const cloudNotifs = cloudPayload?.notifications ?? null;
-    if (cloudPayload && (cloudSettings || cloudNotifs)) {
-      if (cloudSettings) {
-        saveFn(sanitizeSettings(cloudSettings, cfg));
-      }
-      if (cloudNotifs) {
-        saveNotificationConfig(sanitizeNotifications(cloudNotifs));
-      }
-      alert("Preferenze caricate dal cloud.");
-      renderSettings(state, saveFn, cfg, lineData, lineConfig);
-    } else {
-      alert("Nessuna preferenza trovata nel cloud.");
-    }
-  });
-
-  // Delete cloud data
-  container.querySelector("[data-cloud-delete]")?.addEventListener("click", async () => {
-    if (!confirm("Eliminare definitivamente i dati dal cloud? Le preferenze locali rimarranno intatte.")) return;
-    await deleteCloudData();
-    alert("Dati cloud eliminati.");
-  });
+  }
 }
+
 
 // Internal: start real-time listener for cross-device sync
 let _unsubscribeCloudListener = null;
@@ -641,62 +1063,7 @@ function deepEqual(a, b) {
   return true;
 }
 
-/**
- * Defensive sanitizer for the notifications config blob (B16). On any
- * malformed input we fall back to the same defaults that
- * `getNotificationConfig()` returns from a fresh install.
- */
-export function sanitizeNotifications(raw) {
-  const fallback = () => ({
-    enabled: true,
-    followedLines: [],
-    reminders: {},
-    defaultReminders: [5, 10],
-    lastNotified: {}
-  });
-  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return fallback();
 
-  // enabled → boolean (default true if undefined)
-  const enabled = raw.enabled === undefined ? true : !!raw.enabled;
-
-  // followedLines → string array
-  const followedLines = Array.isArray(raw.followedLines)
-    ? raw.followedLines.filter(s => typeof s === "string")
-    : [];
-
-  // reminders → { [lineId: string]: number[] in (0, 60] }
-  const reminders = {};
-  if (raw.reminders && typeof raw.reminders === "object" && !Array.isArray(raw.reminders)) {
-    for (const [lineId, list] of Object.entries(raw.reminders)) {
-      if (typeof lineId !== "string" || !Array.isArray(list)) continue;
-      const cleaned = list
-        .map(n => Number(n))
-        .filter(n => Number.isFinite(n) && n > 0 && n <= 60)
-        .sort((a, b) => a - b);
-      if (cleaned.length) reminders[lineId] = cleaned;
-    }
-  }
-
-  // defaultReminders → non-empty number array (>0, <=60)
-  let defaultReminders = Array.isArray(raw.defaultReminders)
-    ? raw.defaultReminders
-        .map(n => Number(n))
-        .filter(n => Number.isFinite(n) && n > 0 && n <= 60)
-        .sort((a, b) => a - b)
-    : [];
-  if (!defaultReminders.length) defaultReminders = [5, 10];
-
-  // lastNotified → object of numbers
-  const lastNotified = {};
-  if (raw.lastNotified && typeof raw.lastNotified === "object" && !Array.isArray(raw.lastNotified)) {
-    for (const [k, v] of Object.entries(raw.lastNotified)) {
-      const n = Number(v);
-      if (typeof k === "string" && Number.isFinite(n)) lastNotified[k] = n;
-    }
-  }
-
-  return { enabled, followedLines, reminders, defaultReminders, lastNotified };
-}
 
 function updateSWStatus(container) {
   const el = container.querySelector("[data-sw-status]");

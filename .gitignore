@@ -33,6 +33,17 @@ scripts/
 utility_stops.md
 GTFS_COMPARISON_REPORT.md
 
+# ─── Firebase local configuration (ignored to prevent credentials leak) ──────
+js/firebase-config.js
+
+
 # ─── Misc dev files ─────────────────────────────────────────────────────────
 *.py
 .config.kiro
+
+# ─── Agent / Developer tools ──────────────────────────────────────────────────
+.agent/
+.playwright-mcp/
+
+# ─── Large GTFS source data ───────────────────────────────────────────────────
+trenord_gtfs/

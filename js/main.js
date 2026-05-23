@@ -1,11 +1,6 @@
 import { CFG } from "../data/config.js";
-import { Z649_DATA } from "../data/z649.js";
-import { Z627_DATA } from "../data/z627.js";
-import { Z644_DATA } from "../data/z644.js";
-import { Z625_DATA } from "../data/z625.js";
-import { Z647_DATA } from "../data/z647.js";
-import { Z642_DATA } from "../data/z642.js";
 import { LINE_CONFIG } from "./line-config.js";
+import { loadLinesForCity, loadSingleLine, getCachedLineData } from "./line-registry.js";
 import { renderLive } from "./live.js";
 import { renderTimetable } from "./timetable.js";
 import { renderSettings, sanitizeSettings } from "./settings.js";
@@ -16,6 +11,20 @@ import { initNotifications, getNotificationConfig } from "./notifications.js";
 import { initFirebase, getCurrentUser, saveToCloud, onAuthStateChanged } from "./firebase-sync.js";
 import { shouldShowOnboarding, startOnboarding } from "./onboarding.js";
 import { initAlerts, renderAlertsTab, renderStrikeBanner, dismissAlert } from "./alerts.js";
+
+// Lazy-loaded module for the trains tab (avoids blocking boot if trains.js fails)
+let _renderTrainsTab = null;
+async function loadTrainsTab() {
+  if (!_renderTrainsTab) {
+    try {
+      const mod = await import("./trains-tab.js");
+      _renderTrainsTab = mod.renderTrainsTab;
+    } catch (e) {
+      console.warn("[Trasporti] Tab Treni non disponibile:", e);
+    }
+  }
+  return _renderTrainsTab;
+}
 
 // Module-level flag used by js/settings.js _startCloudListener to suppress
 // the cloud write branch of saveSettings while applying a remote snapshot,
@@ -31,36 +40,73 @@ export function setSuppressCloudWrite(v) {
   _suppressCloudWrite = !!v;
 }
 
-const LINE_DATA = {
-  Z649: Z649_DATA,
-  Z627: Z627_DATA,
-  Z644: Z644_DATA,
-  Z625: Z625_DATA,
-  Z647: Z647_DATA,
-  Z642: Z642_DATA
-};
+/**
+ * Resolves the active configuration dynamically based on the current focusCity.
+ * @param {object} state
+ * @param {object} cfg
+ * @returns {object}
+ */
+export function getActiveConfig(state, cfg) {
+  const focusCity = state?.settings?.focusCity || cfg?.defaults?.focusCity || "BT";
+  const cityCfg = cfg?.focusCities?.[focusCity] || cfg?.focusCities?.["BT"];
+  if (!cityCfg) return cfg;
+  return {
+    ...cfg,
+    homeProfile: {
+      ...cfg.homeProfile,
+      address: cityCfg.homeProfile?.address || cityCfg.name || cfg.homeProfile.address,
+      note: cityCfg.homeProfile?.note || `Area di focus attiva: ${cityCfg.name || cfg.homeProfile.address}. Mappa e orari personalizzati.`
+    },
+    lineOrder: cityCfg.lineOrder || cfg.lineOrder,
+    favoriteStops: { ...cfg.favoriteStops, ...(cityCfg.favoriteStops || {}) },
+    activeFocusCity: focusCity,
+    activeCityConfig: cityCfg
+  };
+}
+
+// LINE_DATA is now dynamically populated via lazy loading.
+// getCachedLineData() returns whatever has been loaded so far.
+// Fallback: if dynamic imports fail (e.g. file:// protocol), we import BT lines statically.
+let LINE_DATA = {};
+let _staticFallbackLoaded = false;
+
+async function loadStaticFallback() {
+  if (_staticFallbackLoaded) return;
+  _staticFallbackLoaded = true;
+  try {
+    const [z649, z627, z644, z625, z647, z642] = await Promise.all([
+      import("../data/z649.js").then(m => m.Z649_DATA),
+      import("../data/z627.js").then(m => m.Z627_DATA),
+      import("../data/z644.js").then(m => m.Z644_DATA),
+      import("../data/z625.js").then(m => m.Z625_DATA),
+      import("../data/z647.js").then(m => m.Z647_DATA),
+      import("../data/z642.js").then(m => m.Z642_DATA),
+    ]);
+    LINE_DATA = { Z649: z649, Z627: z627, Z644: z644, Z625: z625, Z647: z647, Z642: z642 };
+  } catch (e) {
+    console.error("[Trasporti] Anche il fallback statico è fallito:", e);
+  }
+}
 
 // `state.settings` is initialized lazily on first access. This breaks the
-// `js/main.js` ↔ `js/settings.js` ESM circular-import deadlock: when a
-// consumer imports `js/settings.js` first, that module's evaluation is
-// paused on `import { setSuppressCloudWrite } from "./main.js"`. Node
-// then evaluates `js/main.js`, but the `sanitizeSettings` binding from
-// `js/settings.js` is still in the TDZ. Calling it from a top-level
-// `loadSettings()` would throw `TypeError: sanitizeSettings is not a
-// function`. Deferring the call to first access of `state.settings`
-// guarantees both modules have finished evaluating before
-// `sanitizeSettings` is invoked.
+// `js/main.js` ↔ `js/settings.js` ESM circular-import deadlock.
 const state = {
   currentTab: "live",
-  timetableLine: "Z649",
+  timetableLine: null, // will be set after lines load
   timetableDirection: "outbound",
   timetableDayType: null,
-  settingsPanelLine: "Z649",
+  settingsPanelLine: null, // will be set after lines load
   settingsLineDirection: "outbound",
   settingsLineDay: "weekday",
   liveStopFilter: null,
   liveLineFilter: null,
   showAllStops: false,
+  showAllLines: false,
+  timetableShowAllLines: false,
+  linesLoaded: false,
+  trainsStation: null,
+  trainsDirection: "to_milano",
+  trainsShowAllStations: false,
   _settings: null,
   get settings() {
     if (this._settings === null) this._settings = loadSettings();
@@ -82,6 +128,7 @@ function loadSettings() {
 }
 
 export function saveSettings(partial) {
+  const oldFocusCity = state.settings.focusCity;
   state.settings = sanitizeSettings({ ...state.settings, ...partial }, CFG);
   try {
     localStorage.setItem("trasporti_settings", JSON.stringify(state.settings));
@@ -92,7 +139,38 @@ export function saveSettings(partial) {
   if (!_suppressCloudWrite && getCurrentUser()) {
     saveToCloud({ settings: state.settings, notifications: getNotificationConfig() });
   }
-  renderCurrentTab();
+  // If focus city changed, reload lines for the new city
+  if (state.settings.focusCity !== oldFocusCity) {
+    reloadLinesForCurrentCity().then(() => renderCurrentTab());
+  } else {
+    renderCurrentTab();
+  }
+}
+
+/**
+ * Load (or reload) line data for the current focus city.
+ * Updates LINE_DATA and state.linesLoaded.
+ */
+async function reloadLinesForCurrentCity() {
+  const focusCity = state.settings?.focusCity || CFG.defaults?.focusCity || "BT";
+  try {
+    const loaded = await loadLinesForCity(CFG, focusCity);
+    LINE_DATA = { ...getCachedLineData(), ...loaded };
+    state.linesLoaded = true;
+
+    // Set default timetable/settings line to first available
+    const activeCFG = getActiveConfig(state, CFG);
+    const firstLine = activeCFG.lineOrder?.[0] || Object.keys(LINE_DATA)[0] || "Z649";
+    if (!state.timetableLine) state.timetableLine = firstLine;
+    if (!state.settingsPanelLine) state.settingsPanelLine = firstLine;
+  } catch (e) {
+    console.error("[Trasporti] Errore nel caricamento linee:", e);
+    // Fallback: try loading BT lines statically
+    if (Object.keys(LINE_DATA).length === 0) {
+      await loadStaticFallback();
+    }
+    state.linesLoaded = true; // unblock UI even on failure
+  }
 }
 
 let _rendering = false;
@@ -108,11 +186,31 @@ function renderCurrentTab() {
     <small>Si è verificato un problema nel caricamento di questa sezione. Prova a ricaricare la pagina.</small>
   </div>`;
 
+  // Show loading state if lines haven't loaded yet
+  if (!state.linesLoaded && (state.currentTab === "live" || state.currentTab === "timetable")) {
+    const container = document.getElementById(`${state.currentTab}-content`);
+    if (container) {
+      container.innerHTML = `<div class="empty-state">Caricamento orari...</div>`;
+    }
+    _rendering = false;
+    return;
+  }
+
   try {
-    if (state.currentTab === "live") renderLive(state, LINE_DATA, LINE_CONFIG, CFG, saveSettings);
-    else if (state.currentTab === "timetable") renderTimetable(state, LINE_DATA, LINE_CONFIG, CFG);
+    const activeCFG = getActiveConfig(state, CFG);
+    if (state.currentTab === "live") renderLive(state, LINE_DATA, LINE_CONFIG, activeCFG, saveSettings);
+    else if (state.currentTab === "timetable") renderTimetable(state, LINE_DATA, LINE_CONFIG, activeCFG, saveSettings);
+    else if (state.currentTab === "trains") {
+      loadTrainsTab().then(fn => {
+        if (fn) fn(state, activeCFG, saveSettings);
+        else {
+          const c = document.getElementById("trains-content");
+          if (c) c.innerHTML = `<div class="empty-state">Tab Treni in caricamento...</div>`;
+        }
+      });
+    }
     else if (state.currentTab === "alerts") renderAlertsTab();
-    else if (state.currentTab === "settings") renderSettings(state, saveSettings, CFG, LINE_DATA, LINE_CONFIG);
+    else if (state.currentTab === "settings") renderSettings(state, saveSettings, activeCFG, LINE_DATA, LINE_CONFIG);
   } catch (error) {
     console.error(`[Trasporti] Errore nel render del tab "${state.currentTab}":`, error);
     const container = document.getElementById(`${state.currentTab}-content`);
@@ -125,7 +223,9 @@ function renderCurrentTab() {
 function switchTab(tabId) {
   state.currentTab = tabId;
   document.querySelectorAll(".tab-btn").forEach(btn => {
-    btn.classList.toggle("active", btn.dataset.tab === tabId);
+    const isActive = btn.dataset.tab === tabId;
+    btn.classList.toggle("active", isActive);
+    btn.setAttribute("aria-selected", isActive ? "true" : "false");
   });
   document.querySelectorAll(".tab-panel").forEach(panel => {
     panel.classList.toggle("active", panel.id === `tab-${tabId}`);
@@ -162,24 +262,119 @@ function registerSW() {
   });
 }
 
-function init() {
-  window._app_config = { CFG };
+async function init() {
+  window._app_config = { CFG, switchTab };
   document.querySelectorAll(".tab-btn").forEach(btn => {
     btn.addEventListener("click", () => switchTab(btn.dataset.tab));
   });
   updateClock();
   setInterval(updateClock, 1000);
+
+  // Sincronizzazione Pillola & Connettività
+  const updateSyncPill = (forcedStatus) => {
+    const pill = document.getElementById("sync-pill");
+    const text = document.getElementById("sync-status-text");
+    if (!pill || !text) return;
+
+    pill.className = "sync-pill"; // reset
+    if (!navigator.onLine) {
+      pill.classList.add("sync-status-offline");
+      text.textContent = "Offline - Dati Locali";
+      pill.title = "Sei disconnesso dalla rete. L'app usa i dati locali salvati sul dispositivo.";
+      return;
+    }
+
+    const user = getCurrentUser();
+    if (!user) {
+      pill.classList.add("sync-status-synced");
+      pill.style.background = "rgba(100, 116, 139, 0.12)";
+      pill.style.color = "var(--muted)";
+      pill.style.borderColor = "var(--line)";
+      text.textContent = "Dati Locali";
+      pill.title = "Sei online. Accedi nelle Impostazioni per attivare la sincronizzazione cloud.";
+      return;
+    }
+
+    // Reset inline styles
+    pill.style.background = "";
+    pill.style.color = "";
+    pill.style.borderColor = "";
+
+    const status = (typeof forcedStatus === "string") ? forcedStatus : (window._last_sync_status || "synced");
+    window._last_sync_status = status;
+
+    if (status === "pending" || status === "syncing") {
+      pill.classList.add("sync-status-syncing");
+      text.textContent = "Sincronizzazione...";
+      pill.title = "Sincronizzazione in corso con il cloud...";
+    } else if (status === "error") {
+      pill.classList.add("sync-status-offline");
+      text.textContent = "Errore Sync";
+      pill.title = "Si è verificato un errore durante il salvataggio sul cloud.";
+    } else {
+      pill.classList.add("sync-status-synced");
+      text.textContent = "Sincronizzato";
+      pill.title = `Sincronizzato con il cloud (${user.email}).`;
+    }
+  };
+
+  // Listeners di connettività
+  window.addEventListener("online", updateSyncPill);
+  window.addEventListener("offline", updateSyncPill);
+  window.addEventListener("trasporti:sync-status", (e) => updateSyncPill(e.detail.status));
+
+  // Gestione tasti freccia per la barra dei tab
+  const tabBar = document.querySelector(".tab-bar[role='tablist']");
+  if (tabBar) {
+    const tabs = Array.from(tabBar.querySelectorAll("[role='tab']"));
+    tabBar.addEventListener("keydown", (e) => {
+      let index = tabs.findIndex(t => t.classList.contains("active"));
+      if (index === -1) return;
+
+      if (e.key === "ArrowRight" || e.key === "ArrowDown") {
+        e.preventDefault();
+        index = (index + 1) % tabs.length;
+        tabs[index].focus();
+        switchTab(tabs[index].dataset.tab);
+      } else if (e.key === "ArrowLeft" || e.key === "ArrowUp") {
+        e.preventDefault();
+        index = (index - 1 + tabs.length) % tabs.length;
+        tabs[index].focus();
+        switchTab(tabs[index].dataset.tab);
+      } else if (e.key === "Home") {
+        e.preventDefault();
+        tabs[0].focus();
+        switchTab(tabs[0].dataset.tab);
+      } else if (e.key === "End") {
+        e.preventDefault();
+        tabs[tabs.length - 1].focus();
+        switchTab(tabs[tabs.length - 1].dataset.tab);
+      }
+    });
+  }
+
   try {
     initFirebase();
+    updateSyncPill();
   } catch (e) {
     console.warn("[Firebase]", e);
   }
   onAuthStateChanged(() => {
+    updateSyncPill();
     if (state.currentTab === "settings") renderCurrentTab();
   });
   document.addEventListener("trasporti:settings-changed", () => {
+    updateSyncPill();
     if (state.currentTab === "settings") renderCurrentTab();
   });
+
+  // Load line data for the current focus city
+  try {
+    await reloadLinesForCurrentCity();
+  } catch (e) {
+    console.error("[Trasporti] Errore critico nel caricamento linee:", e);
+    state.linesLoaded = true; // unblock UI even on failure
+  }
 
   // Show onboarding wizard on first launch (before rendering any tab)
   if (shouldShowOnboarding(state.settings)) {
@@ -188,7 +383,16 @@ function init() {
         // Apply the profile to settings
         const updates = { userProfile: profile };
         if (profile.walkMinutes) updates.walkRossini = profile.walkMinutes;
+        if (profile.stationReachMinutes) {
+          updates.stationReachMinutes = {
+            ...state.settings.stationReachMinutes,
+            ...profile.stationReachMinutes
+          };
+        }
         if (profile.driveCanegrate) updates.driveCanegrate = profile.driveCanegrate;
+        if (profile.focusCity) updates.focusCity = profile.focusCity;
+        if (profile.visibleTrains) updates.visibleTrains = profile.visibleTrains;
+        if (profile.liveHero) updates.liveHero = profile.liveHero;
         if (profile.favoriteStops && Object.keys(profile.favoriteStops).length > 0) {
           updates.favoriteStops = { ...state.settings.favoriteStops, ...profile.favoriteStops };
         }
@@ -217,8 +421,18 @@ function init() {
   } else {
     switchTab("live");
   }
+  // Load remaining lines in the background to ensure search, map popups, and other features have full data (skipping in test envs)
+  if (typeof process === 'undefined' || process.env?.NODE_ENV !== 'test') {
+    setTimeout(ensureAllLinesLoaded, 1000);
+  }
   setInterval(() => {
-    if (state.currentTab === "live" || state.currentTab === "timetable") renderCurrentTab();
+    if (state.currentTab === "live" || state.currentTab === "timetable") {
+      // Skip re-render if user has a dep-stop-select dropdown open (would destroy it mid-interaction)
+      const selectOpen = document.querySelector(".dep-stop-select[style*='display: inline'], .dep-stop-select[style*='display:inline']");
+      const anyVisible = selectOpen || [...document.querySelectorAll(".dep-stop-select")].some(s => s.style.display && s.style.display !== "none");
+      if (anyVisible) return;
+      renderCurrentTab();
+    }
   }, 60000);
   try {
     initMap();
@@ -234,12 +448,24 @@ function init() {
     () => state,
     () => LINE_DATA,
     () => LINE_CONFIG,
-    () => CFG
+    () => getActiveConfig(state, CFG)
   );
   registerSW();
 }
 
-document.addEventListener("DOMContentLoaded", init);
+document.addEventListener("DOMContentLoaded", () => {
+  init().catch(e => {
+    console.error("[Trasporti] Errore fatale nell'inizializzazione:", e);
+    // Show error in UI so user knows something went wrong
+    const liveContent = document.getElementById("live-content");
+    if (liveContent) {
+      liveContent.innerHTML = `<div class="empty-state" style="border-color: rgba(239,68,68,0.4); background: rgba(239,68,68,0.08); color: #fecaca;">
+        <strong>Errore di avvio</strong><br>
+        <small>${e.message || "Errore sconosciuto"}. Prova a ricaricare la pagina (Ctrl+Shift+R).</small>
+      </div>`;
+    }
+  });
+});
 
 export function getState() {
   return state;
@@ -251,4 +477,36 @@ export function getLineData() {
 
 export function getLineConfig() {
   return LINE_CONFIG;
+}
+
+/**
+ * Load a specific line on demand (used by timetable/search when user
+ * selects a line not in their focus city).
+ * @param {string} lineId
+ * @returns {Promise<object|null>}
+ */
+export async function ensureLineLoaded(lineId) {
+  if (LINE_DATA[lineId]) return LINE_DATA[lineId];
+  const data = await loadSingleLine(lineId);
+  if (data) {
+    LINE_DATA[lineId] = data;
+  }
+  return data;
+}
+
+/**
+ * Load all available lines in the registry to ensure full coverage
+ * across all cities (used by search, map markers, and notifications).
+ * @returns {Promise<object>}
+ */
+export async function ensureAllLinesLoaded() {
+  try {
+    const { getAllLineIds, loadLines, getCachedLineData } = await import("./line-registry.js");
+    const allIds = getAllLineIds();
+    const loaded = await loadLines(allIds);
+    LINE_DATA = { ...getCachedLineData(), ...loaded };
+  } catch (e) {
+    console.warn("[Trasporti] Impossibile caricare tutte le linee in background:", e);
+  }
+  return LINE_DATA;
 }

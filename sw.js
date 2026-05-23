@@ -10,7 +10,7 @@
 // IMPORTANT: Bump CACHE_NAME on every deploy so the activate handler purges stale caches.
 // =============================================================================
 
-const CACHE_NAME = "trasporti-busto-v4-6-0";
+const CACHE_NAME = "z-transit-v5-0-2";
 
 const PRECACHE_ASSETS = [
   "./",
@@ -20,6 +20,8 @@ const PRECACHE_ASSETS = [
   "./js/main.js",
   "./js/live.js",
   "./js/timetable.js",
+  "./js/trains-tab.js",
+  "./js/line-registry.js",
   "./js/settings.js",
   "./js/utils.js",
   "./js/trains.js",
@@ -28,17 +30,25 @@ const PRECACHE_ASSETS = [
   "./js/theme.js",
   "./js/notifications.js",
   "./js/firebase-sync.js",
+  "./js/crypto-utils.js",
+  "./js/migration.js",
+  "./js/firebase-config.js",
   "./js/map.js",
   "./js/map-data.js",
   "./js/onboarding.js",
   "./js/alerts.js",
+  "./privacy.html",
+  "./feedback.html",
   "./data/config.js",
+  "./data/trains.js",
+  // Default city (BT) lines precached for instant first load
   "./data/z649.js",
   "./data/z627.js",
   "./data/z644.js",
   "./data/z625.js",
   "./data/z647.js",
   "./data/z642.js",
+  // Other lines loaded on-demand and cached via stale-while-revalidate
   "./icon-192.png",
   "./icon-badge.png"
 ];
@@ -113,6 +123,32 @@ function staleWhileRevalidate(request) {
   });
 }
 
+/**
+ * Cache-first: serve from cache if available, otherwise fetch from network.
+ */
+function cacheFirst(request) {
+  return caches.match(request)
+    .then(cached => {
+      if (cached) return cached;
+      return fetch(request).then(response => {
+        if (response && response.status === 200) {
+          const clone = response.clone();
+          caches.open(CACHE_NAME).then(cache => cache.put(request, clone));
+        }
+        return response;
+      });
+    })
+    .catch(() => {
+      if (request.mode === "navigate") {
+        return caches.match("./index.html");
+      }
+      return new Response("Offline - dati non disponibili.", {
+        status: 503,
+        headers: { "Content-Type": "text/plain; charset=utf-8" }
+      });
+    });
+}
+
 // ─── Fetch Handler ──────────────────────────────────────────────────────────
 self.addEventListener("fetch", event => {
   if (event.request.method !== "GET") return;
@@ -125,8 +161,8 @@ self.addEventListener("fetch", event => {
     return;
   }
 
-  // Same-origin assets → network-first (always fresh when online)
-  event.respondWith(networkFirst(event.request));
+  // Same-origin assets or precached → cache-first
+  event.respondWith(cacheFirst(event.request));
 });
 
 // ─── Notification Click ─────────────────────────────────────────────────────

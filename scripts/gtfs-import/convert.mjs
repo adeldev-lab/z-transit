@@ -4,8 +4,8 @@
 // =============================================================================
 // Usage: node scripts/gtfs-import/convert.mjs <path-to-gtfs-folder>
 //
-// Reads the GTFS feed and generates the 6 timetable files:
-//   data/z625.js, data/z627.js, data/z642.js, data/z644.js, data/z647.js, data/z649.js
+// Reads the GTFS feed and generates timetable files for ALL Movibus Z lines:
+//   data/z601.js, data/z602.js, ..., data/z649.js, data/z6c3.js
 //
 // Does NOT modify config.js, line-config.js, or any other project file.
 // =============================================================================
@@ -25,7 +25,7 @@ if (!gtfsDir) {
 const projectRoot = resolve(import.meta.dirname, "../..");
 const dataDir = join(projectRoot, "data");
 
-console.log(`\n🚌 GTFS → Trasporti Busto Garolfo Converter`);
+console.log(`\n🚌 GTFS → Trasporti Z-Transit Converter (All Lines)`);
 console.log(`   GTFS source: ${gtfsDir}`);
 console.log(`   Output dir:  ${dataDir}\n`);
 

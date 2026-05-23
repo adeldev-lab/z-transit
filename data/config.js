@@ -40,8 +40,8 @@
 // =============================================================================
 
 export const CFG = {
-  version: "4.3.0",
-  lastUpdate: "2026-05-17",
+  version: "5.0.0",
+  lastUpdate: "2026-05-20",
   feedValidity: { from: "2026-03-02", to: "2026-06-07" },
 
   // --------------------------------------------------------------------------
@@ -67,29 +67,165 @@ export const CFG = {
   // Z647: sospeso durante le vacanze scolastiche (servizio scolastico)
   // --------------------------------------------------------------------------
   serviceDisruptions: {
-    Z649: [{ from: "2026-07-01", to: "2026-08-31", note: "Sospensione estiva" }],
-    Z627: [],
-    Z644: [],
+    Z601: [],
+    Z602: [],
+    Z603: [],
+    Z606: [],
+    Z611: [],
+    Z612: [],
+    Z616: [],
+    Z617: [],
+    Z618: [],
+    Z619: [{ from: "2026-06-15", to: "2026-09-10", note: "Sospensione scolastica" }],
+    Z620: [],
+    Z621: [],
+    Z622: [],
     Z625: [],
+    Z627: [],
+    Z636: [],
+    Z641: [],
+    Z642: [],
+    Z643: [],
+    Z644: [],
+    Z646: [],
     Z647: [{ from: "2026-06-15", to: "2026-09-10", note: "Sospensione scolastica" }],
-    Z642: []
+    Z649: [{ from: "2026-07-01", to: "2026-08-31", note: "Sospensione estiva" }],
+    Z6C3: []
   },
 
   // --------------------------------------------------------------------------
-  // Profilo casa – Busto Garolfo
-  // Nessuna geolocalizzazione: fermate ordinate per praticità a piedi.
-  // Fermata principale andata: BT703 (Via Buonarroti Civ. 3) – ~2 min
-  // Fermata principale ritorno: BT947 / BT951 (Piscina 90) – ~2-4 min
+  // Configurazione Multi-Città (Focus Cities)
+  // Permette di selezionare una città di focus attiva che adatta:
+  // - La mappa (centro geografico)
+  // - Il tab LIVE (linee e fermate preferite)
+  // - Il profilo casa
+  // --------------------------------------------------------------------------
+  focusCities: {
+    BT: {
+      name: "Busto Garolfo",
+      center: [45.5476, 8.8837],
+      homeProfile: { label: "Casa", address: "Busto Garolfo" },
+      lineOrder: ["Z649", "Z644", "Z627", "Z625", "Z642", "Z647"],
+      favoriteStops: {
+        Z649: { outbound: "BT775", return: "BT956" },
+        Z627: { outbound: "BT301", return: "BT947" },
+        Z644: { outbound: "BT775", return: "BT956" },
+        Z625: { outbound: "BT947", return: "BT301" },
+        Z647: { outbound: "BT956", return: "BT775" },
+        Z642: { outbound: "BT956", return: "BT775" }
+      }
+    },
+    VC: {
+      name: "Villa Cortese",
+      center: [45.5658, 8.8926],
+      homeProfile: { label: "Casa", address: "Villa Cortese" },
+      lineOrder: ["Z642", "Z625", "Z627", "Z644", "Z643", "Z649", "Z647"],
+      favoriteStops: {
+        Z649: { outbound: "VC050", return: "VC005" },
+        Z627: { outbound: "VC006", return: "VC051" },
+        Z644: { outbound: "VC005", return: "VC050" },
+        Z625: { outbound: "VC807", return: "VC801" },
+        Z647: { outbound: "VC005", return: "VC050" },
+        Z642: { outbound: "VC050", return: "VC005" },
+        Z643: { outbound: "VC005", return: "VC050" }
+      }
+    },
+    DG: {
+      name: "Dairago",
+      center: [45.5668, 8.8624],
+      homeProfile: { label: "Casa", address: "Dairago" },
+      lineOrder: ["Z627", "Z644", "Z642", "Z625", "Z649", "Z647"],
+      favoriteStops: {
+        Z649: { outbound: "DG097", return: "DG099" },
+        Z627: { outbound: "DG141", return: "DG142" },
+        Z644: { outbound: "DG097", return: "DG099" },
+        Z625: { outbound: "DG801", return: "DG807" },
+        Z647: { outbound: "DG097", return: "DG099" },
+        Z642: { outbound: "DG097", return: "DG099" }
+      }
+    },
+    AC: {
+      name: "Arconate",
+      center: [45.5398, 8.8504],
+      homeProfile: { label: "Casa", address: "Arconate" },
+      lineOrder: ["Z644", "Z627", "Z647", "Z649", "Z642", "Z625", "Z622"],
+      favoriteStops: {
+        Z649: { outbound: "AC627", return: "AC628" },
+        Z627: { outbound: "AC035", return: "AC625" },
+        Z644: { outbound: "AC127", return: "AC128" },
+        Z625: { outbound: "AC802", return: "AC809" },
+        Z647: { outbound: "AC627", return: "AC628" },
+        Z642: { outbound: "AC627", return: "AC628" }
+      }
+    },
+    CZ: {
+      name: "Casorezzo",
+      center: [45.5243, 8.9038],
+      homeProfile: { label: "Casa", address: "Casorezzo" },
+      lineOrder: ["Z649", "Z647", "Z644", "Z642", "Z643", "Z627", "Z625"],
+      favoriteStops: {
+        Z649: { outbound: "CZ010", return: "CZ080" },
+        Z627: { outbound: "CZ070", return: "CZ093" },
+        Z644: { outbound: "CZ010", return: "CZ080" },
+        Z625: { outbound: "CZ094", return: "CZ088" },
+        Z647: { outbound: "CZ010", return: "CZ080" },
+        Z642: { outbound: "CZ010", return: "CZ080" }
+      }
+    },
+    LG: {
+      name: "Legnano",
+      center: [45.5918, 8.9156],
+      homeProfile: { label: "Casa", address: "Legnano" },
+      lineOrder: ["Z601", "Z602", "Z611", "Z612", "Z627", "Z636", "Z642", "Z606", "Z619", "Z6C3"],
+      favoriteStops: {
+        Z601: { outbound: "LG003", return: "LG003" },
+        Z602: { outbound: "LG003", return: "LG003" },
+        Z611: { outbound: "LG090", return: "LG090" },
+        Z612: { outbound: "LG003", return: "LG003" },
+        Z627: { outbound: "LG090", return: "LG173" },
+        Z636: { outbound: "LG090", return: "LG090" },
+        Z642: { outbound: "LG003", return: "LG173" }
+      }
+    },
+    PB: {
+      name: "Parabiago",
+      center: [45.5562, 8.9482],
+      homeProfile: { label: "Casa", address: "Parabiago" },
+      lineOrder: ["Z644", "Z611", "Z643", "Z649", "Z627", "Z601", "Z619"],
+      favoriteStops: {
+        Z644: { outbound: "PB090", return: "PB100" },
+        Z611: { outbound: "PB090", return: "PB090" },
+        Z649: { outbound: "PB701", return: "PB702" },
+        Z627: { outbound: "PB090", return: "PB101" },
+        Z601: { outbound: "PB001", return: "PB001" }
+      }
+    },
+    BS: {
+      name: "Busto Arsizio",
+      center: [45.6113, 8.8516],
+      homeProfile: { label: "Casa", address: "Busto Arsizio" },
+      lineOrder: ["Z625", "Z636", "Z627", "Z644", "Z649", "Z642", "Z647"],
+      favoriteStops: {
+        Z625: { outbound: "BS090", return: "BS452" },
+        Z636: { outbound: "BS001", return: "BS001" },
+        Z627: { outbound: "BS003", return: "BS011" },
+        Z644: { outbound: "BS027", return: "BS085" },
+        Z649: { outbound: "BS001", return: "BS090" },
+        Z642: { outbound: "BS001", return: "BS090" }
+      }
+    }
+  },
+
+  // --------------------------------------------------------------------------
+  // Profilo casa – Busto Garolfo (Mantenuto come fallback)
   // --------------------------------------------------------------------------
   homeProfile: {
     label: "Casa",
     address: "Busto Garolfo",
-    //note: "Fermata principale andata: BT703 (~2 min). Ritorno: BT947 (~2 min) o BT951 (~4 min). Z649 ritorno: BT956 (~8 min)."
   },
 
-  // Ordine di visualizzazione delle linee nella UI
-  // Z649 prima perché è la linea principale per Milano
-  lineOrder: ["Z649", "Z644", "Z627", "Z625", "Z642", "Z647"],
+  // Ordine di visualizzazione delle linee nella UI (Mantenuto come fallback)
+  lineOrder: ["Z649", "Z644", "Z627", "Z625", "Z642", "Z647", "Z601", "Z602", "Z603", "Z606", "Z611", "Z612", "Z616", "Z617", "Z618", "Z619", "Z620", "Z621", "Z622", "Z636", "Z641", "Z643", "Z646", "Z6C3"],
 
   // --------------------------------------------------------------------------
   // Fermate preferite (una per linea per andata/ritorno)
@@ -376,8 +512,10 @@ export const CFG = {
   // driveCanegrate = minuti in auto fino a Canegrate FS (~3.3 km)
   // --------------------------------------------------------------------------
   defaults: {
+    focusCity: "BT",
     walkRossini: 6,
     driveCanegrate: 16,
+    stationReachMinutes: {},
     liveDirection: "outbound",
     connectionTightMin: 4,
     connectionGoodMin: 12,

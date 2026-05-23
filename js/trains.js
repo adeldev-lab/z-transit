@@ -1,3 +1,5 @@
+import { TRAIN_ROUTES, TRAIN_STATIONS, TRAIN_DEPARTURES } from "../data/trains.js";
+
 // === Train Connection Slots ===
 // Orari verificati su Trenord (maggio 2026)
 // Canegrate FS: treni ai minuti :08 e :38, ogni 30 min, identico tutti i giorni
@@ -192,6 +194,96 @@ export function buildCanegrateBlock(driveMinutes, currentMin) {
     justMissedCarTrain,
     // Estimate arrival at Milano Centrale
     milanoArrival: firstTrain.departureMin + 25
+  };
+}
+
+/**
+ * Calculate next trains using GTFS data from a given station, direction, and dayType.
+ * @param {string} stationCode - Code of the station (e.g. "CN_FS")
+ * @param {string} direction - "to_milano" or "from_milano"
+ * @param {string} dayType - "weekday", "saturday", "sunday"
+ * @param {number} fromMinutes - minutes from midnight
+ * @param {number} count - number of trains to return
+ * @returns {Array<{line, color, departureMin, waitMin, note}>}
+ */
+export function calcNextTrainFromGTFS(stationCode, direction, dayType, fromMinutes, count = 2) {
+  const stationData = TRAIN_DEPARTURES[stationCode];
+  if (!stationData) return [];
+
+  const results = [];
+  const key = `${dayType}_${direction}`;
+
+  for (const [routeId, schedules] of Object.entries(stationData)) {
+    const times = schedules[key] || [];
+    const routeInfo = TRAIN_ROUTES[routeId] || { name: routeId, color: "#666" };
+    for (const min of times) {
+      if (min > fromMinutes) {
+        results.push({
+          line: routeInfo.name,
+          color: routeInfo.color,
+          departureMin: min,
+          waitMin: min - fromMinutes,
+          note: direction === "to_milano" ? "dir. Milano" : "da Milano"
+        });
+      }
+    }
+  }
+
+  // Sort by departure time
+  results.sort((a, b) => a.departureMin - b.departureMin);
+
+  return results.slice(0, count);
+}
+
+/**
+ * Approximate travel time to Milano from each station.
+ */
+export function getTravelTimeToMilano(stationCode) {
+  const times = {
+    "CN_FS": 28,
+    "PB_FS": 24,
+    "LG_FS": 32,
+    "BS_FS": 35,
+    "PG_FS": 19,
+    "VZ_FS": 22,
+    "RH_FS": 15,
+    "BSN_FS": 32
+  };
+  return times[stationCode] || 25;
+}
+
+/**
+ * Generalized train station block calculating wait times, reach times and catchable trains.
+ */
+export function buildTrainStationBlock(stationCode, reachMinutes, currentMin, dayType, direction = "to_milano") {
+  const arrivalAtStation = currentMin + reachMinutes;
+
+  const allFutureTrains = calcNextTrainFromGTFS(stationCode, direction, dayType, currentMin);
+  const catchableTrains = calcNextTrainFromGTFS(stationCode, direction, dayType, arrivalAtStation);
+
+  let justMissedCarTrain = null;
+  if (allFutureTrains.length > 0 && catchableTrains.length > 0 && allFutureTrains[0].departureMin !== catchableTrains[0].departureMin) {
+    justMissedCarTrain = allFutureTrains[0];
+  } else if (allFutureTrains.length > 0 && catchableTrains.length === 0) {
+    justMissedCarTrain = allFutureTrains[0];
+  }
+
+  if (catchableTrains.length === 0) {
+    return { canLeaveIn: null, trains: [], justMissedCarTrain };
+  }
+
+  const firstTrain = catchableTrains[0];
+  const leaveIn = firstTrain.departureMin - reachMinutes - currentMin;
+
+  const travelTime = getTravelTimeToMilano(stationCode);
+
+  return {
+    reachMinutes,
+    canLeaveIn: leaveIn > 0 ? leaveIn : 0,
+    arrivalAtStation,
+    trains: catchableTrains,
+    justMissedCarTrain,
+    milanoArrival: firstTrain.departureMin + travelTime
   };
 }
 

@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#101828">
+  <title>Z-Transit – Informativa Privacy, GDPR & Crediti</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Sans:wght@300;400;500;600;700;800&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #101828;
+      --surface: #1d2939;
+      --border: #344054;
+      --text: #f2f4f7;
+      --muted: #98a2b3;
+      --accent: #22d3ee;
+      --accent-rgb: 34, 211, 238;
+      --ok: #22c55e;
+      --warn: #f59e0b;
+      --radius: 12px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Fira Sans', sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      padding: 40px 20px;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+
+    header h1 {
+      font-family: 'Outfit', sans-serif;
+      font-size: 2.5rem;
+      font-weight: 800;
+      color: var(--text);
+      letter-spacing: -0.02em;
+      margin-bottom: 10px;
+      background: linear-gradient(135deg, #fff 30%, var(--accent) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    header p {
+      color: var(--muted);
+      font-size: 1.1rem;
+    }
+
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--accent);
+      text-decoration: none;
+      font-size: 0.95rem;
+      font-weight: 500;
+      margin-bottom: 20px;
+      transition: transform 0.2s;
+    }
+
+    .back-link:hover {
+      transform: translateX(-4px);
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 30px;
+      margin-bottom: 25px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+    }
+
+    h2 {
+      font-family: 'Outfit', sans-serif;
+      font-size: 1.4rem;
+      font-weight: 700;
+      margin-bottom: 15px;
+      color: var(--accent);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    h3 {
+      font-size: 1.05rem;
+      font-weight: 600;
+      margin: 18px 0 10px;
+      color: #fff;
+    }
+
+    p {
+      margin-bottom: 15px;
+      color: var(--text);
+      font-size: 0.98rem;
+    }
+
+    ul, ol {
+      margin-left: 20px;
+      margin-bottom: 15px;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    li {
+      margin-bottom: 8px;
+    }
+
+    strong {
+      color: #fff;
+    }
+
+    a {
+      color: var(--accent);
+      text-decoration: underline;
+    }
+
+    a:hover {
+      opacity: 0.85;
+    }
+
+    .badge-e2ee {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(34, 211, 238, 0.1);
+      border: 1px solid rgba(34, 211, 238, 0.3);
+      color: var(--accent);
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      margin-bottom: 20px;
+    }
+
+    .highlight-box {
+      background: rgba(34, 197, 94, 0.05);
+      border: 1px solid rgba(34, 197, 94, 0.2);
+      border-radius: 8px;
+      padding: 15px;
+      margin-top: 15px;
+    }
+
+    .highlight-box p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+
+    .highlight-box strong {
+      color: var(--ok);
+    }
+
+    .warn-box {
+      background: rgba(245, 158, 11, 0.05);
+      border: 1px solid rgba(245, 158, 11, 0.2);
+      border-radius: 8px;
+      padding: 15px;
+      margin-top: 15px;
+    }
+
+    .warn-box p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+
+    .warn-box strong {
+      color: var(--warn);
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+      margin: 15px 0;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.88rem;
+    }
+
+    th, td {
+      padding: 10px 14px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+
+    th {
+      color: var(--accent);
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    td {
+      color: var(--muted);
+    }
+
+    .update-date {
+      display: inline-block;
+      background: rgba(34, 211, 238, 0.08);
+      border: 1px solid rgba(34, 211, 238, 0.2);
+      border-radius: 6px;
+      padding: 4px 10px;
+      font-size: 0.82rem;
+      color: var(--accent);
+      margin-top: 10px;
+    }
+
+    footer {
+      text-align: center;
+      margin-top: 50px;
+      padding-top: 20px;
+      border-top: 1px solid var(--border);
+      color: var(--muted);
+      font-size: 0.85rem;
+    }
+
+    footer p {
+      margin-bottom: 8px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <a href="./" class="back-link">← Torna all'applicazione</a>
+    
+    <header>
+      <h1>Informativa Privacy, GDPR & Crediti</h1>
+      <p>Trasparenza, Sicurezza e Attribuzione dei Dati</p>
+    </header>
+
+    <center>
+      <span class="badge-e2ee">🔒 Cifratura Zero-Knowledge Integrata (AES-256-GCM)</span>
+    </center>
+
+    <!-- ═══════════════════════════════════════════════════════════════════ -->
+    <!-- SEZIONE 1: TITOLARE E NATURA DEL PROGETTO -->
+    <!-- ═══════════════════════════════════════════════════════════════════ -->
+    <div class="card">
+      <h2>1. Titolare del Trattamento e Natura del Progetto</h2>
+      <p><strong>Z-Transit</strong> è un'applicazione web progressiva (PWA) open-source, distribuita gratuitamente e senza scopo di lucro. Il progetto è sviluppato e mantenuto da un singolo sviluppatore indipendente.</p>
+      <ul>
+        <li><strong>Titolare:</strong> Lo sviluppatore e manutentore del repository GitHub del progetto.</li>
+        <li><strong>Natura:</strong> Progetto personale open-source, non commerciale.</li>
+        <li><strong>Hosting:</strong> GitHub Pages (GitHub, Inc. – Microsoft Corporation).</li>
+        <li><strong>Codice sorgente:</strong> Pubblicamente disponibile su GitHub.</li>
+      </ul>
+      <p>L'applicazione viene eseguita <strong>interamente nel browser</strong> dell'utente. Non esistono server proprietari che raccolgono, elaborano o profilano dati degli utenti.</p>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════════════════ -->
+    <!-- SEZIONE 2: DATI TRATTATI -->
+    <!-- ═══════════════════════════════════════════════════════════════════ -->
+    <div class="card">
+      <h2>2. Dati Trattati</h2>
+      
+      <h3>2.1 Dati salvati localmente (localStorage)</h3>
+      <p>L'app salva nel browser le seguenti informazioni, che <strong>non lasciano mai il dispositivo</strong> a meno che l'utente non attivi la sincronizzazione cloud:</p>
+      <ul>
+        <li>Città di focus selezionata</li>
+        <li>Fermate preferite e linee seguite</li>
+        <li>Tempi a piedi/auto verso le stazioni</li>
+        <li>Preferenze di notifica</li>
+        <li>Tema visivo (chiaro/scuro)</li>
+        <li>Stato completamento onboarding</li>
+      </ul>
+
+      <h3>2.2 Dati sincronizzati sul cloud (opzionale)</h3>
+      <p>Se l'utente sceglie di accedere con Google per la sincronizzazione multi-dispositivo, vengono salvati su <strong>Google Firebase Firestore</strong>:</p>
+      <ul>
+        <li><strong>Dati di autenticazione Google:</strong> UID, email, nome e foto profilo (forniti da Google OAuth).</li>
+        <li><strong>Preferenze utente:</strong> Le stesse informazioni del punto 2.1, cifrate se la passphrase è configurata.</li>
+      </ul>
+
+      <h3>2.3 Crittografia Zero-Knowledge (E2EE)</h3>
+      <p>Se l'utente configura una <strong>Passphrase di Sincronizzazione</strong>:</p>
+      <ul>
+        <li>Tutte le preferenze vengono cifrate <strong>localmente sul dispositivo</strong> con algoritmo <strong>AES-256-GCM</strong> prima dell'invio al cloud.</li>
+        <li>La chiave crittografica viene derivata dalla passphrase tramite <strong>PBKDF2</strong> (100.000 iterazioni, SHA-256).</li>
+        <li>La passphrase <strong>non viene mai trasmessa, salvata o registrata</strong> su alcun server.</li>
+        <li><strong>Nessuno</strong> (incluso l'amministratore del database Firebase) può leggere i dati cifrati senza la passphrase dell'utente.</li>
+      </ul>
+      <div class="highlight-box">
+        <p><strong>In sintesi:</strong> Con la crittografia attiva, sul cloud sono visibili solo stringhe casuali illeggibili. Senza la passphrase, i dati sono irrecuperabili.</p>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════════════════ -->
+    <!-- SEZIONE 3: BASE GIURIDICA -->
+    <!-- ═══════════════════════════════════════════════════════════════════ -->
+    <div class="card">
+      <h2>3. Base Giuridica del Trattamento</h2>
+      <p>Il trattamento dei dati si basa su:</p>
+      <ul>
+        <li><strong>Consenso esplicito (Art. 6(1)(a) GDPR):</strong> L'utente sceglie attivamente di accedere con Google e attivare la sincronizzazione cloud. Senza questa azione, nessun dato lascia il dispositivo.</li>
+        <li><strong>Legittimo interesse (Art. 6(1)(f) GDPR):</strong> Per il funzionamento tecnico dell'app (salvataggio locale delle preferenze nel browser).</li>
+      </ul>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════════════════ -->
+    <!-- SEZIONE 4: DIRITTI GDPR -->
+    <!-- ═══════════════════════════════════════════════════════════════════ -->
+    <div class="card">
+      <h2>4. Diritti dell'Interessato (GDPR – Reg. UE 2016/679)</h2>
+      <p>In conformità con il Regolamento Generale sulla Protezione dei Dati, l'utente ha diritto a:</p>
+      <ul>
+        <li><strong>Diritto di Accesso (Art. 15):</strong> Puoi visualizzare tutte le tue preferenze in qualsiasi momento dalla sezione <em>Impostazioni → Esporta preferenze</em> (formato JSON).</li>
+        <li><strong>Diritto di Rettifica (Art. 16):</strong> Puoi modificare qualsiasi preferenza direttamente dall'interfaccia dell'app.</li>
+        <li><strong>Diritto alla Cancellazione (Art. 17 – "Diritto all'Oblio"):</strong> Puoi eliminare <strong>istantaneamente e permanentemente</strong> tutti i tuoi dati dal cloud cliccando su <em>Impostazioni → Elimina dati cloud</em>. L'azione è immediata e irreversibile.</li>
+        <li><strong>Diritto alla Portabilità (Art. 20):</strong> La funzione di esportazione JSON ti permette di scaricare tutti i tuoi dati in un formato strutturato e leggibile da macchina.</li>
+        <li><strong>Diritto di Revoca del Consenso (Art. 7(3)):</strong> Puoi disconnetterti in qualsiasi momento (Impostazioni → Disconnetti). I dati locali rimangono sul dispositivo; quelli cloud possono essere eliminati prima della disconnessione.</li>
+      </ul>
+      <div class="highlight-box">
+        <p><strong>Esercizio dei diritti:</strong> Tutti i diritti sopra elencati possono essere esercitati direttamente dall'interfaccia dell'app, senza necessità di contattare alcun responsabile. L'eliminazione dei dati cloud è istantanea e non richiede approvazione.</p>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════════════════ -->
+    <!-- SEZIONE 5: COOKIE E TERZE PARTI -->
+    <!-- ═══════════════════════════════════════════════════════════════════ -->
+    <div class="card">
+      <h2>5. Cookie, Tracciamento e Servizi di Terze Parti</h2>
+      
+      <h3>5.1 Cookie</h3>
+      <p>L'applicazione <strong>non utilizza cookie</strong> propri. Non vengono impiegati cookie pubblicitari, di tracciamento comportamentale o di profilazione.</p>
+      
+      <h3>5.2 Servizi di terze parti</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Servizio</th>
+              <th>Fornitore</th>
+              <th>Scopo</th>
+              <th>Dati condivisi</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Firebase Authentication</td>
+              <td>Google LLC</td>
+              <td>Login con Google (opzionale)</td>
+              <td>Email, nome, foto profilo Google</td>
+            </tr>
+            <tr>
+              <td>Cloud Firestore</td>
+              <td>Google LLC</td>
+              <td>Sincronizzazione preferenze (opzionale)</td>
+              <td>Preferenze cifrate (se passphrase attiva) o in chiaro</td>
+            </tr>
+            <tr>
+              <td>Google Fonts</td>
+              <td>Google LLC</td>
+              <td>Caricamento font tipografici</td>
+              <td>Indirizzo IP (richiesta HTTP standard)</td>
+            </tr>
+            <tr>
+              <td>OpenStreetMap Tiles</td>
+              <td>OpenStreetMap Foundation</td>
+              <td>Mappa delle fermate</td>
+              <td>Indirizzo IP (richiesta HTTP standard)</td>
+            </tr>
+            <tr>
+              <td>GitHub Pages</td>
+              <td>GitHub / Microsoft</td>
+              <td>Hosting dell'applicazione</td>
+              <td>Indirizzo IP, User-Agent (log server standard)</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p style="font-size: 0.88rem; color: var(--muted);">Nessuno di questi servizi viene utilizzato per profilazione o pubblicità. L'utente può consultare le rispettive informative privacy: <a href="https://policies.google.com/privacy" target="_blank" rel="noopener">Google</a>, <a href="https://wiki.osmfoundation.org/wiki/Privacy_Policy" target="_blank" rel="noopener">OpenStreetMap</a>, <a href="https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement" target="_blank" rel="noopener">GitHub</a>.</p>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════════════════ -->
+    <!-- SEZIONE 6: CONSERVAZIONE E SICUREZZA -->
+    <!-- ═══════════════════════════════════════════════════════════════════ -->
+    <div class="card">
+      <h2>6. Conservazione e Sicurezza dei Dati</h2>
+      <p><strong>Conservazione:</strong> I dati locali restano nel browser fino alla cancellazione da parte dell'utente. I dati cloud restano su Firestore fino all'eliminazione tramite "Elimina dati cloud". Non esistono policy di retention automatica.</p>
+      <p><strong>Misure di sicurezza:</strong></p>
+      <ul>
+        <li>Crittografia AES-256-GCM con PBKDF2 (100k iterazioni), salt e IV casuali per ogni salvataggio</li>
+        <li>Connessioni HTTPS, Firestore Security Rules per isolamento dati utente</li>
+        <li>Nessun server proprietario — codice open-source verificabile</li>
+      </ul>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════════════════ -->
+    <!-- SEZIONE 7: ATTRIBUZIONE DATI GTFS -->
+    <!-- ═══════════════════════════════════════════════════════════════════ -->
+    <div class="card">
+      <h2>7. Fonte dei Dati Orari – GTFS Open Data</h2>
+      <p>Gli orari visualizzati provengono da feed <strong>GTFS</strong> (General Transit Feed Specification) pubblicati come Open Data:</p>
+      
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Tipo</th>
+              <th>Fonte</th>
+              <th>Linee</th>
+              <th>Validità attuale</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>🚌 Bus</td>
+              <td><a href="https://www.agenziatpl.it/open-data/gtfs" target="_blank" rel="noopener">Agenzia TPL – Movibus</a></td>
+              <td>Z601–Z649, Z6C3</td>
+              <td><strong>2 mar → 7 giu 2026</strong></td>
+            </tr>
+            <tr>
+              <td>🚆 Treni</td>
+              <td><a href="https://www.dati.lombardia.it/Mobilit-e-trasporti/Orario-Ferroviario-Regionale-Gtfs/3z4k-mxz9/about_data" target="_blank" rel="noopener">Trenord – Open Data Lombardia</a></td>
+              <td>S5, S6, RE4, RE5, R21, R23</td>
+              <td><strong>9 mar → 14 giu 2026</strong></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="warn-box">
+        <p><strong>⚠️ Nota:</strong> I dati GTFS hanno validità limitata. Dopo la scadenza, gli orari potrebbero non essere aggiornati fino alla pubblicazione del nuovo feed. Per orari ufficiali in tempo reale, consultare <a href="https://www.movibus.it" target="_blank" rel="noopener">Movibus</a> e <a href="https://www.trenord.it" target="_blank" rel="noopener">Trenord</a>.</p>
+      </div>
+
+      <p style="font-size: 0.88rem; color: var(--muted); margin-top: 12px;">I dati sono utilizzati in conformità con le licenze Open Data dei rispettivi portali. Z-Transit non è affiliata alle aziende di trasporto.</p>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════════════════ -->
+    <!-- SEZIONE 8: SEGNALAZIONI E FEEDBACK -->
+    <!-- ═══════════════════════════════════════════════════════════════════ -->
+    <div class="card">
+      <h2>8. Segnalazioni e Feedback</h2>
+      <p>Per segnalare problemi, suggerire miglioramenti o esercitare i tuoi diritti GDPR, utilizza <strong>GitHub Issues</strong> oppure la nostra <a href="./feedback.html">pagina di segnalazione guidata</a>.</p>
+      <p style="margin-top: 15px;">
+        <a href="https://github.com/adeldev-lab/z-transit/issues" target="_blank" rel="noopener" style="display: inline-flex; align-items: center; gap: 8px; background: rgba(34, 211, 238, 0.1); border: 1px solid rgba(34, 211, 238, 0.3); padding: 10px 18px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 0.92rem;">
+          <svg viewBox="0 0 16 16" width="18" height="18" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"></path></svg>
+          GitHub Issues
+        </a>
+        <a href="./feedback.html" style="display: inline-flex; align-items: center; gap: 6px; background: rgba(34, 211, 238, 0.05); border: 1px solid rgba(34, 211, 238, 0.2); padding: 10px 18px; border-radius: 8px; text-decoration: none; font-weight: 500; font-size: 0.92rem; margin-left: 10px;">
+          📋 Guida segnalazioni
+        </a>
+      </p>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════════════════ -->
+    <!-- SEZIONE 9: NOTE FINALI -->
+    <!-- ═══════════════════════════════════════════════════════════════════ -->
+    <div class="card">
+      <h2>9. Note Finali</h2>
+      <p><strong>Minori:</strong> L'app non è rivolta specificamente a minori di 16 anni e non raccoglie consapevolmente dati di minori.</p>
+      <p><strong>Aggiornamenti:</strong> Questa informativa può essere aggiornata per riflettere modifiche all'app o alla normativa. Le modifiche vengono pubblicate su questa pagina.</p>
+      <span class="update-date">Ultimo aggiornamento: 23 maggio 2026</span>
+    </div>
+
+    <footer>
+      <p>&copy; 2026 Z-Transit – Progetto Open Source</p>
+      <p>Sviluppato nel pieno rispetto della privacy e del diritto all'autodeterminazione digitale.</p>
+      <p style="margin-top: 10px;"><a href="./">← Torna all'app</a></p>
+    </footer>
+  </div>
+</body>
+</html>

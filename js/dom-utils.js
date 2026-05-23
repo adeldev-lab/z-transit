@@ -246,7 +246,8 @@ function patchNode(oldNode, newNode) {
     // survive re-renders.
     if (
       REPLACE_ON_PATCH.has(oldNode.nodeName) &&
-      !getNodeKey(oldNode)
+      !getNodeKey(oldNode) &&
+      !isLeafElement(oldNode)
     ) {
       if (!oldNode.parentNode) return null;
       const clone = newNode.cloneNode(true);
@@ -255,6 +256,20 @@ function patchNode(oldNode, newNode) {
     }
 
     updateAttributes(oldNode, newNode);
+
+    // Explicitly sync stateful DOM properties for form elements
+    if (oldNode.nodeName === 'INPUT' || oldNode.nodeName === 'TEXTAREA') {
+      if (oldNode.value !== newNode.value) {
+        oldNode.value = newNode.value;
+      }
+      if (oldNode.checked !== newNode.checked) {
+        oldNode.checked = newNode.checked;
+      }
+    } else if (oldNode.nodeName === 'SELECT') {
+      if (oldNode.value !== newNode.value) {
+        oldNode.value = newNode.value;
+      }
+    }
 
     // Fast-path only for non-interactive leaf elements without `data-keep`.
     if (isFastPathLeaf(oldNode) && isFastPathLeaf(newNode)) {
@@ -282,7 +297,7 @@ function patchNode(oldNode, newNode) {
  * INPUT/SELECT/TEXTAREA are intentionally NOT in this set because they
  * carry user-typed state (focus, selection range, current value).
  */
-const REPLACE_ON_PATCH = new Set(["BUTTON", "A", "LABEL"]);
+const REPLACE_ON_PATCH = new Set(["BUTTON", "A"]);
 
 /**
  * Tags whose listeners and DOM identity must be preserved across patches.
@@ -316,9 +331,21 @@ function isLeafElement(el) {
  * Sync attributes from newEl to oldEl.
  */
 function updateAttributes(oldEl, newEl) {
+  // For interactive form elements (SELECT, INPUT, TEXTAREA), skip overriding
+  // the 'style' attribute. Their visibility/display is managed via JavaScript
+  // (not HTML templates), so overwriting style during a patch would destroy
+  // in-progress user interactions (e.g. a visible <select> dropdown being
+  // reset to display:none by the template's default state).
+  const isInteractiveFormEl = (
+    oldEl.nodeName === 'SELECT' ||
+    oldEl.nodeName === 'INPUT' ||
+    oldEl.nodeName === 'TEXTAREA'
+  );
+
   // Remove old attributes not in new
   const oldAttrs = Array.from(oldEl.attributes);
   for (const attr of oldAttrs) {
+    if (isInteractiveFormEl && attr.name === 'style') continue;
     if (!newEl.hasAttribute(attr.name)) {
       oldEl.removeAttribute(attr.name);
     }
@@ -326,6 +353,7 @@ function updateAttributes(oldEl, newEl) {
   // Set/update new attributes
   const newAttrs = Array.from(newEl.attributes);
   for (const attr of newAttrs) {
+    if (isInteractiveFormEl && attr.name === 'style') continue;
     if (oldEl.getAttribute(attr.name) !== attr.value) {
       oldEl.setAttribute(attr.name, attr.value);
     }

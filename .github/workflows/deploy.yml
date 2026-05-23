@@ -34,6 +34,20 @@ jobs:
       - name: Setup Pages
         uses: actions/configure-pages@v5
 
+      - name: Inject Firebase API Key
+        env:
+          FIREBASE_API_KEY: ${{ secrets.FIREBASE_API_KEY }}
+        run: |
+          echo "export const firebaseConfig = {
+            apiKey: '${FIREBASE_API_KEY}',
+            authDomain: 'trasporti-busto-proj.firebaseapp.com',
+            projectId: 'trasporti-busto-proj',
+            storageBucket: 'trasporti-busto-proj.firebasestorage.app',
+            messagingSenderId: '1061930969785',
+            appId: '1:1061930969785:web:d391bb0cac468b76fc0968',
+            measurementId: 'G-VKYKDRZ0YQ'
+          };" > js/firebase-config.js
+
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
@@ -42,3 +56,4 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
+
