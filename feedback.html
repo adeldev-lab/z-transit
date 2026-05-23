@@ -100,84 +100,44 @@
 
     <header>
       <h1>Segnalazioni & Feedback</h1>
-      <p>Aiutaci a migliorare Z-Transit</p>
+      <p>Z-Transit usa GitHub Issues per segnalazioni e suggerimenti.<br>Il sistema è pubblico e trasparente. È richiesto un account GitHub gratuito.</p>
     </header>
 
-    <!-- INTRO -->
+    <!-- 🐛 BUG -->
     <div class="card">
-      <h2>Come funziona?</h2>
-      <p>Z-Transit usa <strong>GitHub Issues</strong> per gestire segnalazioni di problemi e suggerimenti di miglioramento. È un sistema semplice, trasparente e pubblico — non serve essere programmatori.</p>
-      <p>Tutto ciò che ti serve è un <strong>account GitHub gratuito</strong> (si crea in 30 secondi).</p>
-    </div>
-
-    <!-- SEGNALARE UN BUG -->
-    <div class="card">
-      <h2>🐛 Segnalare un Problema (Bug)</h2>
-      <p>Hai trovato qualcosa che non funziona? Segui questi passi:</p>
-      <ol class="steps">
-        <li><span class="step-num">1</span><span>Clicca il pulsante qui sotto (si apre GitHub)</span></li>
-        <li><span class="step-num">2</span><span>Se non hai un account GitHub, creane uno gratuito (email + password)</span></li>
-        <li><span class="step-num">3</span><span>Compila il titolo con una breve descrizione del problema</span></li>
-        <li><span class="step-num">4</span><span>Nel corpo del messaggio, descrivi cosa è successo e cosa ti aspettavi</span></li>
-        <li><span class="step-num">5</span><span>Clicca <strong>"Submit new issue"</strong></span></li>
-      </ol>
-
-      <h3>Modello consigliato:</h3>
-      <div class="template-box">**Cosa è successo:**
-(Descrivi il problema che hai riscontrato)
-
-**Cosa mi aspettavo:**
-(Descrivi cosa dovrebbe succedere normalmente)
-
-**Dispositivo:** (es. iPhone 14, Samsung Galaxy S23)
-**Browser:** (es. Chrome, Safari, Firefox)
-**Quando:** (es. oggi alle 8:30, sempre)</div>
+      <h2>🐛 Bug</h2>
+      <p>Qualcosa non funziona? Apri una issue con:</p>
+      <ul>
+        <li><strong>Cosa è successo</strong> e cosa ti aspettavi</li>
+        <li><strong>Dispositivo e browser</strong> usati</li>
+        <li><strong>Quando si verifica</strong> (sempre, sporadicamente, data/ora)</li>
+      </ul>
 
       <p style="margin-top: 16px;">
-        <a href="https://github.com/adeldev-lab/z-transit/issues/new?labels=bug&title=Bug:" class="action-btn" target="_blank" rel="noopener">
+        <a href="https://github.com/adeldev-lab/z-transit/issues/new?template=bug_report.md" class="action-btn" target="_blank" rel="noopener">
           <svg viewBox="0 0 16 16" width="18" height="18" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"></path></svg>
           Segnala un bug
         </a>
       </p>
     </div>
 
-    <!-- SUGGERIRE UN MIGLIORAMENTO -->
+    <!-- 💡 SUGGERIMENTI -->
     <div class="card">
-      <h2>💡 Suggerire un Miglioramento</h2>
-      <p>Hai un'idea per rendere l'app migliore? Ci piacerebbe sentirla!</p>
-      <ol class="steps">
-        <li><span class="step-num">1</span><span>Clicca il pulsante qui sotto</span></li>
-        <li><span class="step-num">2</span><span>Descrivi la tua idea nel modo più chiaro possibile</span></li>
-        <li><span class="step-num">3</span><span>Se puoi, spiega perché sarebbe utile per te</span></li>
-      </ol>
-
-      <h3>Modello consigliato:</h3>
-      <div class="template-box">**La mia idea:**
-(Descrivi la funzionalità o il miglioramento che vorresti)
-
-**Perché sarebbe utile:**
-(Spiega in che situazione ti servirebbe)
-
-**Come la immagino:**
-(Opzionale: descrivi come vorresti che funzionasse)</div>
+      <h2>💡 Suggerimenti</h2>
+      <p>Hai un'idea? Descrivila brevemente: cosa vorresti, perché sarebbe utile, come la immagini (opzionale).</p>
 
       <p style="margin-top: 16px;">
-        <a href="https://github.com/adeldev-lab/z-transit/issues/new?labels=enhancement&title=Suggerimento:" class="action-btn" target="_blank" rel="noopener">
+        <a href="https://github.com/adeldev-lab/z-transit/issues/new?template=feature_request.md" class="action-btn" target="_blank" rel="noopener">
           <svg viewBox="0 0 16 16" width="18" height="18" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"></path></svg>
           Suggerisci un miglioramento
         </a>
       </p>
     </div>
 
-    <!-- ORARI NON CORRETTI -->
+    <!-- 🕐 ORARIO NON CORRETTO -->
     <div class="card">
-      <h2>🕐 Orario Non Corretto</h2>
-      <p>Se noti che un orario bus o treno non corrisponde alla realtà:</p>
-      <ol class="steps">
-        <li><span class="step-num">1</span><span>Verifica prima sul sito ufficiale <a href="https://www.movibus.it" target="_blank" rel="noopener">Movibus</a> o <a href="https://www.trenord.it" target="_blank" rel="noopener">Trenord</a></span></li>
-        <li><span class="step-num">2</span><span>Se l'orario ufficiale è diverso da quello mostrato nell'app, segnalalo</span></li>
-        <li><span class="step-num">3</span><span>Indica la linea, la fermata, l'orario mostrato e quello corretto</span></li>
-      </ol>
+      <h2>🕐 Orario non corretto</h2>
+      <p>Prima di segnalare, verifica l'orario ufficiale su <a href="https://www.movibus.it" target="_blank" rel="noopener">Movibus</a> o <a href="https://www.trenord.it" target="_blank" rel="noopener">Trenord</a>. Se c'è discrepanza, indica <strong>linea, fermata, orario mostrato e orario corretto</strong>.</p>
 
       <p style="margin-top: 16px;">
         <a href="https://github.com/adeldev-lab/z-transit/issues/new?labels=data,bug&title=Orario errato:" class="action-btn" target="_blank" rel="noopener">
@@ -187,26 +147,20 @@
       </p>
     </div>
 
-    <!-- FAQ -->
+    <!-- NOTE -->
     <div class="card">
-      <h2>❓ Domande Frequenti</h2>
-      
-      <h3>Devo essere un programmatore per segnalare?</h3>
-      <p>No! Basta un account GitHub gratuito. Scrivi in italiano, come se stessi mandando un messaggio.</p>
-
-      <h3>La mia segnalazione è pubblica?</h3>
-      <p>Sì, le Issues su GitHub sono pubbliche. Non inserire dati personali sensibili nella segnalazione.</p>
-
-      <h3>Quanto tempo ci vuole per una risposta?</h3>
-      <p>Essendo un progetto gestito da un singolo sviluppatore nel tempo libero, i tempi possono variare. I bug critici hanno priorità.</p>
-
-      <h3>Posso contribuire al codice?</h3>
-      <p>Certamente! Il progetto è open-source. Puoi fare un fork del repository e inviare una Pull Request.</p>
+      <h2>Note</h2>
+      <ul>
+        <li>Le issues sono pubbliche &mdash; <strong>non inserire dati personali sensibili</strong>.</li>
+        <li>Il progetto è gestito da un <strong>singolo sviluppatore</strong> nel tempo libero. I bug critici hanno la priorità.</li>
+        <li>Contributi al codice benvenuti via <strong>fork + Pull Request</strong>.</li>
+        <li>Scrivi pure in <strong>italiano</strong>.</li>
+      </ul>
     </div>
 
     <footer>
       <p>&copy; 2026 Z-Transit – Progetto Open Source</p>
-      <p><a href="./privacy.html">Privacy & GDPR</a> · <a href="./">Torna all'app</a></p>
+      <p><a href="./privacy.html">Privacy & Crediti</a> · <a href="./">Torna all'app</a></p>
     </footer>
   </div>
 </body>
