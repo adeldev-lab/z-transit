@@ -785,32 +785,12 @@ function bindCloudSyncEvents(container) {
       try {
         const user = await signInWithGoogle();
         if (user) {
-          // After login, try to load cloud settings
-          let cloudPayload = await loadFromCloud();
+          // Try to load cloud settings (already decrypted if correct passphrase was configured during login)
+          const cloudPayload = await loadFromCloud();
           
-          if (cloudPayload && cloudPayload.isEncrypted) {
-            const pwd = prompt("I tuoi dati nel cloud sono protetti. Inserisci la tua Passphrase di Sincronizzazione per sbloccarli:");
-            if (pwd) {
-              setSyncPassphrase(pwd);
-              try {
-                // Retry loading with the passphrase
-                cloudPayload = await loadFromCloud();
-                if (cloudPayload && cloudPayload.isEncrypted) {
-                  throw new Error("Passphrase non corretta.");
-                }
-              } catch (err) {
-                setSyncPassphrase(null);
-                alert("Passphrase errata. La sincronizzazione rimarrà protetta nel cloud finché non la inserirai nelle Impostazioni.");
-                cloudPayload = null;
-              }
-            } else {
-              alert("Sincronizzazione sospesa. Puoi sbloccare i tuoi dati in qualsiasi momento inserendo la Passphrase nelle Impostazioni.");
-              cloudPayload = null;
-            }
-          }
-
           const cloudSettings = cloudPayload?.settings ?? null;
           const cloudNotifs = cloudPayload?.notifications ?? null;
+          
           if (cloudPayload && (cloudSettings || cloudNotifs)) {
             const useCloud = confirm("Trovate preferenze nel cloud. Vuoi sovrascrivere quelle locali con quelle dal cloud?");
             if (useCloud) {
@@ -821,14 +801,16 @@ function bindCloudSyncEvents(container) {
                 saveNotificationConfig(sanitizeNotifications(cloudNotifs));
               }
             } else {
-              // Save local to cloud instead, including notifications (B16).
+              // Save local to cloud instead
               saveToCloud({
                 settings: state.settings,
                 notifications: getNotificationConfig()
               });
             }
+          } else if (cloudPayload && cloudPayload.isEncrypted) {
+            // Sync remains suspended (user skipped passphrase prompt during Google login)
           } else {
-            // No cloud data, upload current settings + notifications (B16).
+            // No cloud data, upload current settings + notifications
             saveToCloud({
               settings: state.settings,
               notifications: getNotificationConfig()
@@ -913,6 +895,15 @@ function bindCloudSyncEvents(container) {
         alert("La passphrase deve essere lunga almeno 4 caratteri per garantire una sicurezza sufficiente.");
         return;
       }
+      if (!confirm(
+        "Confermi l'impostazione di questa Passphrase di Sincronizzazione?\n\n" +
+        "⚠️ IMPORTANTE:\n" +
+        "- Se perdi la passphrase, i tuoi dati cifrati nel cloud saranno TOTALMENTE IRRECUPERABILI.\n" +
+        "- Non c'è alcun modo per recuperarla (nemmeno dallo sviluppatore o amministratore).\n" +
+        "- È strettamente necessaria per accedere alle tue preferenze su altri dispositivi o se effettui di nuovo l'accesso."
+      )) {
+        return;
+      }
       setSyncPassphrase(val);
       // Salva e cifra immediatamente le impostazioni sul cloud
       saveToCloud({
@@ -946,6 +937,15 @@ function bindCloudSyncEvents(container) {
       } else {
         if (trimmed.length < 4) {
           alert("La passphrase deve essere di almeno 4 caratteri.");
+          return;
+        }
+        if (!confirm(
+          "Vuoi aggiornare la Passphrase di Sincronizzazione?\n\n" +
+          "⚠️ IMPORTANTE:\n" +
+          "- Se perdi la nuova passphrase, i tuoi dati cifrati nel cloud saranno TOTALMENTE IRRECUPERABILI.\n" +
+          "- Non c'è alcun modo per recuperarla (nemmeno dallo sviluppatore o amministratore).\n" +
+          "- È strettamente necessaria per accedere alle tue preferenze su altri dispositivi o se effettui di nuovo l'accesso."
+        )) {
           return;
         }
         setSyncPassphrase(trimmed);

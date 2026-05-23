@@ -125,38 +125,80 @@ export function initFirebase() {
  */
 export async function signInWithGoogle() {
   if (!_auth) { initFirebase(); if (!_auth) return null; }
-  
-  // Ask the user to set a passphrase if none is currently configured
-  let passphrase = getSyncPassphrase();
-  if (!passphrase) {
-    const wantEncrypt = confirm(
-      "Sicurezza Sincronizzazione:\n\n" +
-      "Desideri impostare una passphrase per crittografare i tuoi dati nel cloud prima dell'invio (Zero-Knowledge)?\n\n" +
-      "[OK] Imposta passphrase ora (Consigliato per la massima privacy)\n" +
-      "[Annulla] Procedi senza crittografia (i dati saranno salvati sul server non criptati)"
-    );
-    if (wantEncrypt) {
-      const pwd = prompt("Inserisci una Passphrase di Sincronizzazione (almeno 4 caratteri) per proteggere i tuoi dati:");
-      if (pwd === null) {
-        return null; // Abort login flow entirely
-      }
-      const trimmed = pwd.trim();
-      if (trimmed.length < 4) {
-        alert("La passphrase inserita è troppo corta (minimo 4 caratteri). Accesso annullato.");
-        return null; // Abort login flow entirely
-      }
-      setSyncPassphrase(trimmed);
-    } else {
-      if (!confirm("Sei sicuro di voler salvare le tue preferenze nel cloud in chiaro (non criptate)?")) {
-        return null; // Abort login flow entirely
-      }
-    }
-  }
-
   try {
     const provider = new window.firebase.auth.GoogleAuthProvider();
     const result = await _auth.signInWithPopup(provider);
-    return result.user;
+    const user = result.user;
+
+    if (user) {
+      _currentUser = user; // Ensure current user is set so loadFromCloud can query the DB
+
+      let cloudPayload = null;
+      try {
+        cloudPayload = await loadFromCloud();
+      } catch (err) {
+        console.warn("[FirebaseSync] Errore caricamento iniziale post-login:", err);
+      }
+
+      if (cloudPayload && (cloudPayload.isEncrypted || cloudPayload.encryptedPayload)) {
+        // Case 1: Cloud data exists and is encrypted
+        const pwd = prompt(
+          "I tuoi dati nel cloud sono protetti da crittografia.\n\n" +
+          "Inserisci la tua Passphrase di Sincronizzazione per sbloccarli:"
+        );
+        if (pwd) {
+          setSyncPassphrase(pwd);
+          try {
+            // Verify the passphrase by reloading and decrypting
+            cloudPayload = await loadFromCloud();
+            if (cloudPayload && (cloudPayload.isEncrypted || cloudPayload.encryptedPayload)) {
+              throw new Error("passphrase_incorrect");
+            }
+            alert("Sincronizzazione sbloccata con successo! Le tue preferenze cloud sono state caricate.");
+          } catch (err) {
+            setSyncPassphrase(null);
+            alert("Passphrase errata. La sincronizzazione rimarrà sospesa finché non inserirai la passphrase corretta nelle Impostazioni.");
+          }
+        } else {
+          alert("Sincronizzazione sospesa. Puoi sbloccare i tuoi dati in qualsiasi momento inserendo la Passphrase nelle Impostazioni.");
+        }
+      } else {
+        // Case 2: Cloud data is not encrypted (or no document exists yet)
+        let passphrase = getSyncPassphrase();
+        if (!passphrase) {
+          const wantEncrypt = confirm(
+            "Sicurezza Sincronizzazione:\n\n" +
+            "Desideri impostare una passphrase per crittografare le tue preferenze prima dell'invio al cloud (Zero-Knowledge)?\n\n" +
+            "[OK] Imposta passphrase ora (Consigliato per la massima privacy)\n" +
+            "[Annulla] Procedi senza crittografia (i dati saranno salvati sul server non criptati)"
+          );
+          if (wantEncrypt) {
+            const pwd = prompt(
+              "Imposta una Passphrase di Sincronizzazione (almeno 4 caratteri) per proteggere i tuoi dati:\n\n" +
+              "⚠️ IMPORTANTE:\n" +
+              "- Se perdi la passphrase, i tuoi dati cifrati nel cloud saranno TOTALMENTE IRRECUPERABILI.\n" +
+              "- Non c'è alcun modo per recuperarla (nemmeno dallo sviluppatore o amministratore).\n" +
+              "- È strettamente necessaria per accedere alle tue preferenze su altri dispositivi o se effettui di nuovo l'accesso."
+            );
+            if (pwd !== null) {
+              const trimmed = pwd.trim();
+              if (trimmed.length < 4) {
+                alert("La passphrase inserita è troppo corta (minimo 4 caratteri). Il caricamento avverrà senza crittografia.");
+              } else {
+                setSyncPassphrase(trimmed);
+                alert("Passphrase impostata con successo! I tuoi dati saranno crittografati prima dell'invio.");
+              }
+            }
+          } else {
+            if (!confirm("Sei sicuro di voler salvare le tue preferenze nel cloud in chiaro (non criptate)?")) {
+              // User canceled double check, proceed without setting a passphrase
+            }
+          }
+        }
+      }
+    }
+
+    return user;
   } catch (error) {
     if (error.code === "auth/popup-closed-by-user") return null;
     console.error("[FirebaseSync] Sign-in error:", error);
