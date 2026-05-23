@@ -355,9 +355,13 @@ async function init() {
 
   try {
     initFirebase();
-    updateSyncPill();
   } catch (e) {
     console.warn("[Firebase]", e);
+  }
+  try {
+    updateSyncPill();
+  } catch (e) {
+    console.error("[Trasporti] Errore aggiornamento pillola sync:", e);
   }
   onAuthStateChanged(() => {
     updateSyncPill();

@@ -67,27 +67,51 @@ export function initFirebase() {
     return;
   }
 
-  _app = firebase.initializeApp(firebaseConfig);
+  try {
+    _app = firebase.initializeApp(firebaseConfig);
+  } catch (e) {
+    console.error("[FirebaseSync] Errore initializeApp:", e);
+    return;
+  }
 
-  _auth = firebase.auth();
-  _db = firebase.firestore();
-
-  // Enable offline persistence for Firestore
-  _db.enablePersistence({ synchronizeTabs: true }).catch(err => {
-    if (err.code === "failed-precondition") {
-      console.warn("[FirebaseSync] Persistence failed: multiple tabs open.");
-    } else if (err.code === "unimplemented") {
-      console.warn("[FirebaseSync] Persistence not available in this browser.");
+  try {
+    if (typeof firebase.auth === "function") {
+      _auth = firebase.auth();
+    } else {
+      console.warn("[FirebaseSync] Firebase Auth SDK non caricato o bloccato.");
     }
-  });
+  } catch (e) {
+    console.error("[FirebaseSync] Errore inizializzazione Auth:", e);
+  }
+
+  try {
+    if (typeof firebase.firestore === "function") {
+      _db = firebase.firestore();
+      
+      // Enable offline persistence for Firestore
+      _db.enablePersistence({ synchronizeTabs: true }).catch(err => {
+        if (err.code === "failed-precondition") {
+          console.warn("[FirebaseSync] Persistence failed: multiple tabs open.");
+        } else if (err.code === "unimplemented") {
+          console.warn("[FirebaseSync] Persistence not available in this browser.");
+        }
+      });
+    } else {
+      console.warn("[FirebaseSync] Firebase Firestore SDK non caricato o bloccato.");
+    }
+  } catch (e) {
+    console.error("[FirebaseSync] Errore inizializzazione Firestore:", e);
+  }
 
   // Listen for auth state changes
-  _auth.onAuthStateChanged(user => {
-    _currentUser = user;
-    _onAuthChangeCallbacks.forEach(cb => {
-      try { cb(user); } catch (e) { console.error("[FirebaseSync] Auth callback error:", e); }
+  if (_auth) {
+    _auth.onAuthStateChanged(user => {
+      _currentUser = user;
+      _onAuthChangeCallbacks.forEach(cb => {
+        try { cb(user); } catch (e) { console.error("[FirebaseSync] Auth callback error:", e); }
+      });
     });
-  });
+  }
 }
 
 // ── Auth ─────────────────────────────────────────────────────────────────────
