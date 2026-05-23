@@ -10,7 +10,7 @@
 // IMPORTANT: Bump CACHE_NAME on every deploy so the activate handler purges stale caches.
 // =============================================================================
 
-const CACHE_NAME = "z-transit-v5-0-2";
+const CACHE_NAME = "z-transit-v5-1-0";
 
 const PRECACHE_ASSETS = [
   "./",
@@ -161,8 +161,8 @@ self.addEventListener("fetch", event => {
     return;
   }
 
-  // Same-origin assets or precached → cache-first
-  event.respondWith(cacheFirst(event.request));
+  // Same-origin assets or precached → network-first (online gets fresh deploy, offline gets cache fallback)
+  event.respondWith(networkFirst(event.request));
 });
 
 // ─── Notification Click ─────────────────────────────────────────────────────
