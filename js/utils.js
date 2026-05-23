@@ -159,3 +159,23 @@ export function escapeHtml(value) {
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#039;");
 }
+
+/**
+ * Restituisce la lista delle linee bus visibili scelte dall'utente
+ * nel modal "Personalizza LIVE e ORARI" per la città di focus attiva.
+ * Se l'utente non ha personalizzato, ritorna le linee predefinite della città.
+ * Questa funzione garantisce che i tab Fermate, Notifiche, LIVE e Orari
+ * mostrino tutti la stessa lista di linee.
+ * @param {object} state - Lo stato globale dell'app
+ * @param {object} cfg - La configurazione dell'app (CFG)
+ * @returns {string[]} Lista degli ID linea (es. ["Z649", "Z627", ...])
+ */
+export function getVisibleLines(state, cfg) {
+  const focusCity = state?.settings?.focusCity || cfg?.defaults?.focusCity || "BT";
+  const followedForCity = state?.settings?.followedLinesByCity?.[focusCity];
+  if (Array.isArray(followedForCity) && followedForCity.length > 0) {
+    return followedForCity;
+  }
+  // Fallback: linee predefinite della città
+  return cfg?.focusCities?.[focusCity]?.lineOrder || cfg?.lineOrder || [];
+}

@@ -158,15 +158,15 @@ const CITY_STATIONS = {
   BT: ["CN_FS", "PB_FS", "LG_FS"],
   VC: ["CN_FS", "PB_FS", "LG_FS"],
   DG: ["LG_FS", "CN_FS", "PB_FS"],
-  AC: ["LG_FS", "PB_FS", "BS_FS"],
+  AC: ["LG_FS", "PB_FS", "BS_FS", "BSN_FS"],
   CZ: ["PB_FS", "CN_FS", "VZ_FS"],
-  LG: ["LG_FS", "CN_FS", "PB_FS", "BS_FS"],
+  LG: ["LG_FS", "CN_FS", "PB_FS", "BS_FS", "BSN_FS"],
   PB: ["PB_FS", "CN_FS", "LG_FS", "VZ_FS"],
-  BS: ["BS_FS", "LG_FS", "CN_FS"],
+  BS: ["BS_FS", "LG_FS", "CN_FS", "BSN_FS"],
 };
 
-// Default station order (all)
-const ALL_STATIONS = ["CN_FS", "PB_FS", "LG_FS", "BS_FS", "PG_FS", "RH_FS", "VZ_FS"];
+// Default station order (all) dynamically derived
+const ALL_STATIONS = Object.keys(TRAIN_STATIONS);
 
 export function renderTrainsTab(state, cfg, saveFn) {
   const actualSaveFn = saveFn || lastArgs?.saveFn;
@@ -180,11 +180,17 @@ export function renderTrainsTab(state, cfg, saveFn) {
   const focusCity = state.settings?.focusCity || cfg.defaults?.focusCity || "BT";
   const direction = state.trainsDirection || "to_milano";
 
-  // Get stations for this city (or all if user toggled)
-  const cityStations = CITY_STATIONS[focusCity] || ALL_STATIONS;
+  // Stazioni visibili: usa la scelta dell'utente (visibleTrains) se disponibile,
+  // altrimenti fallback alle stazioni della città
+  const userVisibleTrains = state.settings?.visibleTrains;
+  const cityStations = (Array.isArray(userVisibleTrains) && userVisibleTrains.length > 0)
+    ? userVisibleTrains.filter(code => TRAIN_STATIONS[code])
+    : (CITY_STATIONS[focusCity] || ALL_STATIONS);
   const showAllStations = !!state.trainsShowAllStations;
   const visibleStations = showAllStations ? ALL_STATIONS : cityStations;
-  const activeStation = state.trainsStation || cityStations[0] || "CN_FS";
+  const activeStation = state.trainsStation && visibleStations.includes(state.trainsStation)
+    ? state.trainsStation
+    : cityStations[0] || "CN_FS";
 
   const trainReachMinutes = state.settings?.stationReachMinutes?.[activeStation] || 0;
 
@@ -216,8 +222,8 @@ export function renderTrainsTab(state, cfg, saveFn) {
       </div>
       <button type="button" class="text-btn line-scope-toggle" data-toggle-all-stations>
         ${showAllStations
-          ? `← Solo ${cfg.activeCityConfig?.name || "la mia città"} (${cityStations.length})`
-          : `Mostra tutte le stazioni (${ALL_STATIONS.length}) →`}
+          ? `← Solo le mie stazioni (${cityStations.length})`
+          : `Tutte le stazioni (${ALL_STATIONS.length}) →`}
       </button>
       <div class="segmented wide" data-trains-direction>
         <button type="button" data-tdir="to_milano" class="${direction === "to_milano" ? "active" : ""}">→ Milano</button>

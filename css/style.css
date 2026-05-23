@@ -1198,6 +1198,95 @@ select {
   }
 }
 
+/* ── Settings Subtabs Navigation ─────────────────────────────────────── */
+.settings-subtabs {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+  padding: 5px;
+  margin-bottom: 12px;
+  background: rgba(var(--bg-rgb), 0.52);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  /* Fade out edges when overflowing */
+  mask-image: linear-gradient(to right, black 88%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to right, black 88%, transparent 100%);
+}
+
+.settings-subtabs::-webkit-scrollbar {
+  display: none;
+}
+
+.subtab-btn {
+  flex: 1 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-height: 54px;
+  padding: 6px 12px;
+  border: 1px solid transparent;
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 150ms ease-in-out;
+  text-align: center;
+}
+
+.subtab-btn svg {
+  width: 18px;
+  height: 18px;
+  stroke-width: 2.2;
+  transition: stroke 150ms ease-in-out, transform 150ms ease-in-out;
+}
+
+.subtab-btn:hover:not(.active) {
+  background: rgba(var(--accent-rgb), 0.05);
+  color: var(--accent);
+}
+
+.subtab-btn:hover:not(.active) svg {
+  transform: translateY(-1px);
+}
+
+.subtab-btn.active {
+  border-color: rgba(var(--accent-rgb), 0.35);
+  background: rgba(var(--accent-rgb), 0.13);
+  color: var(--accent);
+  box-shadow: 0 0 0 1px rgba(var(--accent-rgb), 0.1);
+}
+
+.settings-section-wrapper {
+  display: block;
+}
+
+.settings-section-wrapper.hidden {
+  display: none !important;
+}
+
+@media (min-width: 680px) {
+  .settings-subtabs {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    mask-image: none;
+    -webkit-mask-image: none;
+  }
+  
+  .subtab-btn {
+    flex: none;
+    flex-direction: row;
+    gap: 8px;
+    min-height: 44px;
+    font-size: 0.8rem;
+  }
+}
+
 /* ── Interactive Map ─────────────────────────────────────────────────── */
 
 .map-fab {
@@ -1376,6 +1465,137 @@ select {
   margin-left: 12px !important;
   margin-bottom: 85px !important; /* Sposta la legenda sopra i bottoni/filtri se presenti in basso */
   max-width: calc(100vw - 24px);
+}
+
+/* Map Filter Panel */
+.map-filter-panel {
+  background: rgba(var(--bg-rgb), 0.92);
+  backdrop-filter: blur(10px);
+  border-radius: var(--radius);
+  border: 1px solid var(--line-strong);
+  color: var(--text);
+  box-shadow: var(--shadow);
+  margin-top: 10px !important;
+  margin-right: 10px !important;
+  max-width: 220px;
+  font-size: 0.8rem;
+}
+
+.map-filter-header {
+  padding: 8px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.map-filter-toggle {
+  background: rgba(var(--accent-rgb), 0.15);
+  border: 1px solid rgba(var(--accent-rgb), 0.3);
+  border-radius: 6px;
+  color: var(--accent);
+  padding: 6px 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.map-filter-toggle:hover {
+  background: rgba(var(--accent-rgb), 0.25);
+}
+
+.map-filter-body {
+  padding: 0 10px 10px;
+}
+
+.map-filter-search {
+  margin-bottom: 8px;
+}
+
+.map-filter-input {
+  width: 100%;
+  padding: 6px 10px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: rgba(0,0,0,0.2);
+  color: var(--text);
+  font-size: 0.78rem;
+  outline: none;
+}
+
+.map-filter-input:focus {
+  border-color: var(--accent);
+}
+
+.map-filter-actions {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 8px;
+}
+
+.map-filter-btn {
+  flex: 1;
+  padding: 4px 6px;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: rgba(0,0,0,0.15);
+  color: var(--muted);
+  font-size: 0.68rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.map-filter-btn:hover {
+  background: rgba(var(--accent-rgb), 0.1);
+  color: var(--accent);
+  border-color: rgba(var(--accent-rgb), 0.3);
+}
+
+.map-filter-list {
+  max-height: 250px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.map-filter-line {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 6px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.78rem;
+}
+
+.map-filter-line:hover {
+  background: rgba(255,255,255,0.05);
+}
+
+.map-filter-line input[type="checkbox"] {
+  width: 14px;
+  height: 14px;
+  cursor: pointer;
+}
+
+.map-filter-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.map-filter-train .map-filter-dot {
+  border-radius: 3px;
+}
+
+.map-filter-other {
+  opacity: 0.6;
+}
+
+.map-filter-other:has(input:checked) {
+  opacity: 1;
 }
 
 .directions-btn {

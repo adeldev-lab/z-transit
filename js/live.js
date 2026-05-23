@@ -1081,7 +1081,15 @@ function renderTrainCard(stationCode, state, currentMin, cfg, isHero = false) {
 
   const now = new Date();
   const dayType = getDayType(now, cfg);
-  const block = buildTrainStationBlock(stationCode, reachMinutes, currentMin, dayType, "to_milano");
+
+  const baseDirection = state?.settings?.liveDirection || cfg?.defaults?.liveDirection || "outbound";
+  const resolvedDir = state?.settings?.invertDirections
+    ? (baseDirection === "outbound" ? "return" : "outbound")
+    : baseDirection;
+  const trainDirection = resolvedDir === "return" ? "from_milano" : "to_milano";
+  const isReturn = trainDirection === "from_milano";
+
+  const block = buildTrainStationBlock(stationCode, reachMinutes, currentMin, dayType, trainDirection);
   const trains = block.trains;
 
   if (!trains.length) return "";
@@ -1141,7 +1149,7 @@ function renderTrainCard(stationCode, state, currentMin, cfg, isHero = false) {
                 <span class="dep-stop-name-text" style="font-weight: 600; color: var(--text);">${escapeHtml(stationName)}</span>
                 <button type="button" class="map-trigger dep-stop-pin" data-stop-code="${stationCode}" title="Vedi sulla mappa" aria-label="Apri mappa stazione">${PIN_SVG}</button>
                 ${liveLink}
-                <span class="dep-stop-dest" style="font-size: 0.8rem; color: var(--muted); margin-left: 4px;">→ Milano</span>
+                <span class="dep-stop-dest" style="font-size: 0.8rem; color: var(--muted); margin-left: 4px;">${isReturn ? "← Da Milano" : "→ Milano"}</span>
               </div>
             </div>
             ${timetableBtn}
@@ -1166,7 +1174,7 @@ function renderTrainCard(stationCode, state, currentMin, cfg, isHero = false) {
     const id = `live-train-${stationCode}`;
     const isExpanded = false;
     const nextDisplay = `${depHHMM} · ${formatWait(firstTrain.departureMin - currentMin)}`;
-    const routeLabel = `${escapeHtml(stationName)} → Milano`;
+    const routeLabel = isReturn ? `${escapeHtml(stationName)} ← Da Milano` : `${escapeHtml(stationName)} → Milano`;
     const validityHtml = `<span class="validity-badge">Treno</span>${liveLink}`;
 
     const urgencyClass = urgency.css === "hurry" ? "urgency-hurry" : (urgency.css === "good" ? "urgency-good" : (urgency.css === "calm" ? "urgency-calm" : "urgency-missed"));
@@ -1196,7 +1204,7 @@ function renderTrainCard(stationCode, state, currentMin, cfg, isHero = false) {
               <span class="dep-stop-name-text" style="font-weight: 600; color: var(--text);">${escapeHtml(stationName)}</span>
               <button type="button" class="map-trigger dep-stop-pin" data-stop-code="${stationCode}" title="Vedi sulla mappa" aria-label="Apri mappa stazione">${PIN_SVG}</button>
               ${liveLink}
-              <span class="dep-stop-dest" style="font-size: 0.8rem; color: var(--muted); margin-left: 4px;">→ Milano</span>
+              <span class="dep-stop-dest" style="font-size: 0.8rem; color: var(--muted); margin-left: 4px;">${isReturn ? "← Da Milano" : "→ Milano"}</span>
             </div>
           </div>
           ${timetableBtn}

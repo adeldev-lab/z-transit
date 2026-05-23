@@ -1,4 +1,4 @@
-import { getScheduleKey, escapeHtml } from "./utils.js";
+import { getScheduleKey, escapeHtml, getVisibleLines } from "./utils.js";
 import { getStopName } from "./line-config.js";
 import { patchDOM } from "./dom-utils.js";
 import {
@@ -61,9 +61,10 @@ export function renderSettings(state, saveFn, cfg, lineData, lineConfig) {
   const container = document.getElementById("settings-content");
   if (!container) return;
   const settings = state.settings || {};
-  const activeLine = state.settingsPanelLine || cfg.lineOrder?.[0] || "Z649";
+  const visibleLines = getVisibleLines(state, cfg);
+  const activeLine = state.settingsPanelLine || visibleLines[0] || "Z649";
 
-  const lineOptions = (cfg.lineOrder || []).map(lineId =>
+  const lineOptions = visibleLines.map(lineId =>
     `<button type="button" data-settings-line="${lineId}" class="${lineId === activeLine ? "active" : ""}">${lineId}</button>`
   ).join("");
 
@@ -72,21 +73,16 @@ export function renderSettings(state, saveFn, cfg, lineData, lineConfig) {
     `<option value="${code}" ${code === selectedFocusCity ? "selected" : ""}>${escapeHtml(city.name)}</option>`
   ).join("");
 
-  const STATION_NAMES = {
-    CN_FS: "Canegrate",
-    PB_FS: "Parabiago",
-    LG_FS: "Legnano",
-    BS_FS: "Busto Arsizio",
-    PG_FS: "Pregnana Milanese",
-    RH_FS: "Rho",
-    VZ_FS: "Vanzago"
-  };
-  const ALL_STATIONS = ["CN_FS", "PB_FS", "LG_FS", "BS_FS", "PG_FS", "RH_FS", "VZ_FS"];
-  const stationsHtml = ALL_STATIONS.map(station => {
+  const ALL_STATIONS = Object.keys(TRAIN_STATIONS);
+  const STATION_NAMES = Object.fromEntries(
+    Object.entries(TRAIN_STATIONS).map(([code, info]) => [code, info.name])
+  );
+
+  const stationsHtml = Object.entries(TRAIN_STATIONS).map(([station, info]) => {
     const value = settings.stationReachMinutes?.[station] !== undefined ? settings.stationReachMinutes[station] : 0;
     return `
       <label class="field-row">
-        <span>Minuti per ${STATION_NAMES[station]} FS</span>
+        <span>Minuti per raggiungere ${escapeHtml(info.name)}</span>
         <input type="number" min="0" max="60" data-station-reach-setting="${station}" value="${Number(value)}">
       </label>
     `;
@@ -96,7 +92,7 @@ export function renderSettings(state, saveFn, cfg, lineData, lineConfig) {
   const settingsVisibleTrains = settings.visibleTrains || ["CN_FS"];
 
   const settingsHeroOptions = [
-    ...(cfg.lineOrder || []).map(id => `<option value="${id}" ${settingsHeroCode === id ? "selected" : ""}>Bus ${id} - ${escapeHtml(lineConfig[id]?.destination || id)}</option>`),
+    ...visibleLines.map(id => `<option value="${id}" ${settingsHeroCode === id ? "selected" : ""}>Bus ${id} - ${escapeHtml(lineConfig[id]?.destination || id)}</option>`),
     ...Object.entries(TRAIN_STATIONS).map(([code, info]) => `<option value="${code}" ${settingsHeroCode === code ? "selected" : ""}>Treno - Stazione di ${escapeHtml(info.name)}</option>`)
   ].join("");
 
@@ -110,135 +106,232 @@ export function renderSettings(state, saveFn, cfg, lineData, lineConfig) {
     `;
   }).join("");
 
+  const activeSubTab = state.settingsSubTab || "profile";
+
+  const settingsFooterLinks = `
+    <div style="margin-top: 20px; padding-top: 14px; border-top: 1px solid var(--line); display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: center;">
+      <a href="./privacy.html" target="_blank" rel="noopener" style="color: var(--accent); font-size: 0.78rem; text-decoration: underline; font-weight: 500;">📋 Privacy & GDPR</a>
+      <span style="color: var(--line);">|</span>
+      <a href="./feedback.html" target="_blank" rel="noopener" style="color: var(--accent); font-size: 0.78rem; text-decoration: underline; font-weight: 500;">🐛 Segnala un problema</a>
+      <span style="color: var(--line);">|</span>
+      <a href="./feedback.html" target="_blank" rel="noopener" style="color: var(--accent); font-size: 0.78rem; text-decoration: underline; font-weight: 500;">💡 Suggerisci miglioramento</a>
+    </div>
+  `;
+
+  // Linee bus visibili: checkbox per la selezione (stessa logica del modal LIVE)
+  const focusCity = settings.focusCity || cfg.defaults?.focusCity || "BT";
+  const cityName = cfg.focusCities?.[focusCity]?.name || focusCity;
+  const cityLineOrder = cfg.focusCities?.[focusCity]?.lineOrder || cfg.lineOrder || [];
+  const allBusLines = Object.keys(lineConfig).sort();
+  const followedForCity = settings.followedLinesByCity?.[focusCity];
+
+  const isLineChecked = (lineId) => {
+    if (Array.isArray(followedForCity)) return followedForCity.includes(lineId);
+    return cityLineOrder.includes(lineId);
+  };
+
+  const cityBusCheckboxes = cityLineOrder.map(id => `
+    <label style="padding: 8px 10px; font-size: 0.82rem; display: flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.02); border: 1px solid var(--line); border-radius: 8px; cursor: pointer;">
+      <input type="checkbox" data-settings-visible-line="${id}" ${isLineChecked(id) ? "checked" : ""} style="cursor: pointer; width: 16px; height: 16px;">
+      <span style="font-weight: 600;">${id}</span>
+    </label>
+  `).join("");
+
+  const otherBusLines = allBusLines.filter(id => !cityLineOrder.includes(id));
+  const otherBusCheckboxes = otherBusLines.map(id => `
+    <label style="padding: 8px 10px; font-size: 0.82rem; display: flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.02); border: 1px solid var(--line); border-radius: 8px; cursor: pointer;">
+      <input type="checkbox" data-settings-visible-line="${id}" ${isLineChecked(id) ? "checked" : ""} style="cursor: pointer; width: 16px; height: 16px;">
+      <span>${id}</span>
+    </label>
+  `).join("");
+
+  const subtabsHtml = `
+    <div class="settings-subtabs" role="navigation" aria-label="Sotto-sezioni impostazioni">
+      <button type="button" class="subtab-btn ${activeSubTab === "profile" ? "active" : ""}" data-settings-subtab="profile">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+        <span>Profilo</span>
+      </button>
+      <button type="button" class="subtab-btn ${activeSubTab === "display" ? "active" : ""}" data-settings-subtab="display">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="9" y1="21" x2="9" y2="9"></line></svg>
+        <span>Interfaccia</span>
+      </button>
+      <button type="button" class="subtab-btn ${activeSubTab === "lines" ? "active" : ""}" data-settings-subtab="lines">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 22s-8-4.5-8-11.8A8 8 0 0 1 20 10.2c0 7.3-8 11.8-8 11.8z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+        <span>Fermate</span>
+      </button>
+      <button type="button" class="subtab-btn ${activeSubTab === "notifications" ? "active" : ""}" data-settings-subtab="notifications">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+        <span>Notifiche</span>
+      </button>
+      <button type="button" class="subtab-btn ${activeSubTab === "system" ? "active" : ""}" data-settings-subtab="system">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+        <span>Sincronizzazione</span>
+      </button>
+    </div>
+  `;
+
   const html = `
-    <section class="panel">
-      <div class="panel-heading">
-        <div>
-          <p class="section-eyebrow">Profilo casa</p>
-          <h2>${escapeHtml(cfg.homeProfile.address)}</h2>
-          <p>${escapeHtml(cfg.homeProfile.note || "Configurazione attiva concentrata sulla tua città.")}</p>
-        </div>
-      </div>
-      <div class="settings-grid">
-        <label class="field-row">
-          <span>Città di Focus</span>
-          <select data-setting-string="focusCity">
-            ${focusCityOptions}
-          </select>
-        </label>
-        <label class="field-row">
-          <span>Minuti a piedi verso fermata principale</span>
-          <input type="number" min="1" max="30" data-setting-number="walkRossini" value="${Number(settings.walkRossini || cfg.defaults.walkRossini)}">
-        </label>
-        <label class="field-row">
-          <span>Minuti in auto verso Canegrate FS</span>
-          <input type="number" min="1" max="45" data-setting-number="driveCanegrate" value="${Number(settings.driveCanegrate || cfg.defaults.driveCanegrate)}">
-        </label>
-        <label class="check-row" style="grid-column: span 1; display: flex; align-items: center; gap: 8px; cursor: pointer; padding: 12px; border: 1px solid var(--line); border-radius: var(--radius); background: rgba(255,255,255,0.02);">
-          <input type="checkbox" id="settings-invert-directions" ${settings.invertDirections ? "checked" : ""} style="cursor: pointer; width: 18px; height: 18px;">
-          <span style="color: var(--text); font-size: 0.85rem;">Inverti Andata/Ritorno (utile se abiti a Milano)</span>
-        </label>
-      </div>
-      <div style="margin-top: 1.5rem; border-top: 1px solid var(--line); padding-top: 1.5rem;">
-        <h3 style="font-size: 0.95rem; font-weight: 600; color: var(--foreground); margin-bottom: 1rem;">Tempi per raggiungere la stazione FS (minuti)</h3>
-        <div class="settings-grid" style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px;">
-          ${stationsHtml}
-        </div>
-      </div>
-    </section>
+    ${subtabsHtml}
 
-    <section class="panel">
-      <div class="panel-heading">
-        <div>
-          <p class="section-eyebrow">Personalizzazione LIVE e ORARI</p>
-          <h2>Layout e Contenuto</h2>
-          <p>Configura la scheda principale (Hero) e seleziona quali stazioni/linee visualizzare.</p>
+    <div class="settings-section-wrapper ${activeSubTab === "profile" ? "" : "hidden"}" data-card="settings-profile-section">
+      <section class="panel">
+        <div class="panel-heading">
+          <div>
+            <p class="section-eyebrow">Profilo casa</p>
+            <h2>${escapeHtml(cfg.homeProfile.address)}</h2>
+            <p>${escapeHtml(cfg.homeProfile.note || "Configurazione attiva concentrata sulla tua città.")}</p>
+          </div>
         </div>
-      </div>
-      <div class="settings-grid">
-        <label class="field-row">
-          <span>Scheda principale (HERO)</span>
-          <select data-settings-live-hero>
-            ${settingsHeroOptions}
-          </select>
-        </label>
-      </div>
-      <div style="margin-top: 1.5rem; border-top: 1px solid var(--line); padding-top: 1.5rem;">
-        <h3 style="font-size: 0.95rem; font-weight: 600; color: var(--foreground); margin-bottom: 0.5rem;">Soglie di Coincidenza (Minuti di attesa)</h3>
-        <p style="font-size: 0.75rem; color: var(--muted); margin: 0 0 1rem 0;">Imposta i tempi limite di attesa per la classificazione visiva delle coincidenze.</p>
-        <div class="settings-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px;">
+        <div class="settings-grid">
           <label class="field-row">
-            <span>Coincidenza Stretta (Max minuti - Rosso)</span>
-            <input type="number" min="1" max="20" data-setting-number="connectionTightMin" value="${Number(settings.connectionTightMin || cfg.defaults.connectionTightMin || 4)}">
+            <span>Città di Focus</span>
+            <select data-setting-string="focusCity">
+              ${focusCityOptions}
+            </select>
           </label>
           <label class="field-row">
-            <span>Coincidenza Comoda (Max minuti - Giallo)</span>
-            <input type="number" min="5" max="45" data-setting-number="connectionGoodMin" value="${Number(settings.connectionGoodMin || cfg.defaults.connectionGoodMin || 12)}">
+            <span>Minuti a piedi verso fermata principale</span>
+            <input type="number" min="1" max="30" data-setting-number="walkRossini" value="${Number(settings.walkRossini || cfg.defaults.walkRossini)}">
           </label>
           <label class="field-row">
-            <span>Coincidenza Lunga (Max minuti - Verde)</span>
-            <input type="number" min="10" max="90" data-setting-number="connectionLongMin" value="${Number(settings.connectionLongMin || cfg.defaults.connectionLongMin || 25)}">
+            <span>Minuti in auto verso Canegrate FS</span>
+            <input type="number" min="1" max="45" data-setting-number="driveCanegrate" value="${Number(settings.driveCanegrate || cfg.defaults.driveCanegrate)}">
+          </label>
+          <label class="check-row" style="grid-column: span 1; display: flex; align-items: center; gap: 8px; cursor: pointer; padding: 12px; border: 1px solid var(--line); border-radius: var(--radius); background: rgba(255,255,255,0.02);">
+            <input type="checkbox" id="settings-invert-directions" ${settings.invertDirections ? "checked" : ""} style="cursor: pointer; width: 18px; height: 18px;">
+            <span style="color: var(--text); font-size: 0.85rem;">Inverti Andata/Ritorno (utile se abiti a Milano)</span>
           </label>
         </div>
-      </div>
-      <div style="margin-top: 1.5rem; border-top: 1px solid var(--line); padding-top: 1.5rem;">
-        <h3 style="font-size: 0.95rem; font-weight: 600; color: var(--foreground); margin-bottom: 0.5rem;">Stazioni ferroviarie visibili nel tab LIVE</h3>
-        <p style="font-size: 0.75rem; color: var(--muted); margin: 0 0 1rem 0;">Seleziona quali stazioni mostrare in fondo al tab LIVE per il monitoraggio in tempo reale.</p>
-        <div class="settings-grid" style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px;">
-          ${settingsTrainsCheckboxes}
+        <div style="margin-top: 1.5rem; border-top: 1px solid var(--line); padding-top: 1.5rem;">
+          <h3 style="font-size: 0.95rem; font-weight: 600; color: var(--foreground); margin-bottom: 1rem;">Tempi per raggiungere la stazione (minuti)</h3>
+          <div class="settings-grid" style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px;">
+            ${stationsHtml}
+          </div>
         </div>
-      </div>
-    </section>
+      </section>
+      ${settingsFooterLinks}
+    </div>
 
-
-    <section class="panel">
-      <div class="panel-heading">
-        <div>
-          <p class="section-eyebrow">Fermate e linee</p>
-          <h2>Personalizzazione intuitiva</h2>
-          <p>Scegli fermate preferite e colonne visibili. I default restano in data/config.js.</p>
+    <div class="settings-section-wrapper ${activeSubTab === "display" ? "" : "hidden"}" data-card="settings-display-section">
+      <section class="panel">
+        <div class="panel-heading">
+          <div>
+            <p class="section-eyebrow">Personalizzazione LIVE e ORARI</p>
+            <h2>Layout e Contenuto</h2>
+            <p>Configura la scheda principale (Hero) e seleziona quali stazioni/linee visualizzare.</p>
+          </div>
         </div>
-      </div>
-      <div class="line-tabs">${lineOptions}</div>
-      ${safeRenderLineSettings(activeLine, state, cfg, lineData, lineConfig)}
-    </section>
-
-    ${renderNotificationSettings(cfg)}
-
-    ${renderCloudSyncSection(cfg)}
-
-    <section class="panel">
-      <div class="panel-heading">
-        <div>
-          <p class="section-eyebrow">Dati e PWA</p>
-          <h2>Backup e aggiornamento</h2>
-          <p>Le preferenze sono salvate solo nel browser.</p>
+        <div class="settings-grid">
+          <label class="field-row">
+            <span>Scheda principale (HERO)</span>
+            <select data-settings-live-hero>
+              ${settingsHeroOptions}
+            </select>
+          </label>
         </div>
-      </div>
-      <div class="button-grid">
-        <button type="button" class="btn primary" data-export>Export preferenze</button>
-        <button type="button" class="btn secondary" data-import-trigger>Import preferenze</button>
-        <button type="button" class="btn secondary" data-reset-preferences>Reset preferenze</button>
-        <button type="button" class="btn secondary" data-restart-onboarding>Riavvia procedura guidata</button>
-        <button type="button" class="btn secondary" data-check-sw>Aggiorna app</button>
-      </div>
-      <input type="file" accept=".json,application/json" data-import-file hidden>
-      <div class="info-list">
-        <div><span>Versione</span><strong>${escapeHtml(cfg.version)}</strong></div>
-        <div><span>Aggiornamento dati</span><strong>${escapeHtml(cfg.lastUpdate)}</strong></div>
-        <div><span>Validità GTFS Bus</span><strong>${escapeHtml(cfg.feedValidity?.from || '?')} → ${escapeHtml(cfg.feedValidity?.to || '?')}</strong></div>
-        <div><span>Fonte Bus</span><strong>Agenzia TPL / Movibus (Open Data)</strong></div>
-        <div><span>Fonte Treni</span><strong>Trenord GTFS (Open Data)</strong></div>
-        <div><span>Service worker</span><strong data-sw-status>verifica...</strong></div>
-      </div>
-      <div style="margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--line); display: flex; flex-wrap: wrap; gap: 10px; align-items: center;">
-        <a href="./privacy.html" target="_blank" rel="noopener" style="color: var(--accent); font-size: 0.82rem; text-decoration: underline; font-weight: 500;">📋 Privacy & GDPR</a>
-        <span style="color: var(--line);">|</span>
-        <a href="./feedback.html" target="_blank" rel="noopener" style="color: var(--accent); font-size: 0.82rem; text-decoration: underline; font-weight: 500;">🐛 Segnala un problema</a>
-        <span style="color: var(--line);">|</span>
-        <a href="./feedback.html" target="_blank" rel="noopener" style="color: var(--accent); font-size: 0.82rem; text-decoration: underline; font-weight: 500;">💡 Suggerisci miglioramento</a>
-      </div>
-    </section>
+        <div style="margin-top: 1.5rem; border-top: 1px solid var(--line); padding-top: 1.5rem;">
+          <h3 style="font-size: 0.95rem; font-weight: 600; color: var(--foreground); margin-bottom: 0.5rem;">Soglie di Coincidenza (Minuti di attesa)</h3>
+          <p style="font-size: 0.75rem; color: var(--muted); margin: 0 0 1rem 0;">Imposta i tempi limite di attesa per la classificazione visiva delle coincidenze.</p>
+          <div class="settings-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px;">
+            <label class="field-row">
+              <span>Coincidenza Stretta (Max minuti - Rosso)</span>
+              <input type="number" min="1" max="20" data-setting-number="connectionTightMin" value="${Number(settings.connectionTightMin || cfg.defaults.connectionTightMin || 4)}">
+            </label>
+            <label class="field-row">
+              <span>Coincidenza Comoda (Max minuti - Giallo)</span>
+              <input type="number" min="5" max="45" data-setting-number="connectionGoodMin" value="${Number(settings.connectionGoodMin || cfg.defaults.connectionGoodMin || 12)}">
+            </label>
+            <label class="field-row">
+              <span>Coincidenza Lunga (Max minuti - Verde)</span>
+              <input type="number" min="10" max="90" data-setting-number="connectionLongMin" value="${Number(settings.connectionLongMin || cfg.defaults.connectionLongMin || 25)}">
+            </label>
+          </div>
+        </div>
+        <div style="margin-top: 1.5rem; border-top: 1px solid var(--line); padding-top: 1.5rem;">
+          <h3 style="font-size: 0.95rem; font-weight: 600; color: var(--foreground); margin-bottom: 0.5rem;">Linee bus visibili (LIVE e ORARI)</h3>
+          <p style="font-size: 0.75rem; color: var(--muted); margin: 0 0 1rem 0;">Scegli quali linee mostrare nei tab LIVE, ORARI, Fermate e Notifiche.</p>
+          <div style="font-size: 0.72rem; font-weight: 700; color: var(--accent); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.05em;">Suggerite per ${escapeHtml(cityName)}</div>
+          <div class="settings-grid" style="grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 8px;">
+            ${cityBusCheckboxes}
+          </div>
+          ${otherBusLines.length > 0 ? `
+          <div style="font-size: 0.72rem; font-weight: 700; color: var(--muted); margin-top: 12px; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.05em;">Altre linee del network</div>
+          <div style="max-height: 140px; overflow-y: auto; padding: 8px; border: 1px solid var(--line); border-radius: var(--radius); background: rgba(0,0,0,0.15);">
+            <div class="settings-grid" style="grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 8px;">
+              ${otherBusCheckboxes}
+            </div>
+          </div>` : ""}
+          <div style="margin-top: 8px; display: flex; justify-content: flex-end;">
+            <button type="button" class="text-btn" data-reset-visible-lines style="font-size: 0.72rem; font-weight: 700; color: var(--accent); background: none; border: none; cursor: pointer; padding: 4px 0;">Reset ai default della città</button>
+          </div>
+        </div>
+        <div style="margin-top: 1.5rem; border-top: 1px solid var(--line); padding-top: 1.5rem;">
+          <h3 style="font-size: 0.95rem; font-weight: 600; color: var(--foreground); margin-bottom: 0.5rem;">Stazioni ferroviarie visibili nel tab LIVE</h3>
+          <p style="font-size: 0.75rem; color: var(--muted); margin: 0 0 1rem 0;">Seleziona quali stazioni mostrare in fondo al tab LIVE per il monitoraggio in tempo reale.</p>
+          <div class="settings-grid" style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px;">
+            ${settingsTrainsCheckboxes}
+          </div>
+        </div>
+      </section>
+      ${settingsFooterLinks}
+    </div>
+
+    <div class="settings-section-wrapper ${activeSubTab === "lines" ? "" : "hidden"}" data-card="settings-lines-section">
+      <section class="panel">
+        <div class="panel-heading">
+          <div>
+            <p class="section-eyebrow">Fermate e linee</p>
+            <h2>Personalizzazione intuitiva</h2>
+            <p>Scegli fermate preferite e colonne visibili. I default restano in data/config.js.</p>
+          </div>
+        </div>
+        <div class="line-tabs">${lineOptions}</div>
+        ${safeRenderLineSettings(activeLine, state, cfg, lineData, lineConfig)}
+      </section>
+      ${settingsFooterLinks}
+    </div>
+
+    <div class="settings-section-wrapper ${activeSubTab === "notifications" ? "" : "hidden"}" data-card="settings-notifications-section">
+      ${renderNotificationSettings(cfg, visibleLines)}
+      ${settingsFooterLinks}
+    </div>
+
+    <div class="settings-section-wrapper ${activeSubTab === "system" ? "" : "hidden"}" data-card="settings-system-section">
+      ${renderCloudSyncSection(cfg)}
+
+      <section class="panel">
+        <div class="panel-heading">
+          <div>
+            <p class="section-eyebrow">Dati e PWA</p>
+            <h2>Backup e aggiornamento</h2>
+            <p>Le preferenze sono salvate solo nel browser.</p>
+          </div>
+        </div>
+        <div class="button-grid">
+          <button type="button" class="btn primary" data-export>Export preferenze</button>
+          <button type="button" class="btn secondary" data-import-trigger>Import preferenze</button>
+          <button type="button" class="btn secondary" data-reset-preferences>Reset preferenze</button>
+          <button type="button" class="btn secondary" data-restart-onboarding>Riavvia procedura guidata</button>
+          <button type="button" class="btn secondary" data-check-sw>Aggiorna app</button>
+        </div>
+        <input type="file" accept=".json,application/json" data-import-file hidden>
+        <div class="info-list">
+          <div><span>Versione</span><strong>${escapeHtml(cfg.version)}</strong></div>
+          <div><span>Aggiornamento dati</span><strong>${escapeHtml(cfg.lastUpdate)}</strong></div>
+          <div><span>Validità GTFS Bus</span><strong>${escapeHtml(cfg.feedValidity?.from || '?')} → ${escapeHtml(cfg.feedValidity?.to || '?')}</strong></div>
+          <div><span>Fonte Bus</span><strong>Agenzia TPL / Movibus (Open Data)</strong></div>
+          <div><span>Fonte Treni</span><strong>Trenord GTFS (Open Data)</strong></div>
+          <div><span>Service worker</span><strong data-sw-status>verifica...</strong></div>
+        </div>
+        <div style="margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--line); display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: center;">
+          <a href="./privacy.html" target="_blank" rel="noopener" style="color: var(--accent); font-size: 0.78rem; text-decoration: underline; font-weight: 500;">📋 Privacy & GDPR</a>
+          <span style="color: var(--line);">|</span>
+          <a href="./feedback.html" target="_blank" rel="noopener" style="color: var(--accent); font-size: 0.78rem; text-decoration: underline; font-weight: 500;">🐛 Segnala un problema</a>
+          <span style="color: var(--line);">|</span>
+          <a href="./feedback.html" target="_blank" rel="noopener" style="color: var(--accent); font-size: 0.78rem; text-decoration: underline; font-weight: 500;">💡 Suggerisci miglioramento</a>
+        </div>
+      </section>
+    </div>
   `;
 
   patchDOM(container, html, { onAfterPatch: () => {
@@ -341,13 +434,26 @@ function labelDay(dayType) {
 function bindEvents(container) {
   const { state, saveFn, cfg, lineData, lineConfig } = lastArgs;
 
+  container.querySelectorAll("[data-settings-subtab]").forEach(button => {
+    if (button.__has_click) return;
+    button.__has_click = true;
+    button.addEventListener("click", () => {
+      state.settingsSubTab = button.dataset.settingsSubtab;
+      renderSettings(state, saveFn, cfg, lineData, lineConfig);
+      // Smooth scroll to top of settings tab content
+      const tabContent = document.getElementById("settings-content");
+      if (tabContent) {
+        tabContent.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    });
+  });
+
   container.querySelectorAll("[data-setting-string]").forEach(select => {
     if (select.__has_change) return;
     select.__has_change = true;
     select.addEventListener("change", () => {
       const value = select.value;
       saveFn({ [select.dataset.settingString]: value });
-      document.dispatchEvent(new CustomEvent("trasporti:settings-changed"));
     });
   });
 
@@ -368,7 +474,6 @@ function bindEvents(container) {
     invertCheckbox.__has_change = true;
     invertCheckbox.addEventListener("change", () => {
       saveFn({ invertDirections: invertCheckbox.checked });
-      document.dispatchEvent(new CustomEvent("trasporti:settings-changed"));
     });
   }
 
@@ -409,6 +514,32 @@ function bindEvents(container) {
       saveFn({ visibleTrains });
     });
   });
+
+  // Handler: Linee bus visibili (checkbox)
+  container.querySelectorAll("[data-settings-visible-line]").forEach(checkbox => {
+    if (checkbox.__has_change) return;
+    checkbox.__has_change = true;
+    checkbox.addEventListener("change", () => {
+      const focusCity = state.settings.focusCity || cfg.defaults?.focusCity || "BT";
+      const checkedLines = [...container.querySelectorAll("[data-settings-visible-line]:checked")]
+        .map(cb => cb.dataset.settingsVisibleLine);
+      const followedLinesByCity = structuredClone(state.settings.followedLinesByCity || {});
+      followedLinesByCity[focusCity] = checkedLines;
+      saveFn({ followedLinesByCity });
+    });
+  });
+
+  // Handler: Reset linee visibili ai default della città
+  const resetVisibleLinesBtn = container.querySelector("[data-reset-visible-lines]");
+  if (resetVisibleLinesBtn && !resetVisibleLinesBtn.__has_click) {
+    resetVisibleLinesBtn.__has_click = true;
+    resetVisibleLinesBtn.addEventListener("click", () => {
+      const focusCity = state.settings.focusCity || cfg.defaults?.focusCity || "BT";
+      const followedLinesByCity = structuredClone(state.settings.followedLinesByCity || {});
+      delete followedLinesByCity[focusCity];
+      saveFn({ followedLinesByCity });
+    });
+  }
 
   container.querySelectorAll("[data-settings-line]").forEach(button => {
     if (button.__has_click) return;
@@ -458,7 +589,13 @@ function bindEvents(container) {
         .map(el => el.dataset.timetableStop.split(":")[2]);
       const timetableStops = structuredClone(state.settings.timetableStops || {});
       timetableStops[lineId] = { ...(timetableStops[lineId] || {}) };
-      timetableStops[lineId][scheduleKey] = checked;
+      
+      const direction = scheduleKey.endsWith("_return") ? "return" : "outbound";
+      for (const dt of ["weekday", "saturday", "sunday"]) {
+        const key = getScheduleKey(lineId, dt, direction);
+        timetableStops[lineId][key] = checked;
+      }
+      
       saveFn({ timetableStops });
     });
   });
@@ -469,7 +606,13 @@ function bindEvents(container) {
     button.addEventListener("click", () => {
       const [lineId, scheduleKey] = button.dataset.resetLineStops.split(":");
       const timetableStops = structuredClone(state.settings.timetableStops || {});
-      if (timetableStops[lineId]) delete timetableStops[lineId][scheduleKey];
+      if (timetableStops[lineId]) {
+        const direction = scheduleKey.endsWith("_return") ? "return" : "outbound";
+        for (const dt of ["weekday", "saturday", "sunday"]) {
+          const key = getScheduleKey(lineId, dt, direction);
+          delete timetableStops[lineId][key];
+        }
+      }
       saveFn({ timetableStops });
       renderSettings(state, saveFn, cfg, lineData, lineConfig);
     });
@@ -612,7 +755,7 @@ export function sanitizeSettings(raw, cfg) {
   settings.connectionLongMin = clampNumber(settings.connectionLongMin, 10, 90, cfg.defaults.connectionLongMin || 25);
   
   const stationReachMinutes = {};
-  const ALL_STATIONS = ["CN_FS", "PB_FS", "LG_FS", "BS_FS", "PG_FS", "RH_FS", "VZ_FS"];
+  const ALL_STATIONS = Object.keys(TRAIN_STATIONS);
   ALL_STATIONS.forEach(station => {
     const rawVal = raw?.stationReachMinutes?.[station];
     const val = rawVal !== undefined ? rawVal : 0;

@@ -7,7 +7,7 @@ import { renderSettings, sanitizeSettings } from "./settings.js";
 import { getItalianDayName } from "./utils.js";
 import { initMap } from "./map.js";
 import { initTheme } from "./theme.js";
-import { initNotifications, getNotificationConfig } from "./notifications.js";
+import { initNotifications, getNotificationConfig, saveNotificationConfig } from "./notifications.js";
 import { initFirebase, getCurrentUser, saveToCloud, onAuthStateChanged } from "./firebase-sync.js";
 import { shouldShowOnboarding, startOnboarding } from "./onboarding.js";
 import { initAlerts, renderAlertsTab, renderStrikeBanner, dismissAlert } from "./alerts.js";
@@ -135,6 +135,12 @@ export function saveSettings(partial) {
   } catch (error) {
     console.warn("Impossibile salvare le preferenze.", error);
   }
+
+  // Sincronizza followedLines (notifiche) con le linee bus visibili (LIVE/ORARI)
+  if (partial.followedLinesByCity || partial.focusCity) {
+    syncFollowedLinesWithVisible();
+  }
+
   // Auto-sync to cloud if logged in (skipped while applying a remote snapshot)
   if (!_suppressCloudWrite && getCurrentUser()) {
     saveToCloud({ settings: state.settings, notifications: getNotificationConfig() });
@@ -145,6 +151,30 @@ export function saveSettings(partial) {
   } else {
     renderCurrentTab();
   }
+}
+
+/**
+ * Sincronizza le "Linee seguite" nelle notifiche con le "Linee bus visibili"
+ * della città attiva (configurate in "Personalizza LIVE e ORARI").
+ * Se non ci sono linee personalizzate per la città, usa il lineOrder della città.
+ */
+function syncFollowedLinesWithVisible() {
+  const focusCity = state.settings?.focusCity || CFG.defaults?.focusCity || "BT";
+  const followedLinesByCity = state.settings?.followedLinesByCity || {};
+  let visibleLines = followedLinesByCity[focusCity];
+
+  // Fallback: se l'utente non ha personalizzato, usa le linee della città
+  if (!Array.isArray(visibleLines) || visibleLines.length === 0) {
+    visibleLines = CFG.focusCities?.[focusCity]?.lineOrder || CFG.lineOrder || [];
+  }
+  if (!visibleLines.length) return;
+
+  const notifConfig = getNotificationConfig();
+  // Mantieni "canegrate" se era già seguito (è una "linea" virtuale per il treno)
+  const keepCanegrate = notifConfig.followedLines.includes("canegrate");
+  notifConfig.followedLines = [...visibleLines];
+  if (keepCanegrate) notifConfig.followedLines.push("canegrate");
+  saveNotificationConfig(notifConfig);
 }
 
 /**
@@ -461,6 +491,8 @@ async function init() {
     () => LINE_CONFIG,
     () => getActiveConfig(state, CFG)
   );
+  // Sincronizza le linee seguite con le linee bus visibili all'avvio
+  syncFollowedLinesWithVisible();
   registerSW();
 }
 

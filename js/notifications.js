@@ -292,11 +292,16 @@ async function fireNotification(title, body, tag) {
 
 /**
  * Generate HTML for the notifications settings section.
+ * @param {object} cfg - Configurazione dell'app
+ * @param {string[]} [visibleLines] - Linee da mostrare (default: cfg.lineOrder)
  */
-export function renderNotificationSettings(cfg) {
+export function renderNotificationSettings(cfg, visibleLines) {
   const config = getNotificationConfig();
   const permission = getPermissionStatus();
-  const allLines = [...(cfg.lineOrder || []), "canegrate"];
+  const linesToShow = Array.isArray(visibleLines) && visibleLines.length > 0
+    ? visibleLines
+    : (cfg.lineOrder || []);
+  const allLines = [...linesToShow, "canegrate"];
 
   const permissionHtml = permission === "granted"
     ? `<span style="color: var(--ok); font-weight: 700;">Autorizzate</span>`
