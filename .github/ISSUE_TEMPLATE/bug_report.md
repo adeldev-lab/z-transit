@@ -18,4 +18,4 @@ assignees: ''
 **Quando:** (es. oggi alle 8:30, sempre)
 
 **Screenshots**
-se servono, le screenshot possono aiutare capire la tua problematica.
+(se servono, le screenshot possono aiutare capire la tua problematica)
