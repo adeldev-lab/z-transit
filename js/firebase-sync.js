@@ -27,17 +27,58 @@ let _lastWriteTimestamp = 0;
 const OWN_WRITE_ECHO_WINDOW_MS = 5000;
 
 let _syncPassphrase = null;
+let _syncChannel = null;
+
+function getSyncChannel() {
+  if (!_syncChannel && typeof BroadcastChannel !== "undefined") {
+    _syncChannel = new BroadcastChannel("z_transit_sync_channel");
+    _syncChannel.onmessage = (event) => {
+      if (event.data?.type === "SYNC_UNLOCKED") {
+        const passphrase = event.data.passphrase;
+        if (passphrase !== _syncPassphrase) {
+          _syncPassphrase = passphrase;
+          if (passphrase) {
+            sessionStorage.setItem("trasporti_sync_passphrase", passphrase);
+          } else {
+            sessionStorage.removeItem("trasporti_sync_passphrase");
+          }
+          console.log("[FirebaseSync] Passphrase sincronizzata da un'altra scheda.");
+          document.dispatchEvent(new CustomEvent("trasporti:settings-changed"));
+        }
+      }
+    };
+  }
+  return _syncChannel;
+}
+
+// Inizializza subito il BroadcastChannel al caricamento del modulo
+try {
+  getSyncChannel();
+} catch (e) {
+  console.warn("[FirebaseSync] Impossibile creare BroadcastChannel per sync multi-tab:", e);
+}
 
 /**
  * Imposta la passphrase crittografica per la sincronizzazione Zero-Knowledge.
  * La memorizza temporaneamente anche nel sessionStorage per persistere al refresh.
  */
-export function setSyncPassphrase(passphrase) {
+export function setSyncPassphrase(passphrase, broadcast = true) {
   _syncPassphrase = passphrase;
   if (passphrase) {
     sessionStorage.setItem("trasporti_sync_passphrase", passphrase);
   } else {
     sessionStorage.removeItem("trasporti_sync_passphrase");
+  }
+  
+  if (broadcast) {
+    try {
+      const channel = getSyncChannel();
+      if (channel) {
+        channel.postMessage({ type: "SYNC_UNLOCKED", passphrase });
+      }
+    } catch (e) {
+      console.warn("[FirebaseSync] Errore broadcast passphrase:", e);
+    }
   }
 }
 
@@ -134,41 +175,85 @@ export async function signInWithGoogle() {
       _currentUser = user; // Ensure current user is set so loadFromCloud can query the DB
 
       let cloudPayload = null;
+      let isOfflineError = false;
       try {
         cloudPayload = await loadFromCloud();
       } catch (err) {
         console.warn("[FirebaseSync] Errore caricamento iniziale post-login:", err);
+        // Isolate network errors or unavailable Firestore service
+        if (err.code === "unavailable" || err.code === "failed-precondition") {
+          isOfflineError = true;
+        }
       }
 
-      if (cloudPayload && (cloudPayload.isEncrypted || cloudPayload.encryptedPayload)) {
-        // Case 1: Cloud data exists and is encrypted
-        const pwd = prompt(
-          "I tuoi dati nel cloud sono protetti da crittografia.\n\n" +
-          "Inserisci la tua Passphrase di Sincronizzazione per sbloccarli:"
-        );
-        if (pwd) {
-          setSyncPassphrase(pwd);
+      if (isOfflineError) {
+        // STATE: SYNC_UNAVAILABLE - Skip passphrase checking and report network error
+        window.dispatchEvent(new CustomEvent("trasporti:sync-status", { detail: { status: "error" } }));
+        alert("Il cloud di Z-Transit è temporaneamente non raggiungibile a causa di un problema di rete.\n\nL'app continuerà a funzionare offline con le preferenze locali.");
+      } else if (cloudPayload && (cloudPayload.isEncrypted || cloudPayload.encryptedPayload)) {
+        // STATE: SYNC_LOCKED (Cloud is encrypted)
+        window._cloud_is_encrypted = true;
+        
+        let pwd = null;
+        let attempts = 0;
+        const maxAttempts = 3;
+        let correct = false;
+        let canceled = false;
+
+        while (attempts < maxAttempts && !correct && !canceled) {
+          pwd = prompt(
+            (attempts > 0 ? "⚠️ PASSPHRASE ERRATA!\n\n" : "") +
+            "I tuoi dati nel cloud sono protetti da crittografia.\n" +
+            `Inserisci la tua Passphrase di Sincronizzazione per sbloccarli (Tentativo ${attempts + 1} di ${maxAttempts}):`
+          );
+          
+          if (pwd === null) {
+            canceled = true;
+            break;
+          }
+
+          const trimmed = pwd.trim();
+          if (trimmed === "") {
+            alert("La passphrase non può essere vuota.");
+            continue;
+          }
+
+          setSyncPassphrase(trimmed);
           try {
-            // Verify the passphrase by reloading and decrypting
+            // Verify by attempting to reload and decrypt
             cloudPayload = await loadFromCloud();
             if (cloudPayload && (cloudPayload.isEncrypted || cloudPayload.encryptedPayload)) {
               throw new Error("passphrase_incorrect");
             }
-            alert("Sincronizzazione sbloccata con successo! Le tue preferenze cloud sono state caricate.");
+            correct = true;
           } catch (err) {
             setSyncPassphrase(null);
-            alert("Passphrase errata. La sincronizzazione rimarrà sospesa finché non inserirai la passphrase corretta nelle Impostazioni.");
+            attempts++;
           }
+        }
+
+        if (correct) {
+          // STATE: SYNC_UNLOCKED
+          alert("Sincronizzazione sbloccata con successo! Le tue preferenze cloud sono state caricate.");
+          window.dispatchEvent(new CustomEvent("trasporti:sync-status", { detail: { status: "synced" } }));
         } else {
-          alert("Sincronizzazione sospesa. Puoi sbloccare i tuoi dati in qualsiasi momento inserendo la Passphrase nelle Impostazioni.");
+          // STATE: SYNC_LOCKED (remains locked)
+          setSyncPassphrase(null);
+          window.dispatchEvent(new CustomEvent("trasporti:sync-status", { detail: { status: "locked" } }));
+          if (canceled) {
+            alert("Sincronizzazione sospesa. Puoi sbloccare i tuoi dati in qualsiasi momento inserendo la Passphrase nelle Impostazioni.");
+          } else {
+            alert("Hai superato il numero massimo di tentativi. Sincronizzazione sospesa per sicurezza.\n\nPuoi riprovare o resettare i dati cloud dal pannello Impostazioni.");
+          }
         }
       } else {
-        // Case 2: Cloud data is not encrypted (or no document exists yet)
+        // Case: Cloud data is plain or does not exist yet
+        window._cloud_is_encrypted = false;
         let passphrase = getSyncPassphrase();
         if (!passphrase) {
           const wantEncrypt = confirm(
             "Sicurezza Sincronizzazione:\n\n" +
-            "Desideri impostare una passphrase per crittografare le tue preferenze prima dell'invio al cloud (Zero-Knowledge)?\n\n" +
+            "Desideri impostare una passphrase per crittografare le tue preferenze prima del caricamento nel cloud (Zero-Knowledge)?\n\n" +
             "[OK] Imposta passphrase ora (Consigliato per la massima privacy)\n" +
             "[Annulla] Procedi senza crittografia (i dati saranno salvati sul server non criptati)"
           );

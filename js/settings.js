@@ -704,6 +704,7 @@ function renderCloudSyncSection(_cfg) {
   </div>`;
 
   const passphrase = getSyncPassphrase();
+  const isLocked = window._cloud_is_encrypted === true && !passphrase;
   
   let cryptoStatusHtml = "";
   if (passphrase) {
@@ -718,6 +719,25 @@ function renderCloudSyncSection(_cfg) {
         <div style="display: flex; gap: 8px; margin-top: 4px;">
           <input type="password" value="${escapeHtml(passphrase)}" readonly style="flex: 1; min-height: 32px; border: 1px solid var(--line); border-radius: var(--radius); background: rgba(255,255,255,0.02); color: var(--muted); padding: 4px 8px; font-size: 0.8rem; font-family: monospace;">
           <button type="button" class="btn secondary" data-sync-passphrase-change style="padding: 2px 8px; font-size: 0.75rem; min-height: 32px;">Modifica</button>
+        </div>
+      </div>
+    `;
+  } else if (window._cloud_is_encrypted === true) {
+    cryptoStatusHtml = `
+      <div style="margin-top: 12px; padding: 12px; border: 1px solid rgba(239,68,68,0.4); border-radius: var(--radius); background: rgba(239,68,68,0.06); display: flex; flex-direction: column; gap: 8px;">
+        <span style="font-size: 0.85rem; font-weight: 700; color: #fca5a5; display: flex; align-items: center; gap: 6px;">
+          🔒 Sincronizzazione Bloccata
+        </span>
+        <span style="font-size: 0.75rem; color: var(--muted);">
+          I tuoi dati nel cloud sono protetti da crittografia. Inserisci la tua passphrase per sbloccare la sincronizzazione ed accedere alle tue preferenze.
+        </span>
+        <div style="display: flex; gap: 8px;">
+          <input type="password" placeholder="Inserisci Passphrase per sbloccare" data-sync-passphrase-unlock-input style="flex: 1; min-height: 32px; border: 1px solid rgba(239,68,68,0.4); border-radius: var(--radius); background: var(--surface); color: var(--text); padding: 4px 8px; font-size: 0.8rem;">
+          <button type="button" class="btn primary" data-unlock-passphrase-btn style="padding: 2px 10px; font-size: 0.75rem; min-height: 32px; background: var(--accent); color: var(--bg); border: 1px solid var(--accent);">Sblocca</button>
+        </div>
+        <div style="margin-top: 4px; border-top: 1px solid var(--line); padding-top: 8px; display: flex; justify-content: space-between; align-items: center;">
+          <small style="color: var(--quiet); font-size: 0.72rem;">Chiave persa o dimenticata?</small>
+          <button type="button" class="text-btn" data-reset-encrypted-cloud style="color: var(--danger); font-size: 0.72rem; text-decoration: underline; background: none; border: none; cursor: pointer;">Resetta dati cloud</button>
         </div>
       </div>
     `;
@@ -758,8 +778,8 @@ function renderCloudSyncSection(_cfg) {
       ${cryptoStatusHtml}
 
       <div class="button-grid" style="margin-top: 12px;">
-        <button type="button" class="btn primary" data-cloud-push>Salva nel cloud ora</button>
-        <button type="button" class="btn secondary" data-cloud-pull>Carica dal cloud</button>
+        <button type="button" class="btn primary" data-cloud-push ${isLocked ? "disabled style='opacity:0.4; cursor:not-allowed;'" : ""}>Salva nel cloud ora</button>
+        <button type="button" class="btn secondary" data-cloud-pull ${isLocked ? "disabled style='opacity:0.4; cursor:not-allowed;'" : ""}>Carica dal cloud</button>
         <button type="button" class="btn secondary" data-cloud-logout>Disconnetti</button>
         <button type="button" class="btn secondary" data-cloud-delete style="color: var(--danger);">Elimina dati cloud</button>
       </div>
@@ -955,6 +975,92 @@ function bindCloudSyncEvents(container) {
         });
         alert("Passphrase aggiornata con successo e dati crittografati nuovamente.");
         renderSettings(state, saveFn, cfg, lineData, lineConfig);
+      }
+    });
+  }
+
+  // Sblocca Passphrase (stato locked)
+  const unlockBtn = container.querySelector("[data-unlock-passphrase-btn]");
+  if (unlockBtn && !unlockBtn.__has_click) {
+    unlockBtn.__has_click = true;
+    unlockBtn.addEventListener("click", async () => {
+      const input = container.querySelector("[data-sync-passphrase-unlock-input]");
+      const val = input ? input.value.trim() : "";
+      if (val === "") {
+        alert("Inserisci la passphrase per sbloccare la sincronizzazione.");
+        return;
+      }
+      
+      // Temporarily set passphrase to test it
+      setSyncPassphrase(val);
+      try {
+        const cloudPayload = await loadFromCloud();
+        
+        // If it got here, decryption succeeded!
+        const cloudSettings = cloudPayload?.settings ?? null;
+        const cloudNotifs = cloudPayload?.notifications ?? null;
+        
+        if (cloudPayload && (cloudSettings || cloudNotifs)) {
+          const useCloud = confirm("Sincronizzazione sbloccata con successo! Trovate preferenze nel cloud.\n\nVuoi sovrascrivere quelle locali con quelle dal cloud?");
+          if (useCloud) {
+            if (cloudSettings) {
+              saveFn(sanitizeSettings(cloudSettings, cfg));
+            }
+            if (cloudNotifs) {
+              saveNotificationConfig(sanitizeNotifications(cloudNotifs));
+            }
+          } else {
+            // Save local to cloud instead
+            saveToCloud({
+              settings: state.settings,
+              notifications: getNotificationConfig()
+            });
+          }
+        } else {
+          // Empty cloud, upload local
+          saveToCloud({
+            settings: state.settings,
+            notifications: getNotificationConfig()
+          });
+        }
+        
+        window.dispatchEvent(new CustomEvent("trasporti:sync-status", { detail: { status: "synced" } }));
+        alert("Sincronizzazione sbloccata con successo!");
+        renderSettings(state, saveFn, cfg, lineData, lineConfig);
+      } catch (err) {
+        // Decryption failed or wrong passphrase
+        setSyncPassphrase(null); // Clear wrong passphrase
+        if (err.message === "passphrase_incorrect") {
+          alert("Passphrase errata. Riprova.");
+        } else {
+          alert("Errore durante lo sblocco: " + err.message);
+        }
+      }
+    });
+  }
+
+  // Reset Dati Cloud (stato locked)
+  const resetBtn = container.querySelector("[data-reset-encrypted-cloud]");
+  if (resetBtn && !resetBtn.__has_click) {
+    resetBtn.__has_click = true;
+    resetBtn.addEventListener("click", async () => {
+      if (!confirm(
+        "⚠️ ATTENZIONE: Il reset dei dati cloud eliminerà definitivamente tutte le preferenze crittografate salvate sul server per questo account.\n\n" +
+        "I dati locali su questo dispositivo NON verranno eliminati.\n\n" +
+        "Vuoi procedere con l'eliminazione dei dati cloud e la rimozione del blocco?"
+      )) {
+        return;
+      }
+      
+      try {
+        await deleteCloudData();
+        setSyncPassphrase(null);
+        window._cloud_is_encrypted = false;
+        window.dispatchEvent(new CustomEvent("trasporti:sync-status", { detail: { status: "synced" } }));
+        alert("Dati cloud resettati con successo. La sincronizzazione è stata sbloccata.");
+        renderSettings(state, saveFn, cfg, lineData, lineConfig);
+      } catch (err) {
+        alert("Errore durante il reset dei dati cloud: " + err.message);
       }
     });
   }

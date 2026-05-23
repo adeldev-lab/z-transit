@@ -310,7 +310,14 @@ async function init() {
     } else if (status === "error") {
       pill.classList.add("sync-status-offline");
       text.textContent = "Errore Sync";
-      pill.title = "Si è verificato un errore durante il salvataggio sul cloud.";
+      pill.title = "Si è verificato un errore durante il salvataggio sul cloud o connettività offline.";
+    } else if (status === "locked" || status === "suspended") {
+      pill.classList.add("sync-status-offline");
+      pill.style.background = "rgba(239, 68, 68, 0.12)";
+      pill.style.color = "#fca5a5";
+      pill.style.borderColor = "rgba(239, 68, 68, 0.4)";
+      text.textContent = "Sync Bloccato 🔒";
+      pill.title = "La sincronizzazione cloud è bloccata. Inserisci la passphrase in Impostazioni per sbloccare.";
     } else {
       pill.classList.add("sync-status-synced");
       text.textContent = "Sincronizzato";
