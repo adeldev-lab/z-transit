@@ -107,6 +107,9 @@ export function initFirebase() {
   if (_auth) {
     _auth.onAuthStateChanged(user => {
       _currentUser = user;
+      if (!user) {
+        setSyncPassphrase(null); // Clear the passphrase if the user is logged out or session expires
+      }
       _onAuthChangeCallbacks.forEach(cb => {
         try { cb(user); } catch (e) { console.error("[FirebaseSync] Auth callback error:", e); }
       });
@@ -122,6 +125,34 @@ export function initFirebase() {
  */
 export async function signInWithGoogle() {
   if (!_auth) { initFirebase(); if (!_auth) return null; }
+  
+  // Ask the user to set a passphrase if none is currently configured
+  let passphrase = getSyncPassphrase();
+  if (!passphrase) {
+    const wantEncrypt = confirm(
+      "Sicurezza Sincronizzazione:\n\n" +
+      "Desideri impostare una passphrase per crittografare i tuoi dati nel cloud prima dell'invio (Zero-Knowledge)?\n\n" +
+      "[OK] Imposta passphrase ora (Consigliato per la massima privacy)\n" +
+      "[Annulla] Procedi senza crittografia (i dati saranno salvati sul server non criptati)"
+    );
+    if (wantEncrypt) {
+      const pwd = prompt("Inserisci una Passphrase di Sincronizzazione (almeno 4 caratteri) per proteggere i tuoi dati:");
+      if (pwd === null) {
+        return null; // Abort login flow entirely
+      }
+      const trimmed = pwd.trim();
+      if (trimmed.length < 4) {
+        alert("La passphrase inserita è troppo corta (minimo 4 caratteri). Accesso annullato.");
+        return null; // Abort login flow entirely
+      }
+      setSyncPassphrase(trimmed);
+    } else {
+      if (!confirm("Sei sicuro di voler salvare le tue preferenze nel cloud in chiaro (non criptate)?")) {
+        return null; // Abort login flow entirely
+      }
+    }
+  }
+
   try {
     const provider = new window.firebase.auth.GoogleAuthProvider();
     const result = await _auth.signInWithPopup(provider);
@@ -140,6 +171,7 @@ export async function signOut() {
   if (!_auth) return;
   await _auth.signOut();
   _currentUser = null;
+  setSyncPassphrase(null); // Clear the passphrase upon explicit sign out
 }
 
 /**
@@ -225,7 +257,7 @@ async function _doSave(payload) {
       updatedAt: window.firebase.firestore.FieldValue.serverTimestamp(),
       displayName: _currentUser.displayName || "",
       email: _currentUser.email || "",
-      photoURL: _currentUser.photoURL || ""
+      photoURL: null // Set to null to explicitly overwrite and delete any existing Google profile pictures on the server
     }, { merge: true });
     
     // Record the moment the write was acknowledged locally so the

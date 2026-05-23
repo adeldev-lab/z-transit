@@ -698,10 +698,10 @@ function renderCloudSyncSection(_cfg) {
       </section>`;
   }
 
-  // User is logged in
-  const photoHtml = user.photoURL
-    ? `<img src="${escapeHtml(user.photoURL)}" alt="" style="width: 36px; height: 36px; border-radius: 50%; border: 2px solid var(--accent);">`
-    : `<div style="width: 36px; height: 36px; border-radius: 50%; background: var(--accent); display: flex; align-items: center; justify-content: center; font-weight: 800; color: #06202a;">${escapeHtml((user.displayName || user.email || "?")[0].toUpperCase())}</div>`;
+  // User is logged in – strictly use a generic privacy-first avatar icon
+  const photoHtml = `<div style="width: 36px; height: 36px; border-radius: 50%; background: rgba(34, 211, 238, 0.12); border: 2px solid var(--accent); display: flex; align-items: center; justify-content: center; color: var(--accent);" title="Avatar Generico">
+    <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+  </div>`;
 
   const passphrase = getSyncPassphrase();
   
