@@ -38,12 +38,28 @@ export function initAlerts(onReady) {
 export function getStrikeAlerts() {
   if (!_alertsData?.alerts) return [];
   const now = Date.now();
-  const dismissed = getDismissed();
-  return _alertsData.alerts.filter(a =>
-    a.type === "strike" &&
-    !dismissed.includes(a.id) &&
-    isActiveNow(a, now)
-  );
+  const dismissedMap = getDismissedMap();
+  return _alertsData.alerts.filter(a => {
+    if (a.type !== "strike") return false;
+    if (!isActiveNow(a, now)) return false;
+
+    const dismissedAt = dismissedMap[a.id];
+    if (dismissedAt) {
+      if (a.startDate) {
+        const start = new Date(a.startDate).getTime();
+        const reminderStartTime = start - 24 * 60 * 60 * 1000;
+        
+        // Se è stato cancellato PRIMA che iniziasse la finestra di 24 ore,
+        // ma ora siamo nelle ultime 24 ore, ignoriamo la cancellazione precedente
+        // e lo visualizziamo di nuovo come "reminder".
+        if (dismissedAt < reminderStartTime && now >= reminderStartTime) {
+          return true;
+        }
+      }
+      return false;
+    }
+    return true;
+  });
 }
 
 /**
@@ -65,11 +81,9 @@ export function getAllAlerts() {
  * Dismiss an alert (hide from LIVE banner).
  */
 export function dismissAlert(alertId) {
-  const dismissed = getDismissed();
-  if (!dismissed.includes(alertId)) {
-    dismissed.push(alertId);
-    localStorage.setItem(DISMISSED_KEY, JSON.stringify(dismissed));
-  }
+  const dismissed = getDismissedMap();
+  dismissed[alertId] = Date.now();
+  localStorage.setItem(DISMISSED_KEY + "_v2", JSON.stringify(dismissed));
 }
 
 /**
@@ -80,24 +94,55 @@ export function renderStrikeBanner() {
   const strikes = getStrikeAlerts();
   if (strikes.length === 0) return "";
 
+  const now = Date.now();
+
   return strikes.map(alert => {
     const services = (alert.affectedServices || []).join(", ");
-    const bands = alert.guaranteedBands ? `Fasce garanzia: ${escapeHtml(alert.guaranteedBands)}` : "";
     const dateRange = formatStrikeDateRange(alert.startDate, alert.endDate);
-    const linkHtml = alert.url
-      ? `<a href="${escapeHtml(alert.url)}" target="_blank" rel="noopener" class="alert-strike-link">Dettagli →</a>`
-      : "";
+    const bands = alert.guaranteedBands || "";
+    const sourceLabel = { trenord: "Trenord", atm: "ATM Milano" }[alert.source] || alert.source;
+    const typeIcon = "🚨";
+    
+    // Determine if we should display the reminder tag
+    let reminderTag = "";
+    if (alert.startDate) {
+      const start = new Date(alert.startDate).getTime();
+      const diffMs = start - now;
+      if (diffMs > 0 && diffMs <= 24 * 60 * 60 * 1000) {
+        reminderTag = `<span class="alert-strike-reminder-tag">reminder</span> `;
+      }
+    }
 
-    return `<div class="alert-strike-banner" data-alert-id="${escapeHtml(alert.id)}">
-      <div class="alert-strike-icon">🚨</div>
-      <div class="alert-strike-body">
-        <strong class="alert-strike-title">${escapeHtml(alert.title)}</strong>
-        ${dateRange ? `<span class="alert-strike-date">${dateRange}</span>` : ""}
-        ${services ? `<span class="alert-strike-services">${escapeHtml(services)}</span>` : ""}
-        ${bands ? `<small class="alert-strike-bands">${bands}</small>` : ""}
-        ${linkHtml}
+    const countdownBadge = getCountdownBadge(alert.startDate, alert.endDate);
+
+    // Splitta la stringa per virgola e genera chip/pill HTML separati con classe band-chip
+    let bandsHtml = "";
+    if (bands) {
+      const chips = bands.split(",")
+        .map(b => b.trim())
+        .filter(Boolean)
+        .map(b => `<span class="band-chip">${escapeHtml(b)}</span>`)
+        .join("");
+      bandsHtml = `<div class="alert-card-bands"><span class="alert-card-bands-label">Fasce di garanzia:</span>${chips}</div>`;
+    }
+
+    return `<div class="alert-card alert-card--strike alert-strike-banner" data-alert-id="${escapeHtml(alert.id)}">
+      <button type="button" class="alert-card-dismiss alert-strike-dismiss" data-dismiss-alert="${escapeHtml(alert.id)}" aria-label="Chiudi avviso: ${escapeHtml(alert.title)}">✕</button>
+      <div class="alert-card-header">
+        <span class="alert-card-icon">${typeIcon}</span>
+        <div class="alert-card-meta">
+          <span class="alert-card-source">${escapeHtml(sourceLabel)}</span>
+          ${countdownBadge}
+        </div>
       </div>
-      <button type="button" class="alert-strike-dismiss" data-dismiss-alert="${escapeHtml(alert.id)}" aria-label="Chiudi avviso">✕</button>
+      <h3 class="alert-card-title">${reminderTag}${escapeHtml(alert.title)}</h3>
+      ${dateRange ? `<div class="alert-card-daterange">${dateRange}</div>` : ""}
+      ${alert.description && alert.description !== alert.title ? `<p class="alert-card-desc">${escapeHtml(alert.description.slice(0, 300))}</p>` : ""}
+      <div class="alert-card-footer">
+        ${services ? `<span class="alert-card-services">${escapeHtml(services)}</span>` : ""}
+        ${bandsHtml}
+      </div>
+      ${alert.url ? `<a href="${escapeHtml(alert.url)}" target="_blank" rel="noopener" class="alert-card-link">Dettagli →</a>` : ""}
     </div>`;
   }).join("");
 }
@@ -150,6 +195,32 @@ export function renderAlertsTab() {
 
 // ── Internal ────────────────────────────────────────────────────────────────
 
+/**
+ * Generate a dynamic countdown badge HTML string.
+ * Shows "🔴 In corso" if the strike is active now, or "fra N giorni" / "domani" if upcoming.
+ */
+function getCountdownBadge(startIso, endIso) {
+  if (!startIso) return "";
+  const now = Date.now();
+  const start = new Date(startIso).getTime();
+  const end = endIso ? new Date(endIso).getTime() : start + 24 * 60 * 60 * 1000; // default to 24h duration
+
+  if (now >= start && now <= end) {
+    return `<span class="alert-countdown-badge alert-countdown-badge--active">🔴 In corso</span>`;
+  }
+
+  if (now < start) {
+    const diffMs = start - now;
+    const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+    if (diffDays === 1) {
+      return `<span class="alert-countdown-badge alert-countdown-badge--upcoming">domani</span>`;
+    }
+    return `<span class="alert-countdown-badge alert-countdown-badge--upcoming">fra ${diffDays} giorni</span>`;
+  }
+
+  return "";
+}
+
 function renderAlertCard(alert, category) {
   const services = (alert.affectedServices || []).join(", ");
   const dateRange = formatStrikeDateRange(alert.startDate, alert.endDate);
@@ -158,11 +229,25 @@ function renderAlertCard(alert, category) {
   const typeIcon = category === "strike" ? "🚨" : "ℹ️";
   const borderClass = category === "strike" ? "alert-card--strike" : "alert-card--notice";
 
+  const countdownBadge = category === "strike" ? getCountdownBadge(alert.startDate, alert.endDate) : "";
+
+  // Splitta la stringa per virgola e genera chip/pill HTML separati con classe band-chip
+  let bandsHtml = "";
+  if (bands) {
+    const chips = bands.split(",")
+      .map(b => b.trim())
+      .filter(Boolean)
+      .map(b => `<span class="band-chip">${escapeHtml(b)}</span>`)
+      .join("");
+    bandsHtml = `<div class="alert-card-bands"><span class="alert-card-bands-label">Fasce di garanzia:</span>${chips}</div>`;
+  }
+
   return `<div class="alert-card ${borderClass}">
     <div class="alert-card-header">
       <span class="alert-card-icon">${typeIcon}</span>
       <div class="alert-card-meta">
         <span class="alert-card-source">${escapeHtml(sourceLabel)}</span>
+        ${countdownBadge}
       </div>
     </div>
     <h3 class="alert-card-title">${escapeHtml(alert.title)}</h3>
@@ -170,9 +255,9 @@ function renderAlertCard(alert, category) {
     ${alert.description && alert.description !== alert.title ? `<p class="alert-card-desc">${escapeHtml(alert.description.slice(0, 300))}</p>` : ""}
     <div class="alert-card-footer">
       ${services ? `<span class="alert-card-services">${escapeHtml(services)}</span>` : ""}
-      ${bands ? `<span class="alert-card-bands">Garanzia: ${escapeHtml(bands)}</span>` : ""}
+      ${bandsHtml}
     </div>
-    ${alert.url ? `<a href="${escapeHtml(alert.url)}" target="_blank" rel="noopener" class="alert-card-link">🔗 Dettagli e aggiornamenti →</a>` : ""}
+    ${alert.url ? `<a href="${escapeHtml(alert.url)}" target="_blank" rel="noopener" class="alert-card-link">Dettagli →</a>` : ""}
   </div>`;
 }
 
@@ -194,14 +279,21 @@ async function fetchAlerts() {
 }
 
 function isActiveNow(alert, now) {
-  // A strike is "active now" if:
-  // - It has no endDate and startDate is within the past 2 days or in the future
-  // - It has an endDate that hasn't passed yet
+  // Uno sciopero è attivo ora se:
+  // - Non è terminato (endDate è futura o non definita)
+  // - Inizia entro 8 giorni
   if (alert.endDate && new Date(alert.endDate).getTime() < now) return false;
   if (alert.startDate) {
     const start = new Date(alert.startDate).getTime();
+    
+    // In corso o iniziato nelle ultime 48 ore (se non c'è data di fine)
     const twoDaysAgo = now - 2 * 24 * 60 * 60 * 1000;
-    return start > twoDaysAgo;
+    const isInProgress = start >= twoDaysAgo && start <= now;
+    
+    // Inizia entro 8 giorni
+    const isWithin8Days = start > now && start <= now + 8 * 24 * 60 * 60 * 1000;
+
+    return isInProgress || isWithin8Days;
   }
   return true;
 }
@@ -217,19 +309,33 @@ function isActiveOrUpcoming(alert, now) {
   return true;
 }
 
-function getDismissed() {
+function getDismissedMap() {
   try {
-    return JSON.parse(localStorage.getItem(DISMISSED_KEY) || "[]");
+    return JSON.parse(localStorage.getItem(DISMISSED_KEY + "_v2") || "{}");
   } catch (e) {
-    return [];
+    return {};
   }
+}
+
+function getDismissed() {
+  const map = getDismissedMap();
+  return Object.keys(map);
 }
 
 function cleanDismissed() {
   if (!_alertsData?.alerts) return;
   const activeIds = new Set(_alertsData.alerts.map(a => a.id));
-  const dismissed = getDismissed().filter(id => activeIds.has(id));
-  localStorage.setItem(DISMISSED_KEY, JSON.stringify(dismissed));
+  const dismissed = getDismissedMap();
+  let changed = false;
+  for (const id of Object.keys(dismissed)) {
+    if (!activeIds.has(id)) {
+      delete dismissed[id];
+      changed = true;
+    }
+  }
+  if (changed) {
+    localStorage.setItem(DISMISSED_KEY + "_v2", JSON.stringify(dismissed));
+  }
 }
 
 function formatAlertDate(isoStr) {
@@ -257,8 +363,8 @@ function formatStrikeDateRange(startIso, endIso) {
     const d = new Date(isoStr);
     const h = d.getUTCHours();
     const m = d.getUTCMinutes();
-    // Midnight UTC (00:00), 22:00 UTC, or 23:00 UTC with 0 minutes = likely a date-only guess
-    if (m === 0 && (h === 0 || h === 22 || h === 23)) return false;
+    // Midnight UTC (00:00) with 0 minutes = likely a date-only guess
+    if (m === 0 && h === 0) return false;
     return true;
   };
 
