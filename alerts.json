@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2026-05-24T11:27:53.021Z",
+  "lastUpdated": "2026-05-24T12:22:25.298Z",
   "windowDays": 14,
   "alerts": [
     {
@@ -30,7 +30,10 @@
       "severity": "high",
       "url": "https://www.trenord.it/news/trenord-informa/avvisi/sciopero",
       "guaranteedBands": "06:00-09:00, 18:00-21:00",
-      "id": "trenord-2026-05-29-sciopero-nazionale-di-tutti-i-settori-pu"
+      "id": "trenord-2026-05-29-sciopero-nazionale-di-tutti-i-settori-pu",
+      "telegramNotified": false,
+      "reminder24hSent": false,
+      "lastKnownHash": "Sciopero Nazionale 28-29 Maggio|2026-05-28T19:00:00.000Z|2026-05-29T19:00:00.000Z|06:00-09:00, 18:00-21:00|Trenord"
     },
     {
       "source": "atm",
