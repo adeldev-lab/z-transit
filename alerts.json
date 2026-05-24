@@ -34,36 +34,6 @@
     },
     {
       "source": "atm",
-      "type": "strike",
-      "title": "Sciopero ATM - Test Reminder 24h",
-      "description": "Sciopero di test per verificare il tag REMINDER 24h sul tab LIVE.",
-      "startDate": "2026-05-25T10:00:00.000Z",
-      "endDate": "2026-05-25T16:00:00.000Z",
-      "affectedServices": [
-        "M1"
-      ],
-      "severity": "high",
-      "url": "https://www.atm.it",
-      "guaranteedBands": "08:00-11:00",
-      "id": "mock-strike-reminder-24h"
-    },
-    {
-      "source": "atm",
-      "type": "strike",
-      "title": "Sciopero ATM - Test Avviso 1 Settimana",
-      "description": "Sciopero di test per verificare l'avviso a distanza di una settimana sul tab LIVE.",
-      "startDate": "2026-05-31T12:00:00.000Z",
-      "endDate": "2026-05-31T18:00:00.000Z",
-      "affectedServices": [
-        "M1"
-      ],
-      "severity": "high",
-      "url": "https://www.atm.it",
-      "guaranteedBands": "08:00-11:00",
-      "id": "mock-strike-heads-up-7d"
-    },
-    {
-      "source": "atm",
       "type": "works",
       "title": "Bus 48, 78 e Q78: fermate spostate",
       "description": "Lavori stradali in via Monte Rosa - linee 48, 78 e Q78. La fermata via Silva via Monte Rosa dei bus 48 ( verso Lotto M1 M5 ), 78 ( verso Bisceglie M1 ) e Q78 ( verso San Siro ) è sospesa dalle 9 di martedì 19 maggio. Usate la fermata di via Silva via Monte Rosa, dove ferma la linea 68. Interventi agli alberi in via Diomede - linea 78 La fermata via Diomede/via Trenno verso via Govone è sospesa dalle 9 alle 16 di lunedì 25 maggio. Usate le fermate prima e dopo: via Ippodromo/Diomede via Diomede/v",
