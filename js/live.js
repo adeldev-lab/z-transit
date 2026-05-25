@@ -1398,49 +1398,56 @@ function bindLiveEvents(container) {
   if (!window.__has_global_stop_click_outside) {
     window.__has_global_stop_click_outside = true;
     document.addEventListener("click", (e) => {
-      document.querySelectorAll(".dep-stop-select").forEach(select => {
-        if (select.style.display && select.style.display !== "none") {
-          console.log("[Trasporti Click Debug] Clicked:", {
-            target: e.target,
-            targetTagName: e.target ? e.target.tagName : null,
-            targetId: e.target ? e.target.id : null,
-            targetClass: e.target ? e.target.className : null,
-            select: select,
-            activeEl: document.activeElement,
-            shownAt: select.__shown_at,
-            diff: Date.now() - (select.__shown_at || 0)
-          });
-          // If shown recently (within 700ms), do not close (covers rapid clicks, bubbling, touch/mouse mismatches, slow native pickers on mobile)
-          if (select.__shown_at && (Date.now() - select.__shown_at < 700)) {
-            console.log("[Trasporti Click Debug] Ignored due to 700ms guard");
-            return;
-          }
-          // If the click target is the select itself, inside it, the body/html (which can happen with native select dropdown overlays), 
-          // or if the element is currently the active/focused element, do not close.
-          if (
-            e.target === select ||
-            select.contains(e.target) ||
-            e.target === document.body ||
-            e.target === document.documentElement ||
-            document.activeElement === select
-          ) {
-            console.log("[Trasporti Click Debug] Ignored: click target is select, body, html, or activeElement");
-            return;
-          }
-          const depStopRow = select.closest(".dep-stop-row");
-          console.log("[Trasporti Click Debug] depStopRow:", depStopRow, "contains target:", depStopRow ? depStopRow.contains(e.target) : false);
-          if (depStopRow && !depStopRow.contains(e.target)) {
-            console.log("[Trasporti Click Debug] Closing and reverting!");
-            const editBtn = depStopRow.querySelector(".edit-dep-stop-btn");
-            const staticText = depStopRow.querySelector(".dep-stop-name-text");
-            if (staticText && editBtn) {
-              staticText.style.display = "";
-              editBtn.style.display = "";
-              select.style.display = "none";
+      const target = e.target;
+      const activeEl = document.activeElement;
+      
+      // Deferiamo l'esecuzione con setTimeout per consentire ad eventuali eventi 'change'
+      // pendenti sul <select> di completare l'aggiornamento dello stato/DOM prima di gestire la chiusura.
+      setTimeout(() => {
+        document.querySelectorAll(".dep-stop-select").forEach(select => {
+          if (select.style.display && select.style.display !== "none") {
+            console.log("[Trasporti Click Debug] Clicked:", {
+              target: target,
+              targetTagName: target ? target.tagName : null,
+              targetId: target ? target.id : null,
+              targetClass: target ? target.className : null,
+              select: select,
+              activeEl: activeEl,
+              shownAt: select.__shown_at,
+              diff: Date.now() - (select.__shown_at || 0)
+            });
+            // If shown recently (within 700ms), do not close (covers rapid clicks, bubbling, touch/mouse mismatches, slow native pickers on mobile)
+            if (select.__shown_at && (Date.now() - select.__shown_at < 700)) {
+              console.log("[Trasporti Click Debug] Ignored due to 700ms guard");
+              return;
+            }
+            // If the click target is the select itself, inside it, the body/html (which can happen with native select dropdown overlays), 
+            // or if the element is currently the active/focused element, do not close.
+            if (
+              target === select ||
+              select.contains(target) ||
+              target === document.body ||
+              target === document.documentElement ||
+              activeEl === select
+            ) {
+              console.log("[Trasporti Click Debug] Ignored: click target is select, body, html, or activeElement");
+              return;
+            }
+            const depStopRow = select.closest(".dep-stop-row");
+            console.log("[Trasporti Click Debug] depStopRow:", depStopRow, "contains target:", depStopRow ? depStopRow.contains(target) : false);
+            if (depStopRow && !depStopRow.contains(target)) {
+              console.log("[Trasporti Click Debug] Closing and reverting!");
+              const editBtn = depStopRow.querySelector(".edit-dep-stop-btn");
+              const staticText = depStopRow.querySelector(".dep-stop-name-text");
+              if (staticText && editBtn) {
+                staticText.style.display = "";
+                editBtn.style.display = "";
+                select.style.display = "none";
+              }
             }
           }
-        }
-      });
+        });
+      }, 100);
     });
   }
 
