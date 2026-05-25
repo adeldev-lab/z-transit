@@ -1,11 +1,11 @@
 {
-  "lastUpdated": "2026-05-25T12:12:32.951Z",
+  "lastUpdated": "2026-05-25T12:21:43.910Z",
   "windowDays": 14,
   "alerts": [
     {
       "source": "trenord",
       "type": "strike",
-      "title": "Sciopero Nazionale",
+      "title": "Sciopero Nazionale Ferroviario",
       "description": "sciopero Nazionale di tutti i settori pubblici e privati che, per il settore ferroviario, si effettuerà dalle ore 21.00 del 28 maggio alle ore 21:00 del 29 maggio 2026 e che potrà generare ripercuss",
       "startDate": "2026-05-28T19:00:00.000Z",
       "endDate": "2026-05-29T19:00:00.000Z",
@@ -18,27 +18,25 @@
       "id": "trenord-2026-05-29-sciopero-nazionale-di-tutti-i-settori-pu",
       "telegramNotified": true,
       "reminder24hSent": false,
-      "lastKnownHash": "Sciopero Nazionale|2026-05-28T19:00:00.000Z|2026-05-29T19:00:00.000Z|06:00-09:00, 18:00-21:00|Trenord"
+      "lastKnownHash": "Sciopero Nazionale Ferroviario|2026-05-28T19:00:00.000Z|2026-05-29T19:00:00.000Z|06:00-09:00, 18:00-21:00|Trenord"
     },
     {
       "source": "atm",
       "type": "strike",
-      "title": "Sciopero Nazionale",
-      "description": "5 - Ricerca\n5 - Box di ricerca\nHome\nRicerca avanzata\nPortale Azienda Trasporti Milanesi\nLinee e orari\nBiglietti e abbonamenti\nMappe e servizi\nIl Gruppo\nServe aiuto?\nArea Riservata\natm    >    Home    >    Biglietti e abbonamenti    >    Cambiamenti programmati al servizio    >   Sciopero generale nazionale venerd&#236; 29 maggio\nHome  >\nBiglietti e abbonamenti  >\nCambiamenti programmati al servizio  >\nSciopero generale nazionale venerdì 29 maggio\nCambiamenti programmati al servizio\nBiglietti\nAbbonamenti\nServizi digitali\nGuide\nRimborsi, detrazioni\nCambiamenti programmati al servizio\nBiglietti\nAbbonamenti\nServizi digitali\nGuide\nRimborsi, detrazioni\nContenuto principale\nContenuto principale\nSciopero generale nazionale venerdì 29 maggio\nTag:\ninfotraffico\nVenerdì 29 maggio  il sindacato CUB e altre organizzazioni sindacali autonome e di base hanno proclamato uno sciopero generale nazionale che potrebbe avere conseguenze sul servizio delle nostre linee.\nLinee ATM\nLe nostre linee potrebbero non essere garantite  dalle 8:45 alle 15 e dopo le 18 , fino al termine del servizio.\nFunicolare Como-Brunate\nIl servizio potrebbe non essere garantito  dalle 8:30 alle 16:30 e dopo le 19:30,  fino al termine del servizio.\nMotivazioni dei sindacati che hanno proclamato lo sciopero\nLo sciopero è stato proclamato  “contro la guerra e l’aumento delle spese militari; contro lo sfruttamento sul lavoro, la precarietà ed il mancato adeguamento delle retribuzioni dei lavoratori del settore pubblico e del settore privato; contro il Genocidio in Palestina e la fornitura di armi ad Israele; contro l’assenza di politiche sociali a cominciare dall’emergenza abitativa; contro politiche repressive dei diversi decreti \"Sicurezza\" come il D.L. 23/2026 e i precedenti del 2025; contro gli abusi della Commissione di Garanzia, le delibere che restringono il diritto di sciopero e il tentativo di imbavagliare le lotte nel settore della Logistica (per l’abrogazione delle L.146/90 e L.83/00); contro l’assenza di politiche industriali capaci di affrontare le transizioni in corso; contro le morti sul lavoro”.\nAdesione agli scioperi precedenti\nPotete consultare le percentuali di adesione agli scioperi recenti a questa pagina:\npersonale ATM\nQuesta comunicazione è valida ai sensi e per gli effetti della legge 146/90 sulla regolamentazione degli scioperi nei pubblici servizi.\nI link seguenti verranno aperti in una nuova pagina\nSegnala su:\nInvia a un amico\nStampa\nLink di fine pagina\nLink di fine pagina\nCopyright\nCondizioni d'uso\nProtezione Dati Personali e RDP\nSocial network Atm\nDichiarazioni di accessibilità\nIN ALTO PER SFRUTTARE L'ASYNC (BEST PRACTICE DI GOOGLE) -->",
+      "title": "Sciopero Nazionale Trasporti",
+      "description": "Sciopero generale nazionale venerdì 29 maggio\nTag:\ninfotraffico\nVenerdì 29 maggio  il sindacato CUB e altre organizzazioni sindacali autonome e di base hanno proclamato uno sciopero generale nazionale che potrebbe avere conseguenze sul servizio delle nostre linee.\nLinee ATM\nLe nostre linee potrebbero non essere garantite  dalle 8:45 alle 15 e dopo le 18 , fino al termine del servizio.\nFunicolare Como-Brunate\nIl servizio potrebbe non essere garantito  dalle 8:30 alle 16:30 e dopo le 19:30,  fino al termine del servizio.\nMotivazioni dei sindacati che hanno proclamato lo sciopero\nLo sciopero è stato proclamato  “contro la guerra e l’aumento delle spese militari; contro lo sfruttamento sul lavoro, la precarietà ed il mancato adeguamento delle retribuzioni dei lavoratori del settore pubblico e del settore privato; contro il Genocidio in Palestina e la fornitura di armi ad Israele; contro l’assenza di politiche sociali a cominciare dall’emergenza abitativa; contro politiche repressive dei diversi decreti \"Sicurezza\" come il D.L. 23/2026 e i precedenti del 2025; contro gli abusi della Commissione di Garanzia, le delibere che restringono il diritto di sciopero e il tentativo di imbavagliare le lotte nel settore della Logistica (per l’abrogazione delle L.146/90 e L.83/00); contro l’assenza di politiche industriali capaci di affrontare le transizioni in corso; contro le morti sul lavoro”.\nAdesione agli scioperi precedenti\nPotete consultare le percentuali di adesione agli scioperi recenti a questa pagina:\npersonale ATM\nQuesta comunicazione è valida ai sensi e per gli effetti della legge 146/90 sulla regolamentazione degli scioperi nei pubblici servizi.\nI link seguenti verranno aperti in una nuova pagina\nSegnala su:\nInvia a un amico\nStampa\nLink di fine pagina\nLink di fine pagina\nProtezione Dati Personali e RDP\nSocial network Atm\nDichiarazioni di accessibilità\nIN ALTO PER SFRUTTARE L'ASYNC (BEST PRACTICE DI GOOGLE) -->",
       "startDate": "2026-05-28T22:00:00.000Z",
       "endDate": "2026-05-29T21:59:00.000Z",
       "affectedServices": [
-        "Trenord",
-        "ATM",
-        "Movibus"
+        "ATM"
       ],
       "severity": "high",
       "url": "https://www.atm.it/it/ViaggiaConNoi/InfoTraffico/Pagine/Scioperogeneralenazionalevenerdì29maggio.aspx",
-      "guaranteedBands": "inizio servizio-08:45, 15:00-18:00",
+      "guaranteedBands": "ATM: 15:00-18:00, Funicolare: 16:30-19:30",
       "id": "atm-2026-05-24-sciopero-generale-nazionale-venerd-29-ma",
       "telegramNotified": true,
       "reminder24hSent": false,
-      "lastKnownHash": "Sciopero Nazionale|2026-05-28T22:00:00.000Z|2026-05-29T21:59:00.000Z|inizio servizio-08:45, 15:00-18:00|ATM,Movibus,Trenord"
+      "lastKnownHash": "Sciopero Nazionale Trasporti|2026-05-28T22:00:00.000Z|2026-05-29T21:59:00.000Z|ATM: 15:00-18:00, Funicolare: 16:30-19:30|ATM"
     },
     {
       "source": "atm",
