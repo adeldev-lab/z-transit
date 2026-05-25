@@ -1332,6 +1332,19 @@ function bindLiveEvents(container) {
       const direction = select.dataset.dir;
       const newStop = select.value;
 
+      // Ripristina immediatamente la visualizzazione del testo statico in modo che
+      // renderLive non veda questo select come attivo (in 'activeEdits') durante il patching del DOM.
+      const parent = select.parentElement;
+      if (parent) {
+        const staticText = parent.querySelector(".dep-stop-name-text");
+        const editBtn = parent.querySelector(".edit-dep-stop-btn");
+        if (staticText && editBtn) {
+          staticText.style.display = "";
+          editBtn.style.display = "";
+          select.style.display = "none";
+        }
+      }
+
       // Update favoriteStops in settings
       const favoriteStops = { ...state.settings.favoriteStops };
       if (!favoriteStops[lineId]) favoriteStops[lineId] = {};
