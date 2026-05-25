@@ -1,22 +1,7 @@
 {
-  "lastUpdated": "2026-05-24T12:24:55.618Z",
+  "lastUpdated": "2026-05-25T11:07:41.340Z",
   "windowDays": 14,
   "alerts": [
-    {
-      "source": "atm",
-      "type": "disruption",
-      "title": "Giro D’Italia: domenica 24 maggio, deviazioni e chiusure",
-      "description": "Domenica 24 maggio c’è il Giro D’Italia. Qui sotto, tutti i cambiamenti al servizio . La stazione Palestro chiude dalle 12 I treni della M1 saltano Palestro dalle 12. In alternativa considerate le stazioni di Porta Venezia o San Babila. Tram e bus deviano dalle 11 alle 19:30 circa Tram 3 Fa servizio come al solito tra Lorenteggio e piazza XXIV Maggio. Poi continua su via Col di Lana, viale Bligny, Porta Vigentina, Porta Romana, Missori, via Mazzini. Fa capolinea in via Dogana (Duomo). Da lì ripa",
-      "startDate": "2026-05-21T09:07:05.000Z",
-      "endDate": null,
-      "affectedServices": [
-        "M1"
-      ],
-      "severity": "high",
-      "url": "https://www.atm.it/it/ViaggiaConNoi/InfoTraffico/Pagine/GiroD’Italiatramebusdevianodomenica24maggio.aspx",
-      "guaranteedBands": null,
-      "id": "atm-2026-05-21-giro-d-italia-domenica-24-maggio-deviazi"
-    },
     {
       "source": "trenord",
       "type": "strike",
@@ -34,6 +19,24 @@
       "telegramNotified": true,
       "reminder24hSent": false,
       "lastKnownHash": "Sciopero Nazionale 28-29 Maggio|2026-05-28T19:00:00.000Z|2026-05-29T19:00:00.000Z|06:00-09:00, 18:00-21:00|Trenord"
+    },
+    {
+      "source": "atm",
+      "type": "strike",
+      "title": "SCIOPERO GENERALE NAZIONALE 29 MAGGIO",
+      "description": "Venerdì 29 maggio il sindacato CUB e altre organizzazioni sindacali autonome e di base hanno proclamato uno sciopero generale nazionale che potrebbe avere conseguenze sul servizio delle nostre linee. Linee ATM Le nostre linee potrebbero non essere garantite dalle 8:45 alle 15 e dopo le 18 , fino al termine del servizio. Funicolare Como-Brunate Il servizio potrebbe non essere garantito dalle 8:30 alle 16:30 e dopo le 19:30, fino al termine del servizio. Motivazioni dei sindacati che hanno proclam",
+      "startDate": "2026-05-28T22:00:00.000Z",
+      "endDate": "2026-05-28T22:00:00.000Z",
+      "affectedServices": [
+        "ATM",
+        "Funicolare Como-Brunate"
+      ],
+      "severity": "high",
+      "url": "https://www.atm.it/it/ViaggiaConNoi/InfoTraffico/Pagine/Scioperogeneralenazionalevenerdì29maggio.aspx",
+      "guaranteedBands": "inizio servizio-08:45, 15:00-18:00",
+      "id": "atm-2026-05-24-sciopero-generale-nazionale-venerd-29-ma",
+      "telegramNotified": true,
+      "lastKnownHash": "SCIOPERO GENERALE NAZIONALE 29 MAGGIO|2026-05-28T22:00:00.000Z|2026-05-28T22:00:00.000Z|inizio servizio-08:45, 15:00-18:00|ATM,Funicolare Como-Brunate"
     },
     {
       "source": "atm",
