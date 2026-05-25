@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2026-05-25T19:39:32.200Z",
+  "lastUpdated": "2026-05-25T20:04:17.349Z",
   "windowDays": 14,
   "alerts": [
     {
@@ -52,8 +52,8 @@
     {
       "source": "atm",
       "type": "strike",
-      "title": "Sciopero nazionale trasporti 29 maggio",
-      "description": "Sciopero generale nazionale venerdì 29 maggio\nTag:\ninfotraffico\nVenerdì 29 maggio  il sindacato CUB e altre organizzazioni sindacali autonome e di base hanno proclamato uno sciopero generale nazionale che potrebbe avere conseguenze sul servizio delle nostre linee.\nLinee ATM\nLe nostre linee potrebbero non essere garantite  dalle 8:45 alle 15 e dopo le 18 , fino al termine del servizio.\nFunicolare Como-Brunate\nIl servizio potrebbe non essere garantito  dalle 8:30 alle 16:30 e dopo le 19:30,  fino al termine del servizio.\nMotivazioni dei sindacati che hanno proclamato lo sciopero\nLo sciopero è stato proclamato  “contro la guerra e l’aumento delle spese militari; contro lo sfruttamento sul lavoro, la precarietà ed il mancato adeguamento delle retribuzioni dei lavoratori del settore pubblico e del settore privato; contro il Genocidio in Palestina e la fornitura di armi ad Israele; contro l’assenza di politiche sociali a cominciare dall’emergenza abitativa; contro politiche repressive dei diversi decreti \"Sicurezza\" come il D.L. 23/2026 e i precedenti del 2025; contro gli abusi della Commissione di Garanzia, le delibere che restringono il diritto di sciopero e il tentativo di imbavagliare le lotte nel settore della Logistica (per l’abrogazione delle L.146/90 e L.83/00); contro l’assenza di politiche industriali capaci di affrontare le transizioni in corso; contro le morti sul lavoro”.\nAdesione agli scioperi precedenti\nPotete consultare le percentuali di adesione agli scioperi recenti a questa pagina:\npersonale ATM\nQuesta comunicazione è valida ai sensi e per gli effetti della legge 146/90 sulla regolamentazione degli scioperi nei pubblici servizi.\nI link seguenti verranno aperti in una nuova pagina\nSegnala su:\nInvia a un amico\nStampa\nLink di fine pagina\nLink di fine pagina\nProtezione Dati Personali e RDP\nSocial network Atm\nDichiarazioni di accessibilità\nIN ALTO PER SFRUTTARE L'ASYNC (BEST PRACTICE DI GOOGLE) -->",
+      "title": "Sciopero nazionale 29 maggio",
+      "description": "Sciopero generale nazionale venerdì 29 maggio\nTag:\ninfotraffico\nVenerdì 29 maggio  il sindacato CUB e altre organizzazioni sindacali autonome e di base hanno proclamato uno sciopero generale nazionale che potrebbe avere conseguenze sul servizio delle nostre linee.\nLinee ATM\nLe nostre linee potrebbero non essere garantite  dalle 8:45 alle 15 e dopo le 18 , fino al termine del servizio.\nFunicolare Como-Brunate\nIl servizio potrebbe non essere garantito  dalle 8:30 alle 16:30 e dopo le 19:30,  fino al termine del servizio.\nMotivazioni dei sindacati che hanno proclamato lo sciopero\nLo sciopero è stato proclamato  “contro la guerra e l’aumento delle spese militari; contro lo sfruttamento sul lavoro, la precarietà ed il mancato adeguamento delle retribuzioni dei lavoratori del settore pubblico e del settore privato; contro il Genocidio in Palestina e la fornitura di armi ad Israele; contro l’assenza di politiche sociali a cominciare dall’emergenza abitativa; contro politiche repressive dei diversi decreti \"Sicurezza\" come il D.L. 23/2026 e i precedenti del 2025; contro gli abusi della Commissione di Garanzia, le delibere che restringono il diritto di sciopero e il tentativo di imbavagliare le lotte nel settore della Logistica (per l’abrogazione delle L.146/90 e L.83/00); contro l’assenza di politiche industriali capaci di affrontare le transizioni in corso; contro le morti sul lavoro”.\nAdesione agli scioperi precedenti\nPotete consultare le percentuali di adesione agli scioperi recenti a questa pagina:\npersonale ATM\nQuesta comunicazione è valida ai sensi e per gli effetti della legge 146/90 sulla regolamentazione degli scioperi nei pubblici servizi.\nI link seguenti verranno aperti in una nuova pagina\nSegnala su:\nInvia a un amico\nStampa\nLink di fine pagina\nLink di fine pagina\nProtezione Dati Personali e RDP\nSocial network Atm\nDichiarazioni di accessibilità\nAiuto\nCredits\nIN ALTO PER SFRUTTARE L'ASYNC (BEST PRACTICE DI GOOGLE) -->",
       "startDate": "2026-05-28T22:00:00.000Z",
       "endDate": "2026-05-29T21:59:59.000Z",
       "affectedServices": [
@@ -66,20 +66,8 @@
         {
           "service": "ATM",
           "date": null,
-          "from": "00:00",
-          "to": "08:45"
-        },
-        {
-          "service": "ATM",
-          "date": null,
           "from": "15:00",
           "to": "18:00"
-        },
-        {
-          "service": "Funicolare Como-Brunate",
-          "date": null,
-          "from": "00:00",
-          "to": "08:30"
         },
         {
           "service": "Funicolare Como-Brunate",
@@ -116,11 +104,11 @@
       ],
       "busReplacements": [],
       "id": "atm-2026-05-24-sciopero-generale-nazionale-venerdi-29-m",
-      "summary": "Linee ATM e Funicolare Como-Brunate a rischio. Servizio garantito in alcune fasce orarie.",
-      "descriptionHash": "34f05dadc8df487b",
+      "summary": "Linee ATM e Funicolare Como-Brunate a rischio",
+      "descriptionHash": "6620935e4cfa4791",
       "telegramNotified": true,
       "reminder24hSent": false,
-      "lastKnownHash": "Sciopero%20nazionale%20trasporti%2029%20maggio|Linee%20ATM%20e%20Funicolare%20Como-Brunate%20a%20rischio.%20Servizio%20garantito%20in%20alcune%20fasce%20orarie.|2026-05-28T22%3A00%3A00.000Z|2026-05-29T21%3A59%3A59.000Z|ATM::00%3A00-08%3A45,ATM::15%3A00-18%3A00,Funicolare%20Como-Brunate::00%3A00-08%3A30,Funicolare%20Como-Brunate::16%3A30-19%3A30|ATM::08%3A45-15%3A00,ATM::18%3A00-fine_servizio,Funicolare%20Como-Brunate::08%3A30-16%3A30,Funicolare%20Como-Brunate::19%3A30-fine_servizio||ATM,Funicolare%20Como-Brunate"
+      "lastKnownHash": "Sciopero%20nazionale%2029%20maggio|Linee%20ATM%20e%20Funicolare%20Como-Brunate%20a%20rischio|2026-05-28T22%3A00%3A00.000Z|2026-05-29T21%3A59%3A59.000Z|ATM::15%3A00-18%3A00,Funicolare%20Como-Brunate::16%3A30-19%3A30|ATM::08%3A45-15%3A00,ATM::18%3A00-fine_servizio,Funicolare%20Como-Brunate::08%3A30-16%3A30,Funicolare%20Como-Brunate::19%3A30-fine_servizio||ATM,Funicolare%20Como-Brunate"
     },
     {
       "source": "atm",
