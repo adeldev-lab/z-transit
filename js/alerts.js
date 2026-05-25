@@ -357,21 +357,34 @@ function formatAlertDate(isoStr) {
 function formatStrikeDateRange(startIso, endIso) {
   if (!startIso && !endIso) return "";
 
-  // Filter out dates that are exactly midnight — likely imprecise/auto-generated
-  const isReliable = (isoStr) => {
+  // Filter out dates that are local midnight (00:00) or end of day (23:59) — likely imprecise/auto-generated
+  const isReliableTime = (isoStr) => {
     if (!isoStr) return false;
     const d = new Date(isoStr);
-    const h = d.getUTCHours();
-    const m = d.getUTCMinutes();
-    // Midnight UTC (00:00) with 0 minutes = likely a date-only guess
-    if (m === 0 && h === 0) return false;
+    const h = d.getHours();
+    const m = d.getMinutes();
+    // Midnight local (00:00) or 23:59 local is considered a date-only placeholder
+    if (h === 0 && m === 0) return false;
+    if (h === 23 && m === 59) return false;
     return true;
   };
 
-  const reliableStart = isReliable(startIso) ? startIso : null;
-  const reliableEnd = isReliable(endIso) ? endIso : null;
+  const hasReliableStart = isReliableTime(startIso);
+  const hasReliableEnd = isReliableTime(endIso);
 
-  if (!reliableStart && !reliableEnd) return "";
+  const formatDateOnly = (isoStr, includeYear) => {
+    try {
+      const d = new Date(isoStr);
+      const day = d.getDate();
+      const month = d.toLocaleDateString("it-IT", { month: "long" });
+      const year = d.getFullYear();
+      return includeYear
+        ? `${day} ${month} ${year}`
+        : `${day} ${month}`;
+    } catch (e) {
+      return "";
+    }
+  };
 
   const formatDateTime = (isoStr, includeYear) => {
     try {
@@ -389,19 +402,53 @@ function formatStrikeDateRange(startIso, endIso) {
     }
   };
 
-  if (reliableStart && reliableEnd) {
-    const startD = new Date(reliableStart);
-    const endD = new Date(reliableEnd);
+  // Case 1: Both start and end have reliable hours
+  if (startIso && endIso && hasReliableStart && hasReliableEnd) {
+    const startD = new Date(startIso);
+    const endD = new Date(endIso);
     const sameYear = startD.getFullYear() === endD.getFullYear();
-    const startStr = formatDateTime(reliableStart, !sameYear);
-    const endStr = formatDateTime(reliableEnd, true);
+    const startStr = formatDateTime(startIso, !sameYear);
+    const endStr = formatDateTime(endIso, true);
     return `⏰ ${startStr} → ${endStr}`;
   }
 
-  if (reliableStart) {
-    return `⏰ dalle ${formatDateTime(reliableStart, true)}`;
+  // Case 2: Date-only (both times are placeholders/unreliable)
+  if (startIso && endIso && !hasReliableStart && !hasReliableEnd) {
+    const startD = new Date(startIso);
+    const endD = new Date(endIso);
+    const sameDay = startD.getFullYear() === endD.getFullYear() &&
+                    startD.getMonth() === endD.getMonth() &&
+                    startD.getDate() === endD.getDate();
+
+    if (sameDay) {
+      return `⏰ ${formatDateOnly(startIso, true)}`;
+    } else {
+      const sameYear = startD.getFullYear() === endD.getFullYear();
+      return `⏰ dal ${formatDateOnly(startIso, !sameYear)} al ${formatDateOnly(endIso, true)}`;
+    }
   }
 
-  return `⏰ fino alle ${formatDateTime(reliableEnd, true)}`;
+  // Case 3: Mixed (one reliable, one placeholder)
+  if (startIso && endIso) {
+    const startStr = hasReliableStart ? formatDateTime(startIso, false) : formatDateOnly(startIso, false);
+    const endStr = hasReliableEnd ? formatDateTime(endIso, true) : formatDateOnly(endIso, true);
+    return `⏰ ${startStr} → ${endStr}`;
+  }
+
+  // Case 4: Only start is specified
+  if (startIso) {
+    return hasReliableStart
+      ? `⏰ dalle ${formatDateTime(startIso, true)}`
+      : `⏰ dal ${formatDateOnly(startIso, true)}`;
+  }
+
+  // Case 5: Only end is specified
+  if (endIso) {
+    return hasReliableEnd
+      ? `⏰ fino alle ${formatDateTime(endIso, true)}`
+      : `⏰ fino al ${formatDateOnly(endIso, true)}`;
+  }
+
+  return "";
 }
 

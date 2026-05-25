@@ -782,8 +782,18 @@ export function sanitizeSettings(raw, cfg) {
   settings.liveHero = typeof raw?.liveHero === "string" ? raw.liveHero : "Z649";
   
   // Dynamic favorite stops merge: if favoriteStops is empty/partial, merge with focus city default
+  // Deep merge at lineId level to preserve per-direction preferences
   const activeFocusStops = cfg.focusCities?.[settings.focusCity]?.favoriteStops || cfg.favoriteStops || {};
-  settings.favoriteStops = { ...structuredClone(activeFocusStops), ...(settings.favoriteStops || {}) };
+  const mergedFavoriteStops = structuredClone(activeFocusStops);
+  const userFavoriteStops = settings.favoriteStops || {};
+  for (const lineId of Object.keys(userFavoriteStops)) {
+    if (!mergedFavoriteStops[lineId]) {
+      mergedFavoriteStops[lineId] = { ...userFavoriteStops[lineId] };
+    } else {
+      mergedFavoriteStops[lineId] = { ...mergedFavoriteStops[lineId], ...userFavoriteStops[lineId] };
+    }
+  }
+  settings.favoriteStops = mergedFavoriteStops;
   
   settings.invertDirections = !!raw?.invertDirections;
   

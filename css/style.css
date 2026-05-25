@@ -2675,39 +2675,38 @@ select:focus-visible,
 
 /* Premium style for the interactive stop select dropdown */
 .dep-stop-select {
-  background: transparent;
-  border: none;
-  border-bottom: 1px dashed rgba(var(--accent-rgb), 0.35);
-  border-radius: 0;
-  padding: 1px 4px;
+  background: var(--surface, #fff);
+  border: 1px solid rgba(var(--accent-rgb), 0.4);
+  border-radius: 6px;
+  padding: 2px 6px;
   color: var(--text);
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   font-weight: 600;
   cursor: pointer;
-  max-width: 200px;
+  max-width: min(240px, 65vw);
+  width: auto;
   outline: none;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  display: inline-block;
-  vertical-align: middle;
   font-family: inherit;
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  appearance: none;
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 10;
+}
+
+.dep-stop-edit-wrapper {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
 }
 
 .dep-stop-select:hover {
-  color: var(--accent);
-  border-bottom-color: var(--accent);
-  background: rgba(var(--accent-rgb), 0.06);
-  border-radius: 4px;
+  border-color: var(--accent);
 }
 
 .dep-stop-select:focus {
-  color: var(--accent);
-  border-bottom-style: solid;
-  border-bottom-color: var(--accent);
-  background: rgba(var(--accent-rgb), 0.1);
-  border-radius: 4px;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px rgba(var(--accent-rgb), 0.15);
 }
 
 .dep-stop-select option {

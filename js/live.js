@@ -373,11 +373,11 @@ export function renderLive(state, lineData, lineConfig, cfg, saveSettings) {
     activeEdits.forEach(({ line, dir, shownAt }) => {
       const sel = container.querySelector(`.dep-stop-select[data-line="${line}"][data-dir="${dir}"]`);
       if (sel) {
-        const parent = sel.parentElement;
-        const staticText = parent?.querySelector('.dep-stop-name-text');
-        const editBtn = parent?.querySelector('.edit-dep-stop-btn');
-        if (staticText) staticText.style.display = 'none';
-        if (editBtn) editBtn.style.display = 'none';
+        const wrapper = sel.closest('.dep-stop-edit-wrapper');
+        const staticText = wrapper?.querySelector('.dep-stop-name-text');
+        const editBtn = wrapper?.querySelector('.edit-dep-stop-btn');
+        if (staticText) staticText.style.visibility = 'hidden';
+        if (editBtn) editBtn.style.visibility = 'hidden';
         sel.style.display = 'inline-block';
         sel.__shown_at = shownAt;
       }
@@ -558,6 +558,7 @@ function buildOutboundCard(lineId, state, lineData, lineConfig, cfg, currentMin,
     validities: unique(trips.map(t => t.validity)),
     nextTrips, trip,
     fromStop: trip?._depStop || preferred || fallbacks[0],
+    preferredStop: preferred,
     toStop: compactStops.at(-1),
     compactStops, detailStops, scheduleKey,
     stopCandidates
@@ -596,6 +597,7 @@ function buildReturnCard(lineId, state, lineData, lineConfig, cfg, currentMin, d
     validities: unique(trips.map(t => t.validity)),
     nextTrips, trip,
     fromStop: trip?._depStop || preferredInterchange,
+    preferredStop: preferredInterchange,
     toStop: arrival?.stopCode || homeStops[0],
     compactStops, detailStops, scheduleKey,
     returnOrigins: profile.returnConnectionOrigins || [],
@@ -637,18 +639,21 @@ function renderFeaturedCard(card, direction, cfg, currentMin, state) {
 
   let selectHtml = "";
   if (card && card.stopCandidates && card.stopCandidates.length > 1) {
+    const selectValue = card.preferredStop || card.fromStop;
     const options = card.stopCandidates.map(code => {
-      const isSelected = code === card.fromStop;
+      const isSelected = code === selectValue;
       return `<option value="${code}" ${isSelected ? "selected" : ""}>${escapeHtml(getStopName(code))}</option>`;
     }).join("");
     selectHtml = `
-      <span class="dep-stop-name-text" style="font-weight: 600;">${escapeHtml(getStopName(card.fromStop))}</span>
-      <button type="button" class="edit-dep-stop-btn" title="Modifica fermata di partenza" aria-label="Modifica fermata di partenza">
-        ${EDIT_SVG}
-      </button>
-      <select class="dep-stop-select" data-line="${card.lineId}" data-dir="${direction}" style="display: none;" onclick="event.stopPropagation()" onmousedown="event.stopPropagation()" onmouseup="event.stopPropagation()">
-        ${options}
-      </select>
+      <span class="dep-stop-edit-wrapper">
+        <span class="dep-stop-name-text" style="font-weight: 600;">${escapeHtml(getStopName(card.fromStop))}</span>
+        <button type="button" class="edit-dep-stop-btn" title="Modifica fermata di partenza" aria-label="Modifica fermata di partenza">
+          ${EDIT_SVG}
+        </button>
+        <select class="dep-stop-select" data-line="${card.lineId}" data-dir="${direction}" style="display: none;" onclick="event.stopPropagation()" onmousedown="event.stopPropagation()" onmouseup="event.stopPropagation()">
+          ${options}
+        </select>
+      </span>
     `;
   } else {
     selectHtml = `<span class="dep-stop-name-text" style="font-weight: 600;">${escapeHtml(getStopName(card.fromStop))}</span>`;
@@ -761,18 +766,21 @@ function renderTimeInfoRow(trip, wait, walkMin, direction, fromStop, destination
 
   let selectHtml = "";
   if (card && card.stopCandidates && card.stopCandidates.length > 1) {
+    const selectValue = card.preferredStop || fromStop;
     const options = card.stopCandidates.map(code => {
-      const isSelected = code === fromStop;
+      const isSelected = code === selectValue;
       return `<option value="${code}" ${isSelected ? "selected" : ""}>${escapeHtml(getStopName(code))}</option>`;
     }).join("");
     selectHtml = `
-      <span class="dep-stop-name-text" style="font-weight: 600;">${escapeHtml(fromStopName)}</span>
-      <button type="button" class="edit-dep-stop-btn" title="Modifica fermata di partenza" aria-label="Modifica fermata di partenza">
-        ${EDIT_SVG}
-      </button>
-      <select class="dep-stop-select" data-line="${card.lineId}" data-dir="${direction}" style="display: none;" onclick="event.stopPropagation()" onmousedown="event.stopPropagation()" onmouseup="event.stopPropagation()">
-        ${options}
-      </select>
+      <span class="dep-stop-edit-wrapper">
+        <span class="dep-stop-name-text" style="font-weight: 600;">${escapeHtml(fromStopName)}</span>
+        <button type="button" class="edit-dep-stop-btn" title="Modifica fermata di partenza" aria-label="Modifica fermata di partenza">
+          ${EDIT_SVG}
+        </button>
+        <select class="dep-stop-select" data-line="${card.lineId}" data-dir="${direction}" style="display: none;" onclick="event.stopPropagation()" onmousedown="event.stopPropagation()" onmouseup="event.stopPropagation()">
+          ${options}
+        </select>
+      </span>
     `;
   } else {
     selectHtml = `<span class="dep-stop-name-text" style="font-weight: 600;">${escapeHtml(fromStopName)}</span>`;
@@ -1303,19 +1311,41 @@ function bindLiveEvents(container) {
       select.addEventListener("touchend", e => { select.__shown_at = Date.now(); }, { passive: true });
     }
 
+    // Blur handler: close the dropdown when focus is lost (backup for click-outside)
+    if (!select.__has_blur) {
+      select.__has_blur = true;
+      select.addEventListener("blur", () => {
+        // Delay slightly to allow change event to fire first
+        setTimeout(() => {
+          if (select.style.display && select.style.display !== "none") {
+            const wrapper = select.closest(".dep-stop-edit-wrapper");
+            if (wrapper) {
+              const staticText = wrapper.querySelector(".dep-stop-name-text");
+              const editBtn = wrapper.querySelector(".edit-dep-stop-btn");
+              if (staticText && editBtn) {
+                staticText.style.visibility = "";
+                editBtn.style.visibility = "";
+                select.style.display = "none";
+              }
+            }
+          }
+        }, 200);
+      });
+    }
+
     // Add Escape key support to cancel and revert
     if (!select.__has_keydown) {
       select.__has_keydown = true;
       select.addEventListener("keydown", (e) => {
         if (e.key === "Escape") {
           e.stopPropagation();
-          const parent = select.parentElement;
-          if (parent) {
-            const editBtn = parent.querySelector(".edit-dep-stop-btn");
-            const staticText = parent.querySelector(".dep-stop-name-text");
+          const wrapper = select.closest(".dep-stop-edit-wrapper");
+          if (wrapper) {
+            const editBtn = wrapper.querySelector(".edit-dep-stop-btn");
+            const staticText = wrapper.querySelector(".dep-stop-name-text");
             if (staticText && editBtn) {
-              staticText.style.display = "";
-              editBtn.style.display = "";
+              staticText.style.visibility = "";
+              editBtn.style.visibility = "";
               select.style.display = "none";
               select.blur();
             }
@@ -1334,19 +1364,19 @@ function bindLiveEvents(container) {
 
       // Ripristina immediatamente la visualizzazione del testo statico in modo che
       // renderLive non veda questo select come attivo (in 'activeEdits') durante il patching del DOM.
-      const parent = select.parentElement;
-      if (parent) {
-        const staticText = parent.querySelector(".dep-stop-name-text");
-        const editBtn = parent.querySelector(".edit-dep-stop-btn");
+      const wrapper = select.closest(".dep-stop-edit-wrapper");
+      if (wrapper) {
+        const staticText = wrapper.querySelector(".dep-stop-name-text");
+        const editBtn = wrapper.querySelector(".edit-dep-stop-btn");
         if (staticText && editBtn) {
-          staticText.style.display = "";
-          editBtn.style.display = "";
+          staticText.style.visibility = "";
+          editBtn.style.visibility = "";
           select.style.display = "none";
         }
       }
 
-      // Update favoriteStops in settings
-      const favoriteStops = { ...state.settings.favoriteStops };
+      // Update favoriteStops in settings (deep clone to avoid mutating state)
+      const favoriteStops = structuredClone(state.settings.favoriteStops || {});
       if (!favoriteStops[lineId]) favoriteStops[lineId] = {};
       favoriteStops[lineId][direction] = newStop;
 
@@ -1355,20 +1385,20 @@ function bindLiveEvents(container) {
       // Trigger premium floating toast notification (which survives tab-level reactive DOM patching)
       showPremiumToast(`Fermata <strong>${escapeHtml(getStopName(newStop))}</strong> impostata come preferita per la linea ${lineId}!`, 'success');
 
-      // Find the label in the parent container (if it survived/renders)
-      const cardEl = select.closest(".featured-card, .line-card");
-      if (cardEl) {
-        const label = cardEl.querySelector(".pref-confirm-label");
-        if (label) {
-          label.style.display = "block";
-          label.style.opacity = "1";
-          setTimeout(() => {
-            label.style.opacity = "0";
-            setTimeout(() => {
-              label.style.display = "none";
-            }, 300);
-          }, 3000);
-        }
+      // After re-render, scroll to the card so the user can see it in its new position
+      // But only if this is NOT the featured/hero card (which is always at the top)
+      const wasFeatured = !!select.closest(".featured-card");
+      if (!wasFeatured) {
+        requestAnimationFrame(() => {
+          const updatedCard = document.querySelector(`.line-card[data-card="live-${lineId}"]`);
+          if (updatedCard) {
+            updatedCard.scrollIntoView({ behavior: "smooth", block: "nearest" });
+            // Brief highlight to draw attention
+            updatedCard.style.transition = "box-shadow 0.3s ease";
+            updatedCard.style.boxShadow = "0 0 0 2px var(--accent)";
+            setTimeout(() => { updatedCard.style.boxShadow = ""; }, 1500);
+          }
+        });
       }
     });
   });
@@ -1379,13 +1409,13 @@ function bindLiveEvents(container) {
     btn.__has_click = true;
     btn.addEventListener("click", (e) => {
       e.stopPropagation();
-      const parent = btn.parentElement;
-      if (parent) {
-        const staticText = parent.querySelector(".dep-stop-name-text");
-        const selectEl = parent.querySelector(".dep-stop-select");
+      const wrapper = btn.closest(".dep-stop-edit-wrapper");
+      if (wrapper) {
+        const staticText = wrapper.querySelector(".dep-stop-name-text");
+        const selectEl = wrapper.querySelector(".dep-stop-select");
         if (staticText && selectEl) {
-          staticText.style.display = "none";
-          btn.style.display = "none";
+          staticText.style.visibility = "hidden";
+          btn.style.visibility = "hidden";
           selectEl.style.display = "inline-block";
           selectEl.__shown_at = Date.now();
           selectEl.focus();
@@ -1406,19 +1436,8 @@ function bindLiveEvents(container) {
       setTimeout(() => {
         document.querySelectorAll(".dep-stop-select").forEach(select => {
           if (select.style.display && select.style.display !== "none") {
-            console.log("[Trasporti Click Debug] Clicked:", {
-              target: target,
-              targetTagName: target ? target.tagName : null,
-              targetId: target ? target.id : null,
-              targetClass: target ? target.className : null,
-              select: select,
-              activeEl: activeEl,
-              shownAt: select.__shown_at,
-              diff: Date.now() - (select.__shown_at || 0)
-            });
             // If shown recently (within 700ms), do not close (covers rapid clicks, bubbling, touch/mouse mismatches, slow native pickers on mobile)
             if (select.__shown_at && (Date.now() - select.__shown_at < 700)) {
-              console.log("[Trasporti Click Debug] Ignored due to 700ms guard");
               return;
             }
             // If the click target is the select itself, inside it, the body/html (which can happen with native select dropdown overlays), 
@@ -1430,24 +1449,25 @@ function bindLiveEvents(container) {
               target === document.documentElement ||
               activeEl === select
             ) {
-              console.log("[Trasporti Click Debug] Ignored: click target is select, body, html, or activeElement");
               return;
             }
-            const depStopRow = select.closest(".dep-stop-row");
-            console.log("[Trasporti Click Debug] depStopRow:", depStopRow, "contains target:", depStopRow ? depStopRow.contains(target) : false);
-            if (depStopRow && !depStopRow.contains(target)) {
-              console.log("[Trasporti Click Debug] Closing and reverting!");
-              const editBtn = depStopRow.querySelector(".edit-dep-stop-btn");
-              const staticText = depStopRow.querySelector(".dep-stop-name-text");
+            const wrapper = select.closest(".dep-stop-edit-wrapper");
+            if (wrapper && wrapper.contains(target)) {
+              return;
+            }
+            // Close: revert to static display
+            if (wrapper) {
+              const editBtn = wrapper.querySelector(".edit-dep-stop-btn");
+              const staticText = wrapper.querySelector(".dep-stop-name-text");
               if (staticText && editBtn) {
-                staticText.style.display = "";
-                editBtn.style.display = "";
+                staticText.style.visibility = "";
+                editBtn.style.visibility = "";
                 select.style.display = "none";
               }
             }
           }
         });
-      }, 100);
+      }, 150);
     });
   }
 
