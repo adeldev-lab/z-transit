@@ -87,6 +87,90 @@ export function dismissAlert(alertId) {
 }
 
 /**
+ * Generates visual HTML chips/labels for strike guarantee bands, strike windows, and bus replacements.
+ */
+function getStrikeChipsHtml(alert) {
+  let html = "";
+  
+  // 1. Bus Replacements
+  const bReplacements = alert.busReplacements || [];
+  if (Array.isArray(bReplacements) && bReplacements.length > 0) {
+    const chips = bReplacements.map(r => {
+      const lineStr = r.line ? `${r.line}: ` : "";
+      const label = `🚌 ${lineStr}${r.from} ➔ ${r.to}`;
+      return `<span class="band-chip band-chip--bus" title="Bus sostitutivo">${escapeHtml(label)}</span>`;
+    }).join("");
+    html += `<div class="alert-card-bands"><span class="alert-card-bands-label">Bus Sostitutivi:</span>${chips}</div>`;
+  }
+
+  // 2. Guaranteed Bands
+  const gBands = alert.guaranteedBands || [];
+  if (Array.isArray(gBands) && gBands.length > 0) {
+    const chips = gBands.map(b => {
+      let label = "";
+      if (b.service) label += `${b.service} `;
+      
+      let dateStr = "";
+      if (b.date && alert.startDate) {
+        try {
+          const mainStart = new Date(alert.startDate);
+          const bandD = new Date(b.date);
+          const sameDay = mainStart.getFullYear() === bandD.getFullYear() &&
+                          mainStart.getMonth() === bandD.getMonth() &&
+                          mainStart.getDate() === bandD.getDate();
+          if (!sameDay) {
+            dateStr = bandD.toLocaleDateString("it-IT", { day: "numeric", month: "short" }) + " ";
+          }
+        } catch(e){}
+      }
+      label += `${dateStr}${b.from}-${b.to}`;
+      return `<span class="band-chip band-chip--guaranteed" title="Fascia garantita">🛡️ ${escapeHtml(label)}</span>`;
+    }).join("");
+    html += `<div class="alert-card-bands"><span class="alert-card-bands-label">Garantite:</span>${chips}</div>`;
+  }
+
+  // 3. Strike Windows
+  const sWindows = alert.strikeWindows || [];
+  if (Array.isArray(sWindows) && sWindows.length > 0) {
+    const chips = sWindows.map(w => {
+      let label = "";
+      if (w.service) label += `${w.service} `;
+      
+      let dateStr = "";
+      if (w.date && alert.startDate) {
+        try {
+          const mainStart = new Date(alert.startDate);
+          const bandD = new Date(w.date);
+          const sameDay = mainStart.getFullYear() === bandD.getFullYear() &&
+                          mainStart.getMonth() === bandD.getMonth() &&
+                          mainStart.getDate() === bandD.getDate();
+          if (!sameDay) {
+            dateStr = bandD.toLocaleDateString("it-IT", { day: "numeric", month: "short" }) + " ";
+          }
+        } catch(e){}
+      }
+      
+      const toVal = w.to === "fine_servizio" ? "fine serv." : w.to;
+      label += `${dateStr}${w.from}-${toVal}`;
+      return `<span class="band-chip band-chip--strike" title="Finestra di sciopero">🚫 ${escapeHtml(label)}</span>`;
+    }).join("");
+    html += `<div class="alert-card-bands"><span class="alert-card-bands-label">Non garantite:</span>${chips}</div>`;
+  }
+
+  // Fallback for legacy scraper output (guaranteedBands as string)
+  if (html === "" && alert.guaranteedBands && typeof alert.guaranteedBands === "string") {
+    const chips = alert.guaranteedBands.split(",")
+      .map(b => b.trim())
+      .filter(Boolean)
+      .map(b => `<span class="band-chip">${escapeHtml(b)}</span>`)
+      .join("");
+    html = `<div class="alert-card-bands"><span class="alert-card-bands-label">Fasce di garanzia:</span>${chips}</div>`;
+  }
+
+  return html;
+}
+
+/**
  * Render the strike banner for the LIVE tab.
  * Returns HTML string (empty if no active strikes).
  */
@@ -99,7 +183,6 @@ export function renderStrikeBanner() {
   return strikes.map(alert => {
     const services = (alert.affectedServices || []).join(", ");
     const dateRange = formatStrikeDateRange(alert.startDate, alert.endDate);
-    const bands = alert.guaranteedBands || "";
     const sourceLabel = { trenord: "Trenord", atm: "ATM Milano" }[alert.source] || alert.source;
     const typeIcon = "🚨";
     
@@ -114,17 +197,7 @@ export function renderStrikeBanner() {
     }
 
     const countdownBadge = getCountdownBadge(alert.startDate, alert.endDate);
-
-    // Splitta la stringa per virgola e genera chip/pill HTML separati con classe band-chip
-    let bandsHtml = "";
-    if (bands) {
-      const chips = bands.split(",")
-        .map(b => b.trim())
-        .filter(Boolean)
-        .map(b => `<span class="band-chip">${escapeHtml(b)}</span>`)
-        .join("");
-      bandsHtml = `<div class="alert-card-bands"><span class="alert-card-bands-label">Fasce di garanzia:</span>${chips}</div>`;
-    }
+    const chipsHtml = getStrikeChipsHtml(alert);
 
     return `<div class="alert-card alert-card--strike alert-strike-banner" data-alert-id="${escapeHtml(alert.id)}">
       <button type="button" class="alert-card-dismiss alert-strike-dismiss" data-dismiss-alert="${escapeHtml(alert.id)}" aria-label="Chiudi avviso: ${escapeHtml(alert.title)}">✕</button>
@@ -140,7 +213,7 @@ export function renderStrikeBanner() {
       ${alert.description && alert.description !== alert.title ? `<p class="alert-card-desc">${escapeHtml(alert.description.slice(0, 300))}</p>` : ""}
       <div class="alert-card-footer">
         ${services ? `<span class="alert-card-services">${escapeHtml(services)}</span>` : ""}
-        ${bandsHtml}
+        ${chipsHtml}
       </div>
       ${alert.url ? `<a href="${escapeHtml(alert.url)}" target="_blank" rel="noopener" class="alert-card-link">Dettagli →</a>` : ""}
     </div>`;
@@ -224,23 +297,12 @@ function getCountdownBadge(startIso, endIso) {
 function renderAlertCard(alert, category) {
   const services = (alert.affectedServices || []).join(", ");
   const dateRange = formatStrikeDateRange(alert.startDate, alert.endDate);
-  const bands = alert.guaranteedBands || "";
   const sourceLabel = { trenord: "Trenord", atm: "ATM Milano" }[alert.source] || alert.source;
   const typeIcon = category === "strike" ? "🚨" : "ℹ️";
   const borderClass = category === "strike" ? "alert-card--strike" : "alert-card--notice";
 
   const countdownBadge = category === "strike" ? getCountdownBadge(alert.startDate, alert.endDate) : "";
-
-  // Splitta la stringa per virgola e genera chip/pill HTML separati con classe band-chip
-  let bandsHtml = "";
-  if (bands) {
-    const chips = bands.split(",")
-      .map(b => b.trim())
-      .filter(Boolean)
-      .map(b => `<span class="band-chip">${escapeHtml(b)}</span>`)
-      .join("");
-    bandsHtml = `<div class="alert-card-bands"><span class="alert-card-bands-label">Fasce di garanzia:</span>${chips}</div>`;
-  }
+  const chipsHtml = getStrikeChipsHtml(alert);
 
   return `<div class="alert-card ${borderClass}">
     <div class="alert-card-header">
@@ -255,7 +317,7 @@ function renderAlertCard(alert, category) {
     ${alert.description && alert.description !== alert.title ? `<p class="alert-card-desc">${escapeHtml(alert.description.slice(0, 300))}</p>` : ""}
     <div class="alert-card-footer">
       ${services ? `<span class="alert-card-services">${escapeHtml(services)}</span>` : ""}
-      ${bandsHtml}
+      ${chipsHtml}
     </div>
     ${alert.url ? `<a href="${escapeHtml(alert.url)}" target="_blank" rel="noopener" class="alert-card-link">Dettagli →</a>` : ""}
   </div>`;

@@ -1298,6 +1298,22 @@ function bindLiveEvents(container) {
   const { state, lineData, lineConfig, cfg, saveSettings } = lastArgs;
   const focusCity = state.settings?.focusCity || cfg.defaults?.focusCity || 'BT';
 
+  // Force-sync each select's value to the user's stored preference for that line/direction.
+  // This is critical because patchDOM preserves the SELECT element across re-renders but
+  // the value can drift if the trip uses a fallback stop different from the user preference.
+  container.querySelectorAll(".dep-stop-select").forEach(select => {
+    const lineId = select.dataset.line;
+    const direction = select.dataset.dir;
+    const preferred = state.settings?.favoriteStops?.[lineId]?.[direction] || cfg.favoriteStops?.[lineId]?.[direction];
+    if (preferred) {
+      // Only set if the option exists, otherwise leave the browser default
+      const hasOption = [...select.options].some(opt => opt.value === preferred);
+      if (hasOption && select.value !== preferred) {
+        select.value = preferred;
+      }
+    }
+  });
+
   // Dropdown dep-stop-select change event
   container.querySelectorAll(".dep-stop-select").forEach(select => {
     // Stop propagation of mouse events to prevent document click-outside from triggering
@@ -1389,7 +1405,8 @@ function bindLiveEvents(container) {
       // But only if this is NOT the featured/hero card (which is always at the top)
       const wasFeatured = !!select.closest(".featured-card");
       if (!wasFeatured) {
-        requestAnimationFrame(() => {
+        // Wait for the re-render triggered by saveSettings to fully complete
+        setTimeout(() => {
           const updatedCard = document.querySelector(`.line-card[data-card="live-${lineId}"]`);
           if (updatedCard) {
             updatedCard.scrollIntoView({ behavior: "smooth", block: "nearest" });
@@ -1398,7 +1415,7 @@ function bindLiveEvents(container) {
             updatedCard.style.boxShadow = "0 0 0 2px var(--accent)";
             setTimeout(() => { updatedCard.style.boxShadow = ""; }, 1500);
           }
-        });
+        }, 100);
       }
     });
   });

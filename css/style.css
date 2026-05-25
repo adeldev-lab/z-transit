@@ -2284,6 +2284,7 @@ th.stop-link:hover {
   font-weight: 600;
   display: inline-flex;
   align-items: center;
+  transition: all 0.2s ease;
 }
 
 [data-theme="dark"] .band-chip {
@@ -2291,6 +2292,43 @@ th.stop-link:hover {
   border-color: rgba(66, 153, 225, 0.3);
   color: #63b3ed;
 }
+
+.band-chip--guaranteed {
+  background: #e6fffa;
+  border-color: #b2f5ea;
+  color: #234e52;
+}
+
+[data-theme="dark"] .band-chip--guaranteed {
+  background: rgba(56, 178, 172, 0.15);
+  border-color: rgba(56, 178, 172, 0.3);
+  color: #81e6d9;
+}
+
+.band-chip--strike {
+  background: #fff5f5;
+  border-color: #feb2b2;
+  color: #9b2c2c;
+}
+
+[data-theme="dark"] .band-chip--strike {
+  background: rgba(229, 62, 62, 0.15);
+  border-color: rgba(229, 62, 62, 0.3);
+  color: #feb2b2;
+}
+
+.band-chip--bus {
+  background: #ebf8ff;
+  border-color: #bee3f8;
+  color: #2b6cb0;
+}
+
+[data-theme="dark"] .band-chip--bus {
+  background: rgba(66, 153, 225, 0.15);
+  border-color: rgba(66, 153, 225, 0.3);
+  color: #90cdf4;
+}
+
 
 /* Ghost button styling for details link */
 .alert-card-link {
