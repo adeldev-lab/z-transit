@@ -107,8 +107,11 @@ function getStrikeChipsHtml(alert) {
   const gBands = alert.guaranteedBands || [];
   if (Array.isArray(gBands) && gBands.length > 0) {
     const chips = gBands.map(b => {
-      let label = "";
-      if (b.service) label += `${b.service} `;
+      let svcName = b.service || "";
+      if (svcName === "Funicolare Como-Brunate") {
+        svcName = "Funicolare";
+      }
+      let label = svcName ? `${svcName} ` : "";
       
       let dateStr = "";
       if (b.date && alert.startDate) {
@@ -133,8 +136,11 @@ function getStrikeChipsHtml(alert) {
   const sWindows = alert.strikeWindows || [];
   if (Array.isArray(sWindows) && sWindows.length > 0) {
     const chips = sWindows.map(w => {
-      let label = "";
-      if (w.service) label += `${w.service} `;
+      let svcName = w.service || "";
+      if (svcName === "Funicolare Como-Brunate") {
+        svcName = "Funicolare";
+      }
+      let label = svcName ? `${svcName} ` : "";
       
       let dateStr = "";
       if (w.date && alert.startDate) {
@@ -150,8 +156,9 @@ function getStrikeChipsHtml(alert) {
         } catch(e){}
       }
       
-      const toVal = w.to === "fine_servizio" ? "fine serv." : w.to;
-      label += `${dateStr}${w.from}-${toVal}`;
+      const toVal = w.to === "fine_servizio" ? "→ fine" : w.to;
+      const separator = w.to === "fine_servizio" ? " " : "-";
+      label += `${dateStr}${w.from}${separator}${toVal}`;
       return `<span class="band-chip band-chip--strike" title="Finestra di sciopero">🚫 ${escapeHtml(label)}</span>`;
     }).join("");
     html += `<div class="alert-card-bands"><span class="alert-card-bands-label">Non garantite:</span>${chips}</div>`;
@@ -181,7 +188,12 @@ export function renderStrikeBanner() {
   const now = Date.now();
 
   return strikes.map(alert => {
-    const services = (alert.affectedServices || []).join(", ");
+    // Deduplicate: remove specific line codes from affectedServices list if already shown in busReplacements
+    let servicesList = alert.affectedServices || [];
+    const busLines = new Set((alert.busReplacements || []).map(r => r.line).filter(Boolean));
+    servicesList = servicesList.filter(s => !busLines.has(s));
+    const services = servicesList.join(", ");
+
     const dateRange = formatStrikeDateRange(alert.startDate, alert.endDate);
     const sourceLabel = { trenord: "Trenord", atm: "ATM Milano" }[alert.source] || alert.source;
     const typeIcon = "🚨";
@@ -198,6 +210,7 @@ export function renderStrikeBanner() {
 
     const countdownBadge = getCountdownBadge(alert.startDate, alert.endDate);
     const chipsHtml = getStrikeChipsHtml(alert);
+    const descToDisplay = alert.summary || alert.description;
 
     return `<div class="alert-card alert-card--strike alert-strike-banner" data-alert-id="${escapeHtml(alert.id)}">
       <button type="button" class="alert-card-dismiss alert-strike-dismiss" data-dismiss-alert="${escapeHtml(alert.id)}" aria-label="Chiudi avviso: ${escapeHtml(alert.title)}">✕</button>
@@ -210,7 +223,7 @@ export function renderStrikeBanner() {
       </div>
       <h3 class="alert-card-title">${reminderTag}${escapeHtml(alert.title)}</h3>
       ${dateRange ? `<div class="alert-card-daterange">${dateRange}</div>` : ""}
-      ${alert.description && alert.description !== alert.title ? `<p class="alert-card-desc">${escapeHtml(alert.description.slice(0, 300))}</p>` : ""}
+      ${descToDisplay && descToDisplay !== alert.title ? `<p class="alert-card-desc">${escapeHtml(descToDisplay.slice(0, 300))}</p>` : ""}
       <div class="alert-card-footer">
         ${services ? `<span class="alert-card-services">${escapeHtml(services)}</span>` : ""}
         ${chipsHtml}
@@ -295,7 +308,12 @@ function getCountdownBadge(startIso, endIso) {
 }
 
 function renderAlertCard(alert, category) {
-  const services = (alert.affectedServices || []).join(", ");
+  // Deduplicate: remove specific line codes from affectedServices list if already shown in busReplacements
+  let servicesList = alert.affectedServices || [];
+  const busLines = new Set((alert.busReplacements || []).map(r => r.line).filter(Boolean));
+  servicesList = servicesList.filter(s => !busLines.has(s));
+  const services = servicesList.join(", ");
+
   const dateRange = formatStrikeDateRange(alert.startDate, alert.endDate);
   const sourceLabel = { trenord: "Trenord", atm: "ATM Milano" }[alert.source] || alert.source;
   const typeIcon = category === "strike" ? "🚨" : "ℹ️";
@@ -303,6 +321,7 @@ function renderAlertCard(alert, category) {
 
   const countdownBadge = category === "strike" ? getCountdownBadge(alert.startDate, alert.endDate) : "";
   const chipsHtml = getStrikeChipsHtml(alert);
+  const descToDisplay = alert.summary || alert.description;
 
   return `<div class="alert-card ${borderClass}">
     <div class="alert-card-header">
@@ -314,7 +333,7 @@ function renderAlertCard(alert, category) {
     </div>
     <h3 class="alert-card-title">${escapeHtml(alert.title)}</h3>
     ${dateRange ? `<div class="alert-card-daterange">${dateRange}</div>` : ""}
-    ${alert.description && alert.description !== alert.title ? `<p class="alert-card-desc">${escapeHtml(alert.description.slice(0, 300))}</p>` : ""}
+    ${descToDisplay && descToDisplay !== alert.title ? `<p class="alert-card-desc">${escapeHtml(descToDisplay.slice(0, 300))}</p>` : ""}
     <div class="alert-card-footer">
       ${services ? `<span class="alert-card-services">${escapeHtml(services)}</span>` : ""}
       ${chipsHtml}
