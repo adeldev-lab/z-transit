@@ -156,7 +156,7 @@ function getStrikeChipsHtml(alert) {
         } catch(e){}
       }
       
-      const toVal = w.to === "fine_servizio" ? "→ fine" : w.to;
+      const toVal = w.to === "fine_servizio" ? "→ fine serv." : w.to;
       const separator = w.to === "fine_servizio" ? " " : "-";
       label += `${dateStr}${w.from}${separator}${toVal}`;
       return `<span class="band-chip band-chip--strike" title="Finestra di sciopero">🚫 ${escapeHtml(label)}</span>`;
