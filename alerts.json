@@ -1,59 +1,34 @@
 {
-  "lastUpdated": "2026-05-25T20:04:17.349Z",
+  "lastUpdated": "2026-05-27T10:53:34.464Z",
   "windowDays": 14,
   "alerts": [
     {
       "source": "trenord",
       "type": "strike",
-      "title": "Sciopero nazionale",
-      "description": "I sindacati CUB, SGB, ADL VARESE, SI COBAS e USI CIT hanno indetto uno sciopero Nazionale di tutti i settori pubblici e privati che, per il settore ferroviario, si effettuerà dalle ore 21.00 del 28 maggio alle ore 21:00 del 29 maggio 2026 e che potrà generare ripercussioni sulla circolazione ferroviaria in Lombardia.\nGiovedì 28 maggio viaggeranno i treni con partenza prevista da Orario Ufficiale entro le ore 21:00 e che abbiano arrivo nella destinazione finale entro le ore 22:00.\nSaranno in vigore le fasce orarie di garanzia, dalle ore 06:00 alle ore 09:00 e dalle ore 18:00 alle ore 21:00, durante le quali viaggeranno i treni compresi nella lista dei “ Servizi Minimi Garantiti ”\nNel caso di  cancellazione dei treni del servizio aeroportuale , saranno istituiti  bus senza fermate intermedie  tra:\nMilano Cadorna e Malpensa Aeroporto  per la linea RE54. (Da Milano Cadorna gli autobus partiranno da via Paleocapa 1.)\nStabio e Malpensa Aeroporto  per il collegamento aeroportuale S50 Malpensa Aeroporto – Stabio.\nalle informazioni in scorrimento sui monitor\nAvviso 106/2026 [.pdf]\nShare\nCondividi\nquesto articolo\nBus sostitutivi\nTreni garantiti\nPer conoscerci meglio\nChi siamo\nBandi e gare\nTratte più cercate\nTrenord sui Social\nNote Legali\nNote Legali\nClose   Created with Sketch.\nSend-mail-OK   Created with Sketch.                       Alert   Created with Sketch.",
-      "startDate": "2026-05-28T19:00:00.000Z",
-      "endDate": "2026-05-29T19:00:00.000Z",
+      "title": "Sciopero Trenord 28-29 maggio",
+      "description": "Indennizzo abbonamenti marzo 2026\nÈ online l’elenco delle direttrici che a marzo 2026 hanno maturato diritto all’indennizzo. Da questo mese, saranno disponibili i dati delle performance di ogni direttrice.\nmaggiori informazioni\nVai alla tua area personale\nBiglietti\nLinee e orari\nNews\nAssistenza\nCommunity\nBiglietti\nTitoli di viaggio\nBiglietti\nBiglietti integrati STIBM\nBiglietti giornalieri\nCarnet 10 viaggi\nAbbonamenti\nPhone Pass\nTessera Io Viaggio\nMalpensa Express\nBiglietti Transfrontalieri\nCarte Regalo\nAgevolazioni e supplementi\nRagazzi e bambini in treno\nSenior\nTariffa elettori\nGruppi e scuole\nViaggiare in Famiglia\nSupplemento Prima Classe\nCarta Plus Lombardia\nTrasporto biciclette\nTrasporto animali\nDove acquistare\nAcquista online\nApp Trenord\nBiglietterie e Rivendite\nTrenord per l'impresa\nB2B Mobility\nLinee e orari\nCircolazione\nLe nostre linee\nOrario Ferroviario\nTratte\nIl Nostro Servizio\nLinee Suburbane e Urbane\nLinee Regionali\nLinee Transfrontaliere\nLinee Aeroportuali MXP\nBus sostitutivi\nInfomobilità\nWhatsApp\nNews\nTrenord informa\nCantieri e modifiche alla circolazione\nAvvisi\nNotizie\nComunicati stampa\nIl bello di Trenord\nArticoli\nAssistenza\nInformazioni utili\nIn caso di sciopero\nCarta dei Servizi\nServizi\nReclami\nConciliazione\nSanzioni\nFatture\nDetrazioni\nSupporto\nEsperienze\nTreni Storici\nEventi\nGite al Lago\nDivertimento e Relax\nSport e Outdoor\nArte e Cultura\nGuide\nLonely Planet\nCommunity\nProgramma loyalty\nCommunity\nAccedi\nAccedi\nNon hai un account?\nPremi invio o clicca sulla freccia per cercare\nTitolo sezione\nAltri risultati\ntitolo\nsottotiolo\ntitolo\nsottotiolo\ntitolo\nsottotiolo\ntodo: sostituzione h2 fatto --> Le tue ricerche recenti\nOrari linea Como\nTariffe per famiglie\nPrezzo supplemento bici\nInfo Abbonamento\nTitolo sezione\nAltri risultati\ntitolo\nsottotiolo\ntitolo\nsottotiolo\ntitolo\nsottotiolo\nBiglietti\nLinee e orari\nNews\nAssistenza\nCommunity\nUser-logged-no-pic   Created with Sketch.\nVai alla tua area personale\nGestisci account\nEsci\nTitoli di viaggio\nBiglietti\nBiglietti integrati STIBM\nBiglietti giornalieri\nCarnet 10 viaggi\nAbbonamenti\nPhone Pass\nTessera Io Viaggio\nMalpensa Express\nBiglietti Transfrontalieri\nCarte Regalo\nAgevolazioni e supplementi\nRagazzi e bambini in treno\nSenior\nTariffa elettori\nGruppi e scuole\nViaggiare in Famiglia\nSupplemento Prima Classe\nCarta Plus Lombardia\nTrasporto biciclette\nTrasporto animali\nDove acquistare\nAcquista online\nApp Trenord\nBiglietterie e Rivendite\nTrenord per l'impresa\nB2B Mobility\nCircolazione\nLe nostre linee\nOrario Ferroviario\nTratte\nIl Nostro Servizio\nLinee Suburbane e Urbane\nLinee Regionali\nLinee Transfrontaliere\nLinee Aeroportuali MXP\nBus sostitutivi\nInfomobilità\nWhatsApp\nTrenord informa\nCantieri e modifiche alla circolazione\nAvvisi\nNotizie\nComunicati stampa\nIl bello di Trenord\nArticoli\nInformazioni utili\nIn caso di sciopero\nCarta dei Servizi\nServizi\nReclami\nConciliazione\nSanzioni\nFatture\nDetrazioni\nSupporto\nEsperienze\nTreni Storici\nEventi\nGite al Lago\nDivertimento e Relax\nSport e Outdoor\nArte e Cultura\nGuide\nLonely Planet\nProgramma loyalty\nCommunity\nTrenord\nNews\nTrenord informa\nAvvisi\nSciopero\nSciopero 28-29 maggio 2026\nvenerdì 22/05/2026\nI sindacati CUB, SGB, ADL VARESE, SI COBAS e USI CIT hanno indetto uno sciopero Nazionale di tutti i settori pubblici e privati che, per il settore ferroviario, si effettuerà dalle ore 21.00 del 28 maggio alle ore 21:00 del 29 maggio 2026 e che potrà generare ripercussioni sulla circolazione ferroviaria in Lombardia.\nGiovedì 28 maggio viaggeranno i treni con partenza prevista da Orario Ufficiale entro le ore 21:00 e che abbiano arrivo nella destinazione finale entro le ore 22:00.\nSaranno in vigore le fasce orarie di garanzia, dalle ore 06:00 alle ore 09:00 e dalle ore 18:00 alle ore 21:00, durante le quali viaggeranno i treni compresi nella lista dei “ Servizi Minimi Garantiti ”\nNel caso di  cancellazione dei treni del servizio aeroportuale , saranno istituiti  bus senza fermate intermedie  tra:\nMilano Cadorna e Malpensa Aeroporto  per la linea RE54",
+      "startDate": "2026-05-27T22:00:00.000Z",
+      "endDate": "2026-05-29T21:59:59.000Z",
       "affectedServices": [
-        "Trenord",
-        "RE54"
+        "Trenord"
       ],
       "severity": "high",
       "url": "https://www.trenord.it/news/trenord-informa/avvisi/sciopero",
-      "guaranteedBands": [
-        {
-          "service": "Trenord",
-          "date": null,
-          "from": "06:00",
-          "to": "09:00"
-        },
-        {
-          "service": "Trenord",
-          "date": null,
-          "from": "18:00",
-          "to": "21:00"
-        }
-      ],
+      "guaranteedBands": [],
       "strikeWindows": [],
-      "busReplacements": [
-        {
-          "line": "RE54",
-          "from": "Milano Cadorna",
-          "to": "Malpensa Aeroporto"
-        },
-        {
-          "line": null,
-          "from": "Stabio",
-          "to": "Malpensa Aeroporto"
-        }
-      ],
+      "busReplacements": [],
       "id": "trenord-2026-05-29-sciopero-28-29-maggio-2026",
-      "summary": "Treni a rischio. Servizio garantito 06:00-09:00 e 18:00-21:00. Bus sostitutivi per Malpensa.",
-      "descriptionHash": "617072f88acc5452",
+      "summary": "Treni Trenord a rischio",
+      "descriptionHash": "f739c726ec3dfd78",
       "telegramNotified": true,
-      "reminder24hSent": false,
-      "lastKnownHash": "Sciopero%20nazionale|Treni%20a%20rischio.%20Servizio%20garantito%2006%3A00-09%3A00%20e%2018%3A00-21%3A00.%20Bus%20sostitutivi%20per%20Malpensa.|2026-05-28T19%3A00%3A00.000Z|2026-05-29T19%3A00%3A00.000Z|Trenord::06%3A00-09%3A00,Trenord::18%3A00-21%3A00||:Stabio->Malpensa%20Aeroporto,RE54:Milano%20Cadorna->Malpensa%20Aeroporto|RE54,Trenord"
+      "reminder24hSent": true,
+      "lastKnownHash": "Sciopero%20Trenord%2028-29%20maggio|Treni%20Trenord%20a%20rischio|2026-05-27T22%3A00%3A00.000Z|2026-05-29T21%3A59%3A59.000Z||||Trenord"
     },
     {
       "source": "atm",
       "type": "strike",
-      "title": "Sciopero nazionale 29 maggio",
-      "description": "Sciopero generale nazionale venerdì 29 maggio\nTag:\ninfotraffico\nVenerdì 29 maggio  il sindacato CUB e altre organizzazioni sindacali autonome e di base hanno proclamato uno sciopero generale nazionale che potrebbe avere conseguenze sul servizio delle nostre linee.\nLinee ATM\nLe nostre linee potrebbero non essere garantite  dalle 8:45 alle 15 e dopo le 18 , fino al termine del servizio.\nFunicolare Como-Brunate\nIl servizio potrebbe non essere garantito  dalle 8:30 alle 16:30 e dopo le 19:30,  fino al termine del servizio.\nMotivazioni dei sindacati che hanno proclamato lo sciopero\nLo sciopero è stato proclamato  “contro la guerra e l’aumento delle spese militari; contro lo sfruttamento sul lavoro, la precarietà ed il mancato adeguamento delle retribuzioni dei lavoratori del settore pubblico e del settore privato; contro il Genocidio in Palestina e la fornitura di armi ad Israele; contro l’assenza di politiche sociali a cominciare dall’emergenza abitativa; contro politiche repressive dei diversi decreti \"Sicurezza\" come il D.L. 23/2026 e i precedenti del 2025; contro gli abusi della Commissione di Garanzia, le delibere che restringono il diritto di sciopero e il tentativo di imbavagliare le lotte nel settore della Logistica (per l’abrogazione delle L.146/90 e L.83/00); contro l’assenza di politiche industriali capaci di affrontare le transizioni in corso; contro le morti sul lavoro”.\nAdesione agli scioperi precedenti\nPotete consultare le percentuali di adesione agli scioperi recenti a questa pagina:\npersonale ATM\nQuesta comunicazione è valida ai sensi e per gli effetti della legge 146/90 sulla regolamentazione degli scioperi nei pubblici servizi.\nI link seguenti verranno aperti in una nuova pagina\nSegnala su:\nInvia a un amico\nStampa\nLink di fine pagina\nLink di fine pagina\nProtezione Dati Personali e RDP\nSocial network Atm\nDichiarazioni di accessibilità\nAiuto\nCredits\nIN ALTO PER SFRUTTARE L'ASYNC (BEST PRACTICE DI GOOGLE) -->",
+      "title": "Sciopero nazionale trasporti 29 maggio",
+      "description": "Sciopero generale nazionale venerdì 29 maggio\nTag:\ninfotraffico\nVenerdì 29 maggio  il sindacato CUB e altre organizzazioni sindacali autonome e di base hanno proclamato uno sciopero generale nazionale che potrebbe avere conseguenze sul servizio delle nostre linee.\nLinee ATM\nLe nostre linee potrebbero non essere garantite  dalle 8:45 alle 15 e dopo le 18 , fino al termine del servizio.\nFunicolare Como-Brunate\nIl servizio potrebbe non essere garantito  dalle 8:30 alle 16:30 e dopo le 19:30,  fino al termine del servizio.\nMotivazioni dei sindacati che hanno proclamato lo sciopero\nLo sciopero è stato proclamato  “contro la guerra e l’aumento delle spese militari; contro lo sfruttamento sul lavoro, la precarietà ed il mancato adeguamento delle retribuzioni dei lavoratori del settore pubblico e del settore privato; contro il Genocidio in Palestina e la fornitura di armi ad Israele; contro l’assenza di politiche sociali a cominciare dall’emergenza abitativa; contro politiche repressive dei diversi decreti \"Sicurezza\" come il D.L. 23/2026 e i precedenti del 2025; contro gli abusi della Commissione di Garanzia, le delibere che restringono il diritto di sciopero e il tentativo di imbavagliare le lotte nel settore della Logistica (per l’abrogazione delle L.146/90 e L.83/00); contro l’assenza di politiche industriali capaci di affrontare le transizioni in corso; contro le morti sul lavoro”.\nAdesione agli scioperi precedenti\nPotete consultare le percentuali di adesione agli scioperi recenti a questa pagina:\npersonale ATM\nQuesta comunicazione è valida ai sensi e per gli effetti della legge 146/90 sulla regolamentazione degli scioperi nei pubblici servizi.\nI link seguenti verranno aperti in una nuova pagina\nSegnala su:\nInvia a un amico\nStampa\nLink di fine pagina\nLink di fine pagina\nProtezione Dati Personali e RDP\nSocial network Atm\nDichiarazioni di accessibilità\nIN ALTO PER SFRUTTARE L'ASYNC (BEST PRACTICE DI GOOGLE) -->",
       "startDate": "2026-05-28T22:00:00.000Z",
       "endDate": "2026-05-29T21:59:59.000Z",
       "affectedServices": [
@@ -104,11 +79,11 @@
       ],
       "busReplacements": [],
       "id": "atm-2026-05-24-sciopero-generale-nazionale-venerdi-29-m",
-      "summary": "Linee ATM e Funicolare Como-Brunate a rischio",
-      "descriptionHash": "6620935e4cfa4791",
+      "summary": "Linee ATM e Funicolare Como-Brunate a rischio. Servizio garantito solo in alcune fasce orarie.",
+      "descriptionHash": "34f05dadc8df487b",
       "telegramNotified": true,
       "reminder24hSent": false,
-      "lastKnownHash": "Sciopero%20nazionale%2029%20maggio|Linee%20ATM%20e%20Funicolare%20Como-Brunate%20a%20rischio|2026-05-28T22%3A00%3A00.000Z|2026-05-29T21%3A59%3A59.000Z|ATM::15%3A00-18%3A00,Funicolare%20Como-Brunate::16%3A30-19%3A30|ATM::08%3A45-15%3A00,ATM::18%3A00-fine_servizio,Funicolare%20Como-Brunate::08%3A30-16%3A30,Funicolare%20Como-Brunate::19%3A30-fine_servizio||ATM,Funicolare%20Como-Brunate"
+      "lastKnownHash": "Sciopero%20nazionale%20trasporti%2029%20maggio|Linee%20ATM%20e%20Funicolare%20Como-Brunate%20a%20rischio.%20Servizio%20garantito%20solo%20in%20alcune%20fasce%20orarie.|2026-05-28T22%3A00%3A00.000Z|2026-05-29T21%3A59%3A59.000Z|ATM::15%3A00-18%3A00,Funicolare%20Como-Brunate::16%3A30-19%3A30|ATM::08%3A45-15%3A00,ATM::18%3A00-fine_servizio,Funicolare%20Como-Brunate::08%3A30-16%3A30,Funicolare%20Como-Brunate::19%3A30-fine_servizio||ATM,Funicolare%20Como-Brunate"
     },
     {
       "source": "atm",
@@ -142,36 +117,6 @@
     },
     {
       "source": "atm",
-      "type": "works",
-      "title": "Bus 901, 923 e 973: saltano una fermata a Segrate",
-      "description": "Sono in programma lavori stradali in via Rivoltana. Venerdì 29 maggio, dalle 7:30 alle 17:30 , i bus verso Linate Aeroporto M4 (linee 901 e 923) e Milano piazza Cinque Giornate (linea 973), deviano e saltano la fermata Strada Rivoltana/via Buozzi. Non percorrono un tratto di via Rivoltana. Raggiungono il capolinea di Linate Aeroporto M4 come al solito.",
-      "startDate": "2026-05-19T07:56:21.000Z",
-      "endDate": null,
-      "affectedServices": [],
-      "severity": "low",
-      "url": "https://www.atm.it/it/ViaggiaConNoi/InfoTraffico/Pagine/Bus901,903,923e973saltanounafermataaSegrate.aspx",
-      "guaranteedBands": null,
-      "strikeWindows": null,
-      "busReplacements": null,
-      "id": "atm-2026-05-19-bus-901-923-e-973-saltano-una-fermata-a-"
-    },
-    {
-      "source": "atm",
-      "type": "works",
-      "title": "Bus 51: fermata sospesa",
-      "description": "Sono in programma lavori stradali, dalle 8 di martedì 26 maggio la fermata viale Sarca/via Chiese in direzione Cimiano M2 è sospesa. Usate le fermate prima e dopo: via Chiese/viale Testi via Chiese/via Pirelli",
-      "startDate": "2026-05-19T16:03:14.000Z",
-      "endDate": null,
-      "affectedServices": [],
-      "severity": "low",
-      "url": "https://www.atm.it/it/ViaggiaConNoi/InfoTraffico/Pagine/Bus51fermatasospesa.aspx",
-      "guaranteedBands": null,
-      "strikeWindows": null,
-      "busReplacements": null,
-      "id": "atm-2026-05-19-bus-51-fermata-sospesa"
-    },
-    {
-      "source": "atm",
       "type": "disruption",
       "title": "Mi Ami Festival: come arrivare con i mezzi pubblici",
       "description": "English version Venerdì 22 e sabato 23 maggio la metropolitana M4 è potenziata e aperta fino a tarda notte. In questa pagina trovate tutte le informazioni per raggiungere il Mi Ami Festival con i mezzi pubblici. Come raggiungere l’Idroscalo - Mappa di tutte le metropolitane Con la metropolitana M4, scendete alla stazione di Linate. Poi seguite il percorso pedonale Con il bus 973 (parte da piazza Cinque Giornate e incontra M4 a Forlanini, Repetti e Linate) fino alla fermata di via Novegro Per rie",
@@ -191,7 +136,7 @@
       "source": "atm",
       "type": "disruption",
       "title": "Bus 61 e 84: deviazione",
-      "description": "È prevista la chiusura al traffico di un tratto di corso Europa. Le vetture cambiano percorso e fermate mercoledì 27 maggio, dalle 7 alle 18. Verso Duomo (linea 61) e Corvetto (linea 84), i bus deviano e saltano la fermata San Babila M1 M4. Fanno il solito percorso fino a via Visconti di Modrone. Poi non passano da via Borgogna: continuano su Visconti di Modrone, passano da largo Augusto e via Cavallotti. Riprendono il percorso consueto da corso Europa. Verso Murani (linea 61) e Porta Volta (lin",
+      "description": "Mercoledì 27 maggio, dalle 7 alle 18, chiude al traffico di un tratto di corso Europa. Verso Duomo (linea 61) e Corvetto (linea 84), i bus deviano e saltano la fermata San Babila M1 M4. Fanno il solito percorso fino a via Visconti di Modrone. Poi non passano da via Borgogna: continuano su Visconti di Modrone, passano da largo Augusto e via Cavallotti. Riprendono il percorso consueto da corso Europa. Verso Murani (linea 61) e Porta Volta (linea 84) il percorso non cambia.",
       "startDate": "2026-05-21T14:45:45.000Z",
       "endDate": null,
       "affectedServices": [
@@ -250,6 +195,38 @@
       "strikeWindows": null,
       "busReplacements": null,
       "id": "atm-2026-05-25-bus-50-96-nm1-e-nm2-fermata-sospesa"
+    },
+    {
+      "source": "atm",
+      "type": "disruption",
+      "title": "Bus 201 e 328: deviazione",
+      "description": "È in programma la chiusura di viale Lombardia a Rozzano. Domenica 7 giugno i bus cambiano percorso. Bus 201 Verso Rozzano (via Alberelle), i bus saltano le fermate di viale Lombardia. Partono dal capolinea di via Milano (Rozzano) e arrivano fino a viale Lombardia. Poi deviano: passano per via Torino, via Gramsci, via Roma, viale Lazio, via Cabrini e viale Romagna. Da qui tornano su viale Romagna e da viale Lazio riprendono il percorso di sempre. Verso Rozzano (via Milano) il percorso non cambia.",
+      "startDate": "2026-05-26T14:10:01.000Z",
+      "endDate": null,
+      "affectedServices": [],
+      "severity": "low",
+      "url": "https://www.atm.it/it/ViaggiaConNoi/InfoTraffico/Pagine/Bus201e328deviazione265.aspx",
+      "guaranteedBands": null,
+      "strikeWindows": null,
+      "busReplacements": null,
+      "id": "atm-2026-05-26-bus-201-e-328-deviazione"
+    },
+    {
+      "source": "atm",
+      "type": "works",
+      "title": "Bus 327: cambiamenti al servizio",
+      "description": "Ci sono lavori stradali in via Buonarroti nel Comune di Trezzano sul Naviglio. I bus cambiano percorso e fermate dalle 9:30 di mercoledì 27 maggio per circa 3 mesi . I bus verso Trezzano sul Naviglio (via Morona e Zanoletti) deviano da via Dante/via Bramante a via Marconi/via Malibran. Saltano la fermata di via Buonarroti/via Piero della Francesca. Quando deviano fermano in via Galilei, di fronte al numero civico 63. Verso Milano Bisceglie M1 il percorso non cambia.",
+      "startDate": "2026-05-26T15:24:37.000Z",
+      "endDate": null,
+      "affectedServices": [
+        "M1"
+      ],
+      "severity": "low",
+      "url": "https://www.atm.it/it/ViaggiaConNoi/InfoTraffico/Pagine/Bus327cambiamentialserviziodddd.aspx",
+      "guaranteedBands": null,
+      "strikeWindows": null,
+      "busReplacements": null,
+      "id": "atm-2026-05-26-bus-327-cambiamenti-al-servizio"
     }
   ]
 }
