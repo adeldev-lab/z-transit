@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2026-05-28T10:53:02.755Z",
+  "lastUpdated": "2026-05-29T10:42:02.307Z",
   "windowDays": 14,
   "alerts": [
     {
@@ -52,30 +52,17 @@
       "source": "atm",
       "type": "strike",
       "title": "Sciopero nazionale trasporti 29 maggio",
-      "description": "Sciopero generale nazionale venerdì 29 maggio\nTag:\ninfotraffico\nVenerdì 29 maggio  il sindacato CUB e altre organizzazioni sindacali autonome e di base hanno proclamato uno sciopero generale nazionale che potrebbe avere conseguenze sul servizio delle nostre linee.\nLinee ATM\nLe nostre linee potrebbero non essere garantite  dalle 8:45 alle 15 e dopo le 18 , fino al termine del servizio.\nFunicolare Como-Brunate\nIl servizio potrebbe non essere garantito  dalle 8:30 alle 16:30 e dopo le 19:30,  fino al termine del servizio.\nMotivazioni dei sindacati che hanno proclamato lo sciopero\nLo sciopero è stato proclamato  “contro la guerra e l’aumento delle spese militari; contro lo sfruttamento sul lavoro, la precarietà ed il mancato adeguamento delle retribuzioni dei lavoratori del settore pubblico e del settore privato; contro il Genocidio in Palestina e la fornitura di armi ad Israele; contro l’assenza di politiche sociali a cominciare dall’emergenza abitativa; contro politiche repressive dei diversi decreti \"Sicurezza\" come il D.L. 23/2026 e i precedenti del 2025; contro gli abusi della Commissione di Garanzia, le delibere che restringono il diritto di sciopero e il tentativo di imbavagliare le lotte nel settore della Logistica (per l’abrogazione delle L.146/90 e L.83/00); contro l’assenza di politiche industriali capaci di affrontare le transizioni in corso; contro le morti sul lavoro”.\nAdesione agli scioperi precedenti\nPotete consultare le percentuali di adesione agli scioperi recenti a questa pagina:\npersonale ATM\nQuesta comunicazione è valida ai sensi e per gli effetti della legge 146/90 sulla regolamentazione degli scioperi nei pubblici servizi.\nI link seguenti verranno aperti in una nuova pagina\nSegnala su:\nInvia a un amico\nStampa\nLink di fine pagina\nLink di fine pagina\nProtezione Dati Personali e RDP\nSocial network Atm\nDichiarazioni di accessibilità\nIN ALTO PER SFRUTTARE L'ASYNC (BEST PRACTICE DI GOOGLE) -->",
+      "description": "Sciopero generale nazionale venerdì 29 maggio\nTag:\ninfotraffico\nVenerdì 29 maggio  il sindacato CUB e altre organizzazioni sindacali autonome e di base hanno proclamato uno sciopero generale nazionale che potrebbe avere conseguenze sul servizio delle nostre linee.\nDalle 9:30 ci sarà una manifestazione che avrà conseguenze su queste linee  1, 12, 15, 16, 19, 24, 27, 60, 61 e 84.  Sulla app e su X daremo aggiornamenti in tempo reale.\nLinee ATM\nLe nostre linee potrebbero non essere garantite  dalle 8:45 alle 15 e dopo le 18 , fino al termine del servizio.\nFunicolare Como-Brunate\nIl servizio potrebbe non essere garantito  dalle 8:30 alle 16:30 e dopo le 19:30,  fino al termine del servizio.\nMotivazioni dei sindacati che hanno proclamato lo sciopero\nLo sciopero è stato proclamato  “contro la guerra e l’aumento delle spese militari; contro lo sfruttamento sul lavoro, la precarietà ed il mancato adeguamento delle retribuzioni dei lavoratori del settore pubblico e del settore privato; contro il Genocidio in Palestina e la fornitura di armi ad Israele; contro l’assenza di politiche sociali a cominciare dall’emergenza abitativa; contro politiche repressive dei diversi decreti \"Sicurezza\" come il D.L. 23/2026 e i precedenti del 2025; contro gli abusi della Commissione di Garanzia, le delibere che restringono il diritto di sciopero e il tentativo di imbavagliare le lotte nel settore della Logistica (per l’abrogazione delle L.146/90 e L.83/00); contro l’assenza di politiche industriali capaci di affrontare le transizioni in corso; contro le morti sul lavoro”.\nAdesione agli scioperi precedenti\nPotete consultare le percentuali di adesione agli scioperi recenti a questa pagina:\npersonale ATM\nQuesta comunicazione è valida ai sensi e per gli effetti della legge 146/90 sulla regolamentazione degli scioperi nei pubblici servizi.\nI link seguenti verranno aperti in una nuova pagina\nSegnala su:\nInvia a un amico\nStampa\nLink di fine pagina\nLink di fine pagina\nProtezione Dati Personali e RDP\nSocial network Atm\nDichiarazioni di accessibilità\nIN ALTO PER SFRUTTARE L'ASYNC (BEST PRACTICE DI GOOGLE) -->",
       "startDate": "2026-05-28T22:00:00.000Z",
       "endDate": "2026-05-29T21:59:59.000Z",
       "affectedServices": [
         "ATM",
-        "Funicolare Como-Brunate"
+        "Funicolare Como-Brunate",
+        "linee 1, 12, 15, 16, 19, 24, 27, 60, 61 e 84"
       ],
       "severity": "high",
       "url": "https://www.atm.it/it/ViaggiaConNoi/InfoTraffico/Pagine/Scioperogeneralenazionalevenerdì29maggio.aspx",
       "guaranteedBands": [
-        {
-          "service": "ATM",
-          "date": null,
-          "from": "15:00",
-          "to": "18:00"
-        },
-        {
-          "service": "Funicolare Como-Brunate",
-          "date": null,
-          "from": "16:30",
-          "to": "19:30"
-        }
-      ],
-      "strikeWindows": [
         {
           "service": "ATM",
           "date": null,
@@ -101,28 +88,39 @@
           "to": "fine_servizio"
         }
       ],
+      "strikeWindows": [
+        {
+          "service": "ATM",
+          "date": null,
+          "from": "00:00",
+          "to": "08:45"
+        },
+        {
+          "service": "ATM",
+          "date": null,
+          "from": "15:00",
+          "to": "18:00"
+        },
+        {
+          "service": "Funicolare Como-Brunate",
+          "date": null,
+          "from": "00:00",
+          "to": "08:30"
+        },
+        {
+          "service": "Funicolare Como-Brunate",
+          "date": null,
+          "from": "16:30",
+          "to": "19:30"
+        }
+      ],
       "busReplacements": [],
       "id": "atm-2026-05-24-sciopero-generale-nazionale-venerdi-29-m",
-      "summary": "Linee ATM e Funicolare Como-Brunate a rischio. Servizio garantito solo in alcune fasce orarie.",
-      "descriptionHash": "34f05dadc8df487b",
+      "summary": "Linee ATM e Funicolare Como-Brunate a rischio. Servizio garantito dalle 8:45 alle 15 e tra le 18:00 e fine servizio.",
+      "descriptionHash": "5a89a12677263a51",
       "telegramNotified": true,
-      "reminder24hSent": true,
-      "lastKnownHash": "Sciopero%20nazionale%20trasporti%2029%20maggio|Linee%20ATM%20e%20Funicolare%20Como-Brunate%20a%20rischio.%20Servizio%20garantito%20solo%20in%20alcune%20fasce%20orarie.|2026-05-28T22%3A00%3A00.000Z|2026-05-29T21%3A59%3A59.000Z|ATM::15%3A00-18%3A00,Funicolare%20Como-Brunate::16%3A30-19%3A30|ATM::08%3A45-15%3A00,ATM::18%3A00-fine_servizio,Funicolare%20Como-Brunate::08%3A30-16%3A30,Funicolare%20Como-Brunate::19%3A30-fine_servizio||ATM,Funicolare%20Como-Brunate"
-    },
-    {
-      "source": "atm",
-      "type": "works",
-      "title": "Tram 33: cambiamenti al servizio",
-      "description": "Sono in programma lavori stradali in viale Zara, all’angolo con viale Stelvio. Sabato 30 maggio, dalle 8:30 alle 17:30 , i tram fanno servizio tra Rimembranze di Lambrate e la fermata via Farini/via Ferrari. Poi girano in via Farini, dove fanno le stesse fermate dei tram 2 e 4. Fanno capolinea a Maciachini . Da qui ripartono al contrario sullo stesso percorso. Saltano le fermate di via Ugo Bassi, via Porro Lambertenghi e piazzale Lagosta. In alternativa , usate M5 tra Garibaldi e Isola .",
-      "startDate": "2026-05-14T16:23:50.000Z",
-      "endDate": null,
-      "affectedServices": [],
-      "severity": "low",
-      "url": "https://www.atm.it/it/ViaggiaConNoi/InfoTraffico/Pagine/Tram33cambiamentialservizio.aspx",
-      "guaranteedBands": null,
-      "strikeWindows": null,
-      "busReplacements": null,
-      "id": "atm-2026-05-14-tram-33-cambiamenti-al-servizio"
+      "reminder24hSent": false,
+      "lastKnownHash": "Sciopero%20nazionale%20trasporti%2029%20maggio|Linee%20ATM%20e%20Funicolare%20Como-Brunate%20a%20rischio.%20Servizio%20garantito%20dalle%208%3A45%20alle%2015%20e%20tra%20le%2018%3A00%20e%20fine%20servizio.|2026-05-28T22%3A00%3A00.000Z|2026-05-29T21%3A59%3A59.000Z|ATM::08%3A45-15%3A00,ATM::18%3A00-fine_servizio,Funicolare%20Como-Brunate::08%3A30-16%3A30,Funicolare%20Como-Brunate::19%3A30-fine_servizio|ATM::00%3A00-08%3A45,ATM::15%3A00-18%3A00,Funicolare%20Como-Brunate::00%3A00-08%3A30,Funicolare%20Como-Brunate::16%3A30-19%3A30||ATM,Funicolare%20Como-Brunate,linee%201%2C%2012%2C%2015%2C%2016%2C%2019%2C%2024%2C%2027%2C%2060%2C%2061%20e%2084"
     },
     {
       "source": "atm",
@@ -138,23 +136,6 @@
       "strikeWindows": null,
       "busReplacements": null,
       "id": "atm-2026-05-15-bus-77-deviazione"
-    },
-    {
-      "source": "atm",
-      "type": "disruption",
-      "title": "Mi Ami Festival: come arrivare con i mezzi pubblici",
-      "description": "English version Venerdì 22 e sabato 23 maggio la metropolitana M4 è potenziata e aperta fino a tarda notte. In questa pagina trovate tutte le informazioni per raggiungere il Mi Ami Festival con i mezzi pubblici. Come raggiungere l’Idroscalo - Mappa di tutte le metropolitane Con la metropolitana M4, scendete alla stazione di Linate. Poi seguite il percorso pedonale Con il bus 973 (parte da piazza Cinque Giornate e incontra M4 a Forlanini, Repetti e Linate) fino alla fermata di via Novegro Per rie",
-      "startDate": "2026-05-20T12:12:51.000Z",
-      "endDate": null,
-      "affectedServices": [
-        "ATM"
-      ],
-      "severity": "low",
-      "url": "https://www.atm.it/it/AtmNews/AtmInforma/Pagine/MiAmi2026.aspx",
-      "guaranteedBands": null,
-      "strikeWindows": null,
-      "busReplacements": null,
-      "id": "atm-2026-05-20-mi-ami-festival-come-arrivare-con-i-mezz"
     },
     {
       "source": "atm",
@@ -287,19 +268,36 @@
     {
       "source": "atm",
       "type": "disruption",
-      "title": "Concerti a San Siro: guida a parcheggi, metropolitane e percorsi pedonali",
-      "description": "Insieme al Comune di Milano abbiamo programmato un servizio straordinario per raggiungere lo stadio San Siro con i mezzi pubblici in occasione di questi concerti: Tiziano Ferro 6 e 7 giugno Eros Ramazzotti 9 giugno Irama 11 giugno Geolier 13 giugno Achille Lauro 15 giugno Iron Maiden 17 giugno Ligabue 20 giugno Tedua 24 giugno Gabry Ponte 27 giugno Sfera Ebbasta 8 e 9 luglio Max Pezzali 11 e 12 luglio Bruno Mars 14 e 15 luglio The Weeknd 24, 25 e 26 luglio In queste serate le metropolitane M1 e ",
-      "startDate": "2026-05-28T09:21:09.000Z",
+      "title": "Ponte del 2 giugno: orari e servizi",
+      "description": "Metropolitane Lunedì 1° giugno. Orario del sabato. Martedì 2 giugno. Orario festivo. Artigiano in Fiera / Anteprima estate : domenica 31 e martedì 2 la linea M1 è potenziata rispetto a un normale giorno festivo da e verso Rho Fieramilano Bus, tram e filobus Lunedì 1° giugno. Orario del sabato. Fanno eccezione le linee 140, 709, 926 e 928 che seguono l’orario del lunedì-venerdì. La linea 923 segue questo orario. Martedì 2 giugno. Orario festivo. I bus 171, 172, 174, 175, 176 fanno servizio dalle ",
+      "startDate": "2026-05-28T09:00:50.000Z",
       "endDate": null,
       "affectedServices": [
         "M1"
       ],
       "severity": "low",
-      "url": "https://www.atm.it/it/AtmNews/AtmInforma/Pagine/ConcertiSanSiro26.aspx",
+      "url": "https://www.atm.it/it/ViaggiaConNoi/InfoTraffico/Pagine/Pontedel2giugnoorarieservizi.aspx",
       "guaranteedBands": null,
       "strikeWindows": null,
       "busReplacements": null,
-      "id": "atm-2026-05-28-concerti-a-san-siro-guida-a-parcheggi-me"
+      "id": "atm-2026-05-28-ponte-del-2-giugno-orari-e-servizi"
+    },
+    {
+      "source": "atm",
+      "type": "disruption",
+      "title": "Concerti all’Ippodromo La Maura: guida a parcheggi, metropolitane e percorsi pedonali",
+      "description": "English version Insieme al Comune di Milano abbiamo programmato un servizio straordinario per raggiungere l’Ippodromo La Maura con i mezzi pubblici in occasione di questi concerti: Cesare Cremonini 10 giugno Foo Fighters 5 luglio System of a Down 6 luglio Bad Bunny 17 e 18 luglio In queste serate le metropolitane M1 e M5 sono potenziate e aperte fino a tarda notte. Chiudono più tardi anche alcuni parcheggi in corrispondenza delle stazioni. In questa pagina trovate gli orari e le indicazioni per ",
+      "startDate": "2026-05-28T09:54:08.000Z",
+      "endDate": null,
+      "affectedServices": [
+        "M1"
+      ],
+      "severity": "low",
+      "url": "https://www.atm.it/it/AtmNews/AtmInforma/Pagine/ConcertiLaMaura26.aspx",
+      "guaranteedBands": null,
+      "strikeWindows": null,
+      "busReplacements": null,
+      "id": "atm-2026-05-28-concerti-all-ippodromo-la-maura-guida-a-"
     }
   ]
 }
