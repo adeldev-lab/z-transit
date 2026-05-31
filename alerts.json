@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2026-05-30T09:12:27.517Z",
+  "lastUpdated": "2026-05-31T09:46:04.505Z",
   "windowDays": 14,
   "alerts": [
     {
@@ -33,23 +33,6 @@
       "strikeWindows": null,
       "busReplacements": null,
       "id": "atm-2026-05-25-bus-973-e-nm4-fermata-spostata"
-    },
-    {
-      "source": "atm",
-      "type": "disruption",
-      "title": "Bus 50, 96, NM1 e NM2: fermata sospesa",
-      "description": "Sabato 30 maggio è in programma la posa di una piattaforma aerea in piazzale Cadorna. Bus 50 e 96 La fermata Cadorna M1 M2 verso Cairoli (bus 50) e verso Cadorna (bus 96) è sospesa dalle 7 alle 17. Dopo le 17 usate la fermata provvisoria in via Carducci, prima del numero civico 1. Bus NM1 e NM2 La fermata Cadorna M1 M2 verso Molino Dorino (bus NM1) e verso Cascina Gobba (bus NM2) è sospesa dalle 7 alle 17 . Usate le fermate via Meravigli (bus NM1) o Cairoli (bus NM2). Dopo le 17 usate la fermata",
-      "startDate": "2026-05-25T12:56:21.000Z",
-      "endDate": null,
-      "affectedServices": [
-        "M1"
-      ],
-      "severity": "low",
-      "url": "https://www.atm.it/it/ViaggiaConNoi/InfoTraffico/Pagine/Bus50,96,NM1eNM2fermatasospesa.aspx",
-      "guaranteedBands": null,
-      "strikeWindows": null,
-      "busReplacements": null,
-      "id": "atm-2026-05-25-bus-50-96-nm1-e-nm2-fermata-sospesa"
     },
     {
       "source": "atm",
